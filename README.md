@@ -51,4 +51,4 @@ MP Requirements: Host & Clients need the mod
 - This feature is toggleable by the host
   - Must be toggled before starting a new game
 
- And so much more!
+## And so much more!
