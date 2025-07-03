@@ -9,7 +9,7 @@
 
 ## Installation
 - Install PulsarModLoader
-- Install Mest's Talent Mod
+- Install Talent Mod
 - Go to \PULSARLostColony\Mods
 - Move ExpandedGalaxy.dll into folder
 - Rename Talents.dll so it sorts above ExpandedGalaxy.dll
