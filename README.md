@@ -66,7 +66,7 @@
 - The W.D. Cruiser and Destroyer start with a new main turret
 - Beam-based turrets are now capped at the range listed on the item card instead of 100,000 km
 - Auto Turrets are less likely to get stuck
-- Components can now be scrapped when at a scrapyard for a reasonable free
+- Components can now be scrapped when at a scrapyard for a reasonable fee
 - Added a bunch of new talents and adjusted the effect of some exsisting ones
 - Adjusted the cost of some talents
 - Talent reseach can no longer be advanced by manually charging programs
