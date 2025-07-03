@@ -51,4 +51,23 @@
 - This feature is toggleable by the host
   - Must be toggled before starting a new game
 
-### And so much more!
+### General Additions
+- Cloaking Systems now reduce EM signature instead of setting it to 0
+- Cloaking Systems also buff turret damage or shield recharge when active
+- Emergency Shield Booster and Military Grade Shield Booster are now percentage based
+- Extend Shields provide +100 max integrity and immediatly recharges shields by 100 when first activated
+- Barrage no longer stacks with other Barrages
+- Added a program that makes physical turrets deal acid damage
+- Projectile Aim Assist reticle is now always active regardless of Aux Reactor settings
+- Projectile Aim Assist on Aux Reactor has been replaced with Turret Autofire
+  - This controls if turrets can automatically fire without crew control
+  - Does not affect bot firing capabilities
+- Auto Turrets and Hull Plating are now upgradeable
+- The W.D. Cruiser and Destroyer start with a new main turret
+- Beam-based turrets are now capped at the range listed on the item card instead of 100,000 km
+- Auto Turrets are less likely to get stuck
+- Components can now be scrapped when at a scrapyard for a reasonable free
+- Added a bunch of new talents and adjusted the effect of some exsisting ones
+- Adjusted the cost of some talents
+- Talent reseach can no longer be advanced by manually charging programs
+  - Friendly reminder that the program Quantum Tunnel exsists
