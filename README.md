@@ -1,11 +1,11 @@
 # Expanded-Galaxy
 
 ## Information
-Developer: sugarbuzz1
-Game Version: 1.2.07
-PML Version: 0.12.3.31
-Mod Version: 1.0.0
-MP Requirements: Host & Clients need the mod
+- Developer: sugarbuzz1
+- Game Version: 1.2.07
+- PML Version: 0.12.3.31
+- Mod Version: 1.0.0
+- MP Requirements: Host & Clients need the mod
 
 ## Installation
 - Install PulsarModLoader
