@@ -11,7 +11,7 @@ namespace ExpandedGalaxy
             PLGlobal.Instance.AuxSystemNames[4] = PLLocalize.Localize("Turret Autofire");
             PLGlobal.Instance.Galaxy.FactionColors[6] = Relic.getRelicColor();
         }
-        public override string Version => "1.0.0";
+        public override string Version => "1.0.1";
 
         public override string Author => "sugarbuzz1";
 
