@@ -123,8 +123,6 @@ namespace ExpandedGalaxy
         {
             if (__instance == null || !__instance.GetIsPlayerShip())
                 return;
-            PLGlobal.Instance.AuxSystemNames[4] = PLLocalize.Localize("Turret Autofire");
-            PLGlobal.Instance.Galaxy.FactionColors[6] = Relic.getRelicColor();
             if (Jetpack.AdvancedJetPack)
             {
                 TalentModManager.Instance.HideTalent((int)ETalents.INC_JETPACK);
@@ -146,21 +144,23 @@ namespace ExpandedGalaxy
                 TalentModManager.Instance.HideTalent((int)TalentModManager.Instance.GetTalentIDFromName("Reloader"));
             }
             TalentModManager.Instance.HideTalent((int)ETalents.SCI_RESEARCH_SPECIALTY);
-            foreach (PLPlayer player in PLServer.Instance.AllPlayers)
-            {
-                if (player != null && player.TeamID == PLNetworkManager.Instance.LocalPlayer.TeamID)
+            if (PLNetworkManager.Instance.LocalPlayer != null) {
+                foreach (PLPlayer player in PLServer.Instance.AllPlayers)
                 {
-                    if (Jetpack.AdvancedJetPack && player.Talents[(int)ETalents.INC_JETPACK] > 0)
+                    if (player != null && player.TeamID == PLNetworkManager.Instance.LocalPlayer.TeamID)
                     {
-                        int num = (int)player.Talents[(int)ETalents.INC_JETPACK];
-                        player.Talents[TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve")] = (ObscuredInt)num;
-                        player.Talents[(int)ETalents.INC_JETPACK] = (ObscuredInt)0;
-                    }
-                    else if (!Jetpack.AdvancedJetPack && player.Talents[TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve")] > 0)
-                    {
-                        int num = (int)player.Talents[TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve")];
-                        player.Talents[(int)ETalents.INC_JETPACK] = (ObscuredInt)num;
-                        player.Talents[(int)TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve")] = (ObscuredInt)0;
+                        if (Jetpack.AdvancedJetPack && player.Talents[(int)ETalents.INC_JETPACK] > 0)
+                        {
+                            int num = (int)player.Talents[(int)ETalents.INC_JETPACK];
+                            player.Talents[TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve")] = (ObscuredInt)num;
+                            player.Talents[(int)ETalents.INC_JETPACK] = (ObscuredInt)0;
+                        }
+                        else if (!Jetpack.AdvancedJetPack && player.Talents[TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve")] > 0)
+                        {
+                            int num = (int)player.Talents[TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve")];
+                            player.Talents[(int)ETalents.INC_JETPACK] = (ObscuredInt)num;
+                            player.Talents[(int)TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve")] = (ObscuredInt)0;
+                        }
                     }
                 }
             }

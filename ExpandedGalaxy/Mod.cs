@@ -6,8 +6,10 @@ namespace ExpandedGalaxy
 {
     public class Mod : PulsarMod
     {
-        public Mod()
+        public Mod() : base()
         {
+            PLGlobal.Instance.AuxSystemNames[4] = PLLocalize.Localize("Turret Autofire");
+            PLGlobal.Instance.Galaxy.FactionColors[6] = Relic.getRelicColor();
         }
         public override string Version => "1.0.0";
 

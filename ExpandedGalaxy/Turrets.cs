@@ -1110,11 +1110,11 @@ namespace ExpandedGalaxy
 
             internal class WDStandard : PLMegaTurret
             {
-                protected int ShotsSinceReload = 3;
                 protected int ShotsMax = 3;
                 private bool ColorCorrected;
+                private double lastUpdateTime = double.MinValue;
 
-                public WDStandard(int inLevel = 0, int inSubTypeData = 1)
+                public WDStandard(int inLevel = 0, int inSubTypeData = 0)
                 : base(inLevel)
                 {
                     this.Name = "WD Standard";
@@ -1139,6 +1139,7 @@ namespace ExpandedGalaxy
                     this.HasPulseLaser = true;
                     Traverse.Create((PLMegaTurret)this).Field("turretChargeSpeed_ToVisualChargeSpeed").SetValue(0.2625f);
                     this.ColorCorrected = false;
+                    this.SubTypeData = 3;
                 }
 
                 protected virtual void CorrectColors()
@@ -1176,24 +1177,34 @@ namespace ExpandedGalaxy
                     base.Fire(inProjID, dir);
                     if (flag)
                         return;
-                    if (this.ShotsSinceReload < this.ShotsMax - 1)
+                    if ((int)this.SubTypeData < this.ShotsMax - 1)
                         this.ChargeAmount = 1f;
                 }
                 protected override void ChargeComplete(int inProjID, Vector3 dir)
                 {
                     base.ChargeComplete(inProjID, dir);
-                    ++this.ShotsSinceReload;
+                    ++this.SubTypeData;
                 }
 
-                protected override string GetInfoString() => "    " + (this.ShotsMax - this.ShotsSinceReload).ToString() + "/" + this.ShotsMax.ToString();
+                protected override string GetInfoString() => "    " + (this.ShotsMax - this.SubTypeData).ToString() + "/" + this.ShotsMax.ToString();
 
                 public override void Tick()
                 {
-                    if (this.ShotsSinceReload >= this.ShotsMax && (double)this.ChargeAmount > 0.99f)
-                        ShotsSinceReload = 0;
+                    if (this.SubTypeData >= this.ShotsMax && (double)this.ChargeAmount > 0.99f)
+                        this.SubTypeData = 0;
                     base.Tick();
                     if (this.IsEquipped && !this.ColorCorrected)
                         this.CorrectColors();
+                    if (this.IsEquipped && PhotonNetwork.isMasterClient && (double)Time.time - this.lastUpdateTime > 4.0)
+                    {
+                        ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                    {
+                        (object) this.ShipStats.Ship.ShipID,
+                        (object) this.NetID,
+                        (object) this.SubTypeData,
+                    });
+                        this.lastUpdateTime = (double)Time.time;
+                    }
                 }
 
                 protected override void UpdatePowerUsage(PLPlayer currentOperator)
@@ -1209,7 +1220,7 @@ namespace ExpandedGalaxy
 
                 protected override bool ShouldAIFire(bool operatedByBot, float heatOffset, float heatGeneratedOnFire)
                 {
-                    return operatedByBot && this.Heat + heatGeneratedOnFire < 0.99f && this.ShotsSinceReload < 3;
+                    return operatedByBot && this.Heat + heatGeneratedOnFire < 0.90f && this.SubTypeData < 3;
                 }
             }
 

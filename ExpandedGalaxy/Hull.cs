@@ -140,7 +140,7 @@ namespace ExpandedGalaxy
 
             public override int MarketPrice => 25000;
 
-            public override float HullMax => 3250f;
+            public override float HullMax => 1625f;
 
             public override float Armor => 1f;
 

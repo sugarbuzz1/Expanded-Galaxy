@@ -2032,7 +2032,7 @@ namespace ExpandedGalaxy
             [HarmonyPatch(typeof(PLShipInfoBase), "GetChaosBoost", new Type[2] { typeof(PLPersistantShipInfo), typeof(int) })]
             internal class MiningDroneScalingFix
             {
-                private static void Postfix(PLShipInfoBase __instance, PLPersistantShipInfo inPersistantShipInfo, int offset, ref int __result)
+                /*private static void Postfix(PLShipInfoBase __instance, PLPersistantShipInfo inPersistantShipInfo, int offset, ref int __result)
                 {
                     if (!((UnityEngine.Object)PLServer.Instance != (UnityEngine.Object)null) || inPersistantShipInfo == null)
                         return;
@@ -2051,6 +2051,28 @@ namespace ExpandedGalaxy
                             __result = 0;
 
                     }
+                }*/
+
+                private static Exception Finalizer(Exception __exception, PLShipInfoBase __instance, PLPersistantShipInfo inPersistantShipInfo, int offset, ref int __result)
+                {
+                    if (!((UnityEngine.Object)PLServer.Instance != (UnityEngine.Object)null) || inPersistantShipInfo == null)
+                        return __exception;
+                    if ((inPersistantShipInfo.Type == EShipType.E_WDDRONE1 || inPersistantShipInfo.Type == EShipType.E_WDDRONE2) && inPersistantShipInfo.FactionID == 6)
+                    {
+                        bool flag = false;
+                        foreach (ComponentOverrideData data in inPersistantShipInfo.CompOverrides)
+                        {
+                            if (data.CompType == (int)ESlotType.E_COMP_DISTRESS_SIGNAL && data.CompSubType == 4)
+                            {
+                                flag = true;
+                                break;
+                            }
+                        }
+                        if (flag)
+                            __result = 0;
+
+                    }
+                    return __exception;
                 }
             }
 
