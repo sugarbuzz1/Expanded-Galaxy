@@ -164,39 +164,6 @@ namespace ExpandedGalaxy
                     }
                 }
             }
-            int flag = -1;
-            int flag1 = -1;
-            int flag2 = -1;
-            for (int i = PLGlobal.Instance.AllGeneralInfos.Count - 1; i > 28; i--)
-            {
-                switch (PLGlobal.Instance.AllGeneralInfos[i].Name_lower)
-                {
-                    case "mining drone":
-                        flag = i;
-                        break;
-                    case "escort drone":
-                        flag1 = i;
-                        break;
-                    case "guardian drone":
-                        flag2 = i;
-                        break;
-                }
-                if (flag != -1 && flag1 != -1 && flag2 != -1)
-                    break;
-            }
-            if (Relic.MiningDroneQuest.GXData < 2)
-            {
-                if (flag2 != -1)
-                    PLGlobal.Instance.AllGeneralInfos.RemoveAt(flag2);
-
-            }
-            if (Relic.MiningDroneQuest.GXData < 1)
-            {
-                if (flag1 != -1)
-                    PLGlobal.Instance.AllGeneralInfos.RemoveAt(flag1);
-                if (flag != -1)
-                    PLGlobal.Instance.AllGeneralInfos.RemoveAt(flag);
-            }
             if (!PhotonNetwork.isMasterClient)
                 return;
             ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.RecieveData", PhotonTargets.Others, new object[6]

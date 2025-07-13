@@ -71,12 +71,13 @@ namespace ExpandedGalaxy
 
             private static void Postfix(PLPersistantEncounterInstance __instance)
             {
+                if (!(PLEncounterManager.Instance.GetCurrentPersistantEncounterInstance() != null) || PLServer.GetSectorWithID(__instance.GetSectorID()) == null || PLEncounterManager.Instance.PlayerShip == null)
+                    return;
                 PLSectorInfo sectorInfo = PLServer.GetSectorWithID(__instance.GetSectorID());
                 if (!(sectorInfo.VisualIndication == ESectorVisualIndication.ALCHEMIST && sectorInfo.MySPI.Faction == 5))
                     return;
 
-                if (!(PLEncounterManager.Instance.GetCurrentPersistantEncounterInstance() != null))
-                    return;
+                
                 bool playerInEncounter = PLEncounterManager.Instance.GetCurrentPersistantEncounterInstance().GetSectorID() == __instance.GetSectorID();
                 if ((bool)playerInEncounter && !PLEncounterManager.Instance.PlayerShip.Get_IsInWarpMode())
                 {

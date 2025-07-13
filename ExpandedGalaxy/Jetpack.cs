@@ -49,7 +49,11 @@ namespace ExpandedGalaxy
                 return 0.25f;
             }
             else
-                return 0f;
+            {
+                if (playerController.JetpackFuel < 0.05f)
+                    return 0.25f;
+            }
+            return 0f;
         }
     }
 

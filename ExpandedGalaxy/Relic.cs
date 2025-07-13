@@ -2032,27 +2032,6 @@ namespace ExpandedGalaxy
             [HarmonyPatch(typeof(PLShipInfoBase), "GetChaosBoost", new Type[2] { typeof(PLPersistantShipInfo), typeof(int) })]
             internal class MiningDroneScalingFix
             {
-                /*private static void Postfix(PLShipInfoBase __instance, PLPersistantShipInfo inPersistantShipInfo, int offset, ref int __result)
-                {
-                    if (!((UnityEngine.Object)PLServer.Instance != (UnityEngine.Object)null) || inPersistantShipInfo == null)
-                        return;
-                    if ((inPersistantShipInfo.Type == EShipType.E_WDDRONE1 || inPersistantShipInfo.Type == EShipType.E_WDDRONE2) && inPersistantShipInfo.FactionID == 6)
-                    {
-                        bool flag = false;
-                        foreach (ComponentOverrideData data in inPersistantShipInfo.CompOverrides)
-                        {
-                            if (data.CompType == (int)ESlotType.E_COMP_DISTRESS_SIGNAL && data.CompSubType == 4)
-                            {
-                                flag = true;
-                                break;
-                            }
-                        }
-                        if (flag)
-                            __result = 0;
-
-                    }
-                }*/
-
                 private static Exception Finalizer(Exception __exception, PLShipInfoBase __instance, PLPersistantShipInfo inPersistantShipInfo, int offset, ref int __result)
                 {
                     if (!((UnityEngine.Object)PLServer.Instance != (UnityEngine.Object)null) || inPersistantShipInfo == null)
@@ -2107,12 +2086,107 @@ namespace ExpandedGalaxy
                     return false;
                 }
             }
+
+            [HarmonyPatch(typeof(PLScientistComputerScreen), "SetupGeneralInfoResult")]
+            internal class HideDroneInfos
+            {
+                private static bool Prefix(ref string ___CurrentSearchString)
+                {
+                    int result = -1;
+                    if (!int.TryParse(___CurrentSearchString, out result) || PLGlobal.Instance.AllGeneralInfos == null || result < 0 || PLGlobal.Instance.AllGeneralInfos.Count <= result)
+                        return false;
+                    if ((PLGlobal.Instance.AllGeneralInfos[result].Name == "Mining Drone" || PLGlobal.Instance.AllGeneralInfos[result].Name == "Escort Drone") && GXData < 1)
+                        return false;
+                    else if (PLGlobal.Instance.AllGeneralInfos[result].Name == "Guardian Drone" && GXData < 2)
+                        return false;
+                    return true;
+                }
+            }
+
+            [HarmonyPatch(typeof(PLGlobal), "LoadGXFile")]
+            internal class AddDroneGXEntries
+            {
+                private static void Postfix(PLGlobal __instance)
+                {
+                    __instance.AllGeneralInfos.Add(new GeneralInfo
+                    {
+                        Name = "Mining Drone",
+                        Name_lower = "mining drone",
+                        ID = 29,
+                        Desc = "Drone used for extracting minerals from space asteroids.\n\nThey appear to be communicating with some uncharted hub sector within this galaxy. They are equipped with powerful laser technology.\n\nMining drones are not hostile unless provoked.",
+                        MyStats = new List<GeneralInfoStat> { new GeneralInfoStat
+                {
+                    Left = "Type",
+                    Right = "Unmanned Drone"
+                },
+                new GeneralInfoStat
+                {
+                    Left = "Faction",
+                    Right = "Unknown"
+                },
+                new GeneralInfoStat
+                {
+                    Left = "Service",
+                    Right = "Resource Extraction"
+                }
+                }
+                    });
+                    __instance.AllGeneralInfos.Add(new GeneralInfo
+                    {
+                        Name = "Escort Drone",
+                        Name_lower = "escort drone",
+                        ID = 30,
+                        Desc = "Drone used to protect mining drone operations.\n\nThey appear to be communicating with some uncharted hub sector within this galaxy. They reinforce other mining and escort drones in distress.\n\nEscort drones are not hostile unless a drone is provoked.",
+                        MyStats = new List<GeneralInfoStat> { new GeneralInfoStat
+                {
+                    Left = "Type",
+                    Right = "Unmanned Drone"
+                },
+                new GeneralInfoStat
+                {
+                    Left = "Faction",
+                    Right = "Unknown"
+                },
+                new GeneralInfoStat
+                {
+                    Left = "Service",
+                    Right = "Asset Protection"
+                }
+                }
+                    });
+                    __instance.AllGeneralInfos.Add(new GeneralInfo
+                    {
+                        Name = "Guardian Drone",
+                        Name_lower = "guardian drone",
+                        ID = 31,
+                        Desc = "Drone seen protecting the mining drone hub world in this galaxy.\n\nThey are outfitted with powerful weaponry designed to debilitate attacking ships. Each drone is equipped with a signal jammer that blocks teleportation to thier world's surface.\n\nGuardian drones are always hostile.",
+                        MyStats = new List<GeneralInfoStat> { new GeneralInfoStat
+                {
+                    Left = "Type",
+                    Right = "Unmanned Drone"
+                },
+                new GeneralInfoStat
+                {
+                    Left = "Faction",
+                    Right = "Unknown"
+                },
+                new GeneralInfoStat
+                {
+                    Left = "Service",
+                    Right = "Hub World Protector"
+                }
+                }
+                    });
+                }
+            }
         }
 
         internal class RelicCaravan
         {
             internal static int CaravanCurrentSector = -1;
             internal static int CaravanTargetSector = -1;
+            private static List<PLSectorInfo> CaravanPath = new List<PLSectorInfo>();
+            private static int CaravanPathIndex = 0;
             internal static int CaravanSpecialsData = 0;
             internal static int CaravanUpdateTime = 0;
             internal static TraderPersistantDataEntry CaravanTraderData;
@@ -2299,6 +2373,21 @@ namespace ExpandedGalaxy
                         lineDataShop.ChildLines.Add(lineDataShopText);
                         lineDataOpener.ChildLines.Add(lineDataShop);
 
+                        LineData lineDataDestination = new LineData();
+                        lineDataDestination.TextOptions.Add("DESTINATION");
+                        lineDataDestination.IsPlayerLine = true;
+                        lineDataDestination.Actions.Add(new LineActionData() { Type = "1" });
+                        lineDataDestination.Actions.Add(new LineActionData() { Type = "0" });
+
+                        LineData lineDataDestinationText = new LineData();
+                        lineDataDestinationText.TextOptions.Add(GetTextForDestinationSector());
+                        lineDataDestinationText.Actions.Add(new LineActionData() { Type = "1" });
+                        lineDataDestinationText.Actions.Add(new LineActionData() { Type = "0" });
+
+                        lineDataDestination.ChildLines.Add(lineDataDestinationText);
+                        lineDataDestinationText.ChildLines.Add(lineDataShopClose);
+                        lineDataOpener.ChildLines.Add(lineDataDestination);
+
                         LineData lineDataMissionOption = new LineData();
                         lineDataMissionOption.TextOptions.Add("\"SPECIAL\" OFFER");
                         lineDataMissionOption.IsPlayerLine = true;
@@ -2432,6 +2521,46 @@ namespace ExpandedGalaxy
                 }
             }
 
+            private static string GetTextForDestinationSector()
+            {
+                string result = "We aren't headed to anywhere in particular at the moment. Feel free to browse our wares while we are anchored here!";
+                if (CaravanTargetSector != -1)
+                {
+                    PLSectorInfo sector = PLServer.GetSectorWithID(CaravanTargetSector);
+                    if (sector != null)
+                    {
+                        switch (sector.VisualIndication)
+                        {
+                            case ESectorVisualIndication.CORNELIA_HUB:
+                                result = "Our current heading is Cornelia. I heard someone there is in possesion of a data fragment if you're willing to do his dirty work.";
+                                break;
+                            case ESectorVisualIndication.DESERT_HUB:
+                                result = "We are currently headed to the Burrow. Watching crews scramble around in the arena never gets old! They also have quite the selection of handheld weaponry too.";
+                                break;
+                            case ESectorVisualIndication.AOG_HUB:
+                                if (PLServer.Instance.CrewFactionID == 2)
+                                    result = "We are headed to the Es... Harbor! It's a great place with a lot of great people! You should head there as soon as possible!";
+                                else
+                                    result = "We are headed to the Estate. It's got one of the best bars in the galaxy. Our pilot frequents the specials menu every time we anchor there.";
+                                break;
+                            case ESectorVisualIndication.GENTLEMEN_START:
+                                if (PLServer.Instance.CrewFactionID == 1)
+                                    result = "We are headed to the hideout. We have a client there who is a reputable borthix trader if you're looking get your hands on some.";
+                                else
+                                    result = "We are headed to... nowhere in particluar. Feel free to browse our wares while we are here.";
+                                break;
+                            case ESectorVisualIndication.THE_HARBOR:
+                                if (PLServer.Instance.CrewFactionID == 1)
+                                    result = "We are currently headed to the Harbor. It's a nice place but be careful, they aren't too fond of Gentlemen there";
+                                else
+                                    result = "We are currently headed to the Harbor. It may be remote, but it's a great place to resupply.";
+                                break;
+                        }
+                    }
+                }
+                return result;
+            }
+
             [HarmonyPatch(typeof(PLStarmap), "Update")]
             internal class CaravanIcon
             {
@@ -2496,6 +2625,7 @@ namespace ExpandedGalaxy
             [HarmonyPatch(typeof(PLServer), "Update")]
             internal class UpdateCaravan
             {
+                
                 private static void Postfix()
                 {
                     if (PLServer.Instance == null)
@@ -2532,16 +2662,19 @@ namespace ExpandedGalaxy
                         if (PLServer.Instance.GetEstimatedServerMs() > 0 && PLServer.Instance.GetEstimatedServerMs() - CaravanUpdateTime > 0)
                         {
                             CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 60000;
-                            if (CaravanTargetSector != -1)
+                            if (CaravanTargetSector != -1 && CaravanPath.Count > 1)
                             {
-                                PLSectorInfo currentSector = PLServer.GetSectorWithID(CaravanCurrentSector);
-                                PLSectorInfo targetSector = PLServer.GetSectorWithID(CaravanTargetSector);
-                                List<PLSectorInfo> travelPath = GetPathToSector_NPC(currentSector, targetSector, 10f);
-                                if (travelPath.Count > 1)
+                                if (CaravanPath.Count > 1)
                                 {
-                                    CaravanCurrentSector = travelPath[1].ID;
-                                    persistantCaravanInfo.MyCurrentSector = travelPath[1];
-                                    persistantCaravanInfo.ShldPercent = 1f;
+                                    if (CaravanPath[CaravanPathIndex + 1].MySPI.Faction == 4 || CaravanPath[CaravanPathIndex + 1].DistressSignalActive)
+                                        flag = true;
+                                    else
+                                    {
+                                        CaravanCurrentSector = CaravanPath[CaravanPathIndex + 1].ID;
+                                        persistantCaravanInfo.MyCurrentSector = CaravanPath[CaravanPathIndex + 1];
+                                        persistantCaravanInfo.ShldPercent = 1f;
+                                        CaravanPathIndex++;
+                                    }
                                     if (CaravanCurrentSector == CaravanTargetSector)
                                     {
                                         persistantCaravanInfo.HullPercent = 1f;
@@ -2573,7 +2706,7 @@ namespace ExpandedGalaxy
                                                 }
                                                 else if (num == 1)
                                                 {
-                                                    if (UnityEngine.Random.Range(0f, 1000f) > 667f)
+                                                    if (UnityEngine.Random.Range(0f, 1000f) > 500f)
                                                     {
                                                         persistantCaravanInfo.OptionalTPDE.Wares.Remove(currentKey);
                                                         persistantCaravanInfo.OptionalTPDE.ServerAddWare(GetSpecialOffer());
@@ -2588,16 +2721,8 @@ namespace ExpandedGalaxy
                                                 }
                                                 else
                                                 {
-                                                    if (UnityEngine.Random.Range(0f, 1000f) > 900f)
-                                                    {
-                                                        persistantCaravanInfo.OptionalTPDE.Wares.Remove(currentKey);
-                                                        persistantCaravanInfo.OptionalTPDE.ServerAddWare(GetSpecialOffer());
-                                                    }
-                                                    else
-                                                    {
-                                                        persistantCaravanInfo.OptionalTPDE.Wares.Remove(currentKey);
-                                                        persistantCaravanInfo.OptionalTPDE.ServerAddWare(PLShipComponent.CreateRandom());
-                                                    }
+                                                    persistantCaravanInfo.OptionalTPDE.Wares.Remove(currentKey);
+                                                    persistantCaravanInfo.OptionalTPDE.ServerAddWare(PLShipComponent.CreateRandom());
                                                     wareKeys.Remove(currentKey);
                                                 }
                                             }
@@ -2642,7 +2767,12 @@ namespace ExpandedGalaxy
                                     potentialTargets.Remove(PLServer.GetSectorWithID(CaravanCurrentSector).VisualIndication);
                                 ESectorVisualIndication target = potentialTargets[UnityEngine.Random.Range(0, potentialTargets.Count)];
                                 if (PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(target) != null)
+                                {
                                     CaravanTargetSector = PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(target).ID;
+                                    CaravanPath.Clear();
+                                    CaravanPath = GetPathToSector_NPC(PLServer.GetSectorWithID(CaravanCurrentSector), PLServer.GetSectorWithID(CaravanTargetSector), 0.1f);
+                                    CaravanPathIndex = 0;
+                                }
                             }
                         }
                     }

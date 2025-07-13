@@ -221,29 +221,34 @@ namespace ExpandedGalaxy
         {
             private static void Postfix(PLPersistantEncounterInstance pei, string spawnType, Transform childTransform, PLSpawner spawner, PLTeleportationLocationInstance optionalTLI, PLInterior optionalInterior, PLCombatTarget combatTargetWhoSpawnedMe)
             {
+                if (pei == null)
+                    return;
                 foreach (GameObject allPlayerObject in pei.MyCreatedPlayers)
                 {
+                    if (allPlayerObject == null)
+                        continue;
                     PLPlayer allPlayer = allPlayerObject.GetComponent<PLPlayer>();
                     if (allPlayer != null && !allPlayer.gameObject.name.Contains("ExGal"))
                     {
                         allPlayer.Talents[(int)ETalents.WPN_AMMO_BOOST] = (ObscuredInt)20;
                         allPlayer.gameObject.name += " ExGal";
-                    }
-                    if (pei is PLLavaPlanet2Encounter && !allPlayer.gameObject.name.Contains("Lava2"))
-                    {
-                        int netID = PLServer.Instance.PawnInvItemIDCounter++;
-                        int num = UnityEngine.Random.Range(0, 2);
-                        allPlayer.MyInventory.Clear();
-                        if (num == 0)
-                            allPlayer.MyInventory.UpdateItem(netID, 9, 0, 4, 1);
-                        else
-                            allPlayer.MyInventory.UpdateItem(netID, 12, 0, 4, 1);
-                        allPlayer.Talents[(int)ETalents.HEALTH_BOOST] = (ObscuredInt)5;
-                        allPlayer.Talents[(int)ETalents.ARMOR_BOOST] = (ObscuredInt)7;
-                        allPlayer.Talents[(int)ETalents.PISTOL_DMG_BOOST] = (ObscuredInt)3;
-                        allPlayer.gameObject.name += " Lava2";
-                        allPlayer.SetPlayerName("Guard");
-                    }
+
+                        if (pei is PLLavaPlanet2Encounter && !allPlayer.gameObject.name.Contains("Lava2"))
+                        {
+                            int netID = PLServer.Instance.PawnInvItemIDCounter++;
+                            int num = UnityEngine.Random.Range(0, 2);
+                            allPlayer.MyInventory.Clear();
+                            if (num == 0)
+                                allPlayer.MyInventory.UpdateItem(netID, 9, 0, 4, 1);
+                            else
+                                allPlayer.MyInventory.UpdateItem(netID, 12, 0, 4, 1);
+                            allPlayer.Talents[(int)ETalents.HEALTH_BOOST] = (ObscuredInt)5;
+                            allPlayer.Talents[(int)ETalents.ARMOR_BOOST] = (ObscuredInt)7;
+                            allPlayer.Talents[(int)ETalents.PISTOL_DMG_BOOST] = (ObscuredInt)3;
+                            allPlayer.gameObject.name += " Lava2";
+                            allPlayer.SetPlayerName("Guard");
+                        }
+                    }                    
                 }
             }
         }
