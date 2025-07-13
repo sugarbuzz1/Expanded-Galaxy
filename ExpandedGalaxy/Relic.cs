@@ -419,7 +419,7 @@ namespace ExpandedGalaxy
                     PLRand rand = new PLRand(__instance.Seed);
                     foreach (int sectorNum in ___m_AllSectorInfos.Keys)
                     {
-                        if (___m_AllSectorInfos[sectorNum].VisualIndication == ESectorVisualIndication.NONE && rand.Next(100) > 80)
+                        if (___m_AllSectorInfos[sectorNum].VisualIndication == ESectorVisualIndication.NONE && ___m_AllSectorInfos[sectorNum].MySPI != null && ___m_AllSectorInfos[sectorNum].MySPI.Faction != 4 && rand.Next(100) > 80)
                         {
                             __state.Add(sectorNum, ___m_AllSectorInfos[sectorNum]);
                         }
@@ -2770,7 +2770,7 @@ namespace ExpandedGalaxy
                                 {
                                     CaravanTargetSector = PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(target).ID;
                                     CaravanPath.Clear();
-                                    CaravanPath = GetPathToSector_NPC(PLServer.GetSectorWithID(CaravanCurrentSector), PLServer.GetSectorWithID(CaravanTargetSector), 0.1f);
+                                    CaravanPath = GetPathToSector_NPC(PLServer.GetSectorWithID(CaravanCurrentSector), PLServer.GetSectorWithID(CaravanTargetSector), 0.12f);
                                     CaravanPathIndex = 0;
                                 }
                             }
