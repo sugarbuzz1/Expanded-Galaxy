@@ -2256,7 +2256,7 @@ namespace ExpandedGalaxy
                 {
                     inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 13, 0, 0, 4);
                 }
-                inPlayer.gameObject.name = "Simple Combat Bot Player Modded";
+                inPlayer.gameObject.name += " ExGal";
             }
         }
     }

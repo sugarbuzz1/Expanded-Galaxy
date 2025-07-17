@@ -1,15 +1,18 @@
 ﻿using CodeStage.AntiCheat.ObscuredTypes;
 using HarmonyLib;
+using Pathfinding.Serialization;
 using PulsarModLoader;
 using PulsarModLoader.SaveData;
+using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Talents.Framework;
 
 namespace ExpandedGalaxy
 {
     internal class DataSaver : PMLSaveData
     {
-        public override uint VersionID => 1;
+        public override uint VersionID => 2;
 
         public override string Identifier() => "sugarbuzz1.ExpandedGalaxy";
 
@@ -27,6 +30,7 @@ namespace ExpandedGalaxy
                     Relic.RelicCaravan.CaravanCurrentSector = binaryReader.ReadInt32();
                     Relic.RelicCaravan.CaravanTargetSector = binaryReader.ReadInt32();
                     Relic.RelicCaravan.CaravanSpecialsData = binaryReader.ReadInt32();
+                    Relic.RelicCaravan.ClearCaravanPath();
 
                     TraderPersistantDataEntry dataEntry = new TraderPersistantDataEntry();
                     dataEntry.ServerWareIDCounter = binaryReader.ReadInt32();
@@ -38,6 +42,17 @@ namespace ExpandedGalaxy
                             dataEntry.ServerAddWare(fromHash);
                     }
                     Relic.RelicCaravan.CaravanTraderData = dataEntry;
+
+                    if (VersionID < 2)
+                        return;
+                    List<object> data = new List<object>();
+
+                    int ammoBoxCount = binaryReader.ReadInt32();
+                    data.Add(ammoBoxCount);
+                    for (int i = 0; i < ammoBoxCount; i++)
+                        data.Add(binaryReader.ReadSingle());
+
+                    DelayedLoadData(data);
                 }
             }
         }
@@ -74,9 +89,38 @@ namespace ExpandedGalaxy
                             binaryWriter.Write(ware.getHash());
                         }
                     }
+                    binaryWriter.Write(PLEncounterManager.Instance.PlayerShip.MyAmmoRefills.Length);
+                    foreach (PLAmmoRefill refill in PLEncounterManager.Instance.PlayerShip.MyAmmoRefills)
+                        binaryWriter.Write(refill.SupplyAmount);
                 }
                 return output.ToArray();
             }
+        }
+
+        private async void DelayedLoadData(List<object> data)
+        {
+            await Task.Delay(5000);
+            while (true)
+            {
+                if (PLServer.Instance == null)
+                    return;
+                if (PLEncounterManager.Instance.PlayerShip == null)
+                    await Task.Delay(1000);
+                else
+                    break;
+            }
+            await Task.Delay(1000);
+            int index = 0;
+            int ammoBoxCount = (int)data[index];
+            index++;
+            float[] ammoBoxSupply = new float[ammoBoxCount];
+            for (int i = 0; i < ammoBoxCount; i++)
+            {
+                ammoBoxSupply[i] = (float)data[index + i];
+            }
+            for (int i = 0; i < PLEncounterManager.Instance.PlayerShip.MyAmmoRefills.Length; i++)
+                PLEncounterManager.Instance.PlayerShip.MyAmmoRefills[i].SupplyAmount = ammoBoxSupply[i];
+            index += ammoBoxCount;
         }
     }
 
@@ -95,6 +139,7 @@ namespace ExpandedGalaxy
                 Relic.RelicCaravan.CaravanCurrentSector = -1;
                 Relic.RelicCaravan.CaravanTargetSector = -1;
                 Relic.RelicCaravan.CaravanUpdateTime = 60000;
+                Relic.RelicCaravan.ClearCaravanPath();
             }
         }
     }
@@ -111,6 +156,7 @@ namespace ExpandedGalaxy
                 Jetpack.AdvancedJetPack = (bool)arguments[3];
                 Ammunition.DynamicAmmunition = (bool)arguments[4];
                 Relic.RelicCaravan.CaravanCurrentSector = (int)arguments[5];
+                Relic.RelicCaravan.CaravanTargetSector = (int)arguments[6];
             }
 
         }
@@ -166,14 +212,15 @@ namespace ExpandedGalaxy
             }
             if (!PhotonNetwork.isMasterClient)
                 return;
-            ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.RecieveData", PhotonTargets.Others, new object[6]
+            ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.RecieveData", PhotonTargets.Others, new object[7]
             {
                     (object) PFSectorCommander.bossFlag,
                     (object) Relic.MiningDroneQuest.dronesActive,
                     (object) Relic.MiningDroneQuest.GXData,
                     (object) Jetpack.AdvancedJetPack,
                     (object) Ammunition.DynamicAmmunition,
-                    (object) Relic.RelicCaravan.CaravanCurrentSector
+                    (object) Relic.RelicCaravan.CaravanCurrentSector,
+                    (object) Relic.RelicCaravan.CaravanTargetSector
             });
             if (PLServer.Instance == null)
                 return;

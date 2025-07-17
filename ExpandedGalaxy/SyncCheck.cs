@@ -73,8 +73,8 @@ namespace ExpandedGalaxy
                     if (flag)
                     {
                         Messaging.Notification("Player [" + GetPlayerFromPhotonPlayer(sender.sender).GetPlayerName() + "] joined with mismatch component info!\nSee ship log for details.", PLNetworkManager.Instance.LocalPlayer.GetPhotonPlayer(), durationMs: 30000);
-                        Messaging.ShipLog("Player [" + GetPlayerFromPhotonPlayer(sender.sender).GetPlayerName() + "] joined with mismatch component info!", tag: "Exp Gal.", color: Color.grey);
-                        Messaging.ShipLog("Reload the client with <color=yellow>ONLY</color> the component mods the host has to fix.", tag: "Exp Gal.", color: Color.grey);
+                        Messaging.ShipLog("Player [" + GetPlayerFromPhotonPlayer(sender.sender).GetPlayerName() + "] joined with mismatch component info!", tag: "ExGal.", color: Color.grey);
+                        Messaging.ShipLog("Reload the client with <color=yellow>ONLY</color> the component mods the host has to fix.", tag: "ExGal.", color: Color.grey);
                     }
                     else
                     {

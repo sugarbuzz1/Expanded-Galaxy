@@ -94,18 +94,24 @@ namespace ExpandedGalaxy
                         this.ShipStats.Ship.AlertLevel = 0;
                         this.ShipStats.Ship.Captain_SetTargetShip(-1);
                     }
-                    if (PhotonNetwork.isMasterClient && this.ShipStats.Ship.AlertLevel > 0)
+                    if (PhotonNetwork.isMasterClient && this.ShipStats.Ship.AlertLevel > 0 && PLEncounterManager.Instance.GetCPEI() != null)
                     {
-                        foreach (PLShipInfoBase plShipInfoBase in UnityEngine.Object.FindObjectsOfType(typeof(PLShipInfoBase)))
+                        this.ShipStats.Ship.PersistantShipInfo.ForcedHostile = true;
+                        foreach (PLShipInfoBase plShipInfoBase in PLEncounterManager.Instance.GetCPEI().MyCreatedShipInfos)
                         {
-                            if (plShipInfoBase.ShipTypeID == EShipType.E_WDDRONE2 || plShipInfoBase.ShipTypeID == EShipType.E_WDDRONE1)
+                            if (!plShipInfoBase.PersistantShipInfo.ForcedHostile)
                             {
-                                foreach (PLShipComponent component in plShipInfoBase.MyStats.GetComponentsOfType(ESlotType.E_COMP_DISTRESS_SIGNAL))
+                                if (plShipInfoBase.ShipTypeID == EShipType.E_WDDRONE2)
                                 {
-                                    if (component is MiningDroneSignal)
+                                    foreach (PLShipComponent component in plShipInfoBase.MyStats.GetComponentsOfType(ESlotType.E_COMP_DISTRESS_SIGNAL))
                                     {
-                                        this.ShipStats.Ship.PersistantShipInfo.ForcedHostile = true;
-                                        break;
+                                        if (component is MiningDroneSignal)
+                                        {
+                                            plShipInfoBase.PersistantShipInfo.ForcedHostile = true;
+                                            if (this.ShipStats.Ship.TargetShip != null)
+                                                plShipInfoBase.Captain_SetTargetShip(this.ShipStats.Ship.TargetShip.ShipID);
+                                            break;
+                                        }
                                     }
                                 }
                             }

@@ -71,7 +71,7 @@ namespace ExpandedGalaxy
                 if (!DynamicAmmunition)
                     return;
                 __instance.UsesAmmo = true;
-                __instance.AmmoMax = 20;
+                __instance.AmmoMax = 30;
                 __instance.AmmoCurrent = __instance.AmmoMax;
             }
         }
@@ -96,7 +96,7 @@ namespace ExpandedGalaxy
                 if (!DynamicAmmunition)
                     return;
                 __instance.UsesAmmo = true;
-                __instance.AmmoMax = 28;
+                __instance.AmmoMax = 48;
                 __instance.AmmoCurrent = __instance.AmmoMax;
             }
         }
@@ -185,7 +185,7 @@ namespace ExpandedGalaxy
                 PLShipComponent component = shipFromId.MyStats.GetComponentFromNetID(inNetID);
                 if (component == null)
                     return false;
-                if (component is PLMissionShipComponent && component.SubType == MissionShipComponentModManager.Instance.GetMissionShipComponentIDFromName("Ammunition Cache"))
+                else if (component is PLMissionShipComponent && component.SubType == MissionShipComponentModManager.Instance.GetMissionShipComponentIDFromName("Ammunition Cache"))
                 {
                     shipFromId.MyStats.RemoveShipComponentByNetID(inNetID);
                     for (int i = 0; i < shipFromId.MyAmmoRefills.Length; i++)
@@ -199,14 +199,21 @@ namespace ExpandedGalaxy
                     PLServer.Instance.photonView.RPC("AddNotificationLocalize", friendlyPlayerOfClass.GetPhotonPlayer(), (object)"[PL] has restocked ammunition", (object)__instance.GetPlayerID(), (object)(PLServer.Instance.GetEstimatedServerMs() + 6000), true);
                     return false;
                 }
-                if (component is PLMissionShipComponent && component.SubType == MissionShipComponentModManager.Instance.GetMissionShipComponentIDFromName("Reward"))
+                else if (component is PLMissionShipComponent && component.SubType == MissionShipComponentModManager.Instance.GetMissionShipComponentIDFromName("Reward"))
                 {
                     shipFromId.MyStats.RemoveShipComponentByNetID(inNetID);
                     if (PhotonNetwork.isMasterClient)
                         shipFromId.MyStats.AddShipComponent(Relic.GenerateRelic(PLGlobal.Instance.Galaxy.Seed), visualSlot: ESlotType.E_COMP_CARGO);
                     return false;
                 }
-                if (component.ActualSlotType != ESlotType.E_COMP_SCRAP)
+                else if (component is PLWarpDriveProgram)
+                {
+                    PLServer.Instance.CurrentUpgradeMats++;
+                    shipFromId.MyStats.RemoveShipComponentByNetID(inNetID);
+                    return false;
+
+                }
+                else if (component.ActualSlotType != ESlotType.E_COMP_SCRAP)
                 {
                     PLServer.Instance.CurrentCrewCredits -= (component.Level + 1) * 800;
                     if (PLServer.Instance.CurrentCrewCredits < 0)

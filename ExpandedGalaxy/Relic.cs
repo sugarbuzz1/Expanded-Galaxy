@@ -16,6 +16,7 @@ using PulsarModLoader.Content.Components.Turret;
 using PulsarModLoader.Content.Components.WarpDriveProgram;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -2191,6 +2192,12 @@ namespace ExpandedGalaxy
             internal static int CaravanUpdateTime = 0;
             internal static TraderPersistantDataEntry CaravanTraderData;
 
+            internal static void ClearCaravanPath()
+            {
+                CaravanPath.Clear();
+                CaravanPathIndex = 0;
+            }
+
             public class Shop_Caravan : PLShop
             {
                 public bool HasPDEBeenSetup;
@@ -2225,7 +2232,6 @@ namespace ExpandedGalaxy
                         shop.MySensorObject = __instance.MySensorObjectShip;
                         __instance.photonView.ObservedComponents.Add((Component)shop);
                         Traverse traverse = Traverse.Create(__instance);
-                        __instance.MyStats.FormatToCrewString("AQ4ABQIFAwQEAQUFGwUxBTIFMwE2ATcBOAU5BToFAQsABQIFAwQIBQkFIwUkBTEFOAU5BToFAQsABQIFAwQLBQ0FDgUxBTMBOAU5BToFAQ8ABQIFAwQEAQ8FEQQmBScFMQU2ATgFOQU6BT4FQgUBDQAFAgUDBBMFFAQVBC4FMQU3ATgFOQU6BT0FARMAAAAAAnAAAANQAAAEUAAAAQQAAAAAB1AAAANQAAAEUAAAAQYAAAAAEAAAABpQAAACUAAAA1AAAARQAAABBAAAAAAMUAAAA1AAAARQAAABBAAAAAAJUAAAA1AAAARQAAA=\r");
                     }
                 }
             }
@@ -2326,6 +2332,97 @@ namespace ExpandedGalaxy
                             CaravanUpdateTime = 60000;
                         }
                     }
+                }
+            }
+
+            [HarmonyPatch(typeof(PLShipInfo), "CreateDefaultItemsForEnemyBotPlayer")]
+            internal class CaravanCrewSpawn
+            {
+                private static void Postfix(PLPlayer inPlayer)
+                {
+                    if (!((UnityEngine.Object)inPlayer != (UnityEngine.Object)null) || !((UnityEngine.Object)inPlayer.StartingShip != (UnityEngine.Object)null))
+                        return;
+                    if (inPlayer.StartingShip.PersistantShipInfo == null || !(inPlayer.StartingShip.PersistantShipInfo.ShipName == "Wandering Caravan" && inPlayer.StartingShip.PersistantShipInfo.Type == EShipType.E_ROLAND && inPlayer.StartingShip.PersistantShipInfo.SelectedActorID == "ExGal_RelicCaravan"))
+                        return;
+                    inPlayer.Talents[(int)ETalents.HEALTH_BOOST] = (ObscuredInt)5;
+                    inPlayer.Talents[(int)ETalents.PISTOL_DMG_BOOST] = (ObscuredInt)3;
+                    inPlayer.Talents[(int)ETalents.QUICK_RESPAWN] = (ObscuredInt)4;
+                    inPlayer.Talents[(int)ETalents.ARMOR_BOOST] = (ObscuredInt)5;
+                    inPlayer.Talents[(int)ETalents.WPN_AMMO_BOOST] = (ObscuredInt)50;
+                    switch (inPlayer.GetClassID())
+                    {
+                        case 0: //CAP
+                            inPlayer.Talents[(int)ETalents.CAP_CREW_SPEED_BOOST] = (ObscuredInt)5;
+                            inPlayer.Talents[(int)ETalents.CAP_ARMOR_BOOST] = (ObscuredInt)0 + Mathf.RoundToInt(Mathf.Floor(PLServer.Instance.ChaosLevel / 3) * PLGlobal.Instance.Galaxy.GenerationSettings.EnemyShipPowerScalar);
+                            inPlayer.Talents[(int)ETalents.CAP_SCREEN_DEFENSE] = (ObscuredInt)5 + Mathf.RoundToInt(Mathf.Floor(PLServer.Instance.ChaosLevel / 3) * PLGlobal.Instance.Galaxy.GenerationSettings.EnemyShipPowerScalar);
+                            inPlayer.Talents[(int)ETalents.CAP_SCREEN_SAFETY] = (ObscuredInt)5 + Mathf.RoundToInt(Mathf.Floor(PLServer.Instance.ChaosLevel / 3) * PLGlobal.Instance.Galaxy.GenerationSettings.EnemyShipPowerScalar);
+                            break;
+                        case 1:  //PI
+                            inPlayer.Talents[(int)ETalents.PIL_SHIP_SPEED] = (ObscuredInt)5;
+                            inPlayer.Talents[(int)ETalents.PIL_SHIP_TURNING] = (ObscuredInt)5;
+                            inPlayer.Talents[(int)ETalents.PIL_REDUCE_SYS_DAMAGE] = (ObscuredInt)18;
+                            inPlayer.Talents[(int)ETalents.PIL_REDUCE_HULL_DAMAGE] = (ObscuredInt)2 + Mathf.RoundToInt(Mathf.Floor(PLServer.Instance.ChaosLevel / 3) * PLGlobal.Instance.Galaxy.GenerationSettings.EnemyShipPowerScalar);
+                            break;
+                        case 2: //SCI
+                            inPlayer.Talents[(int)ETalents.SCI_SENSOR_BOOST] = (ObscuredInt)5;
+                            inPlayer.Talents[(int)ETalents.SCI_SENSOR_HIDE] = (ObscuredInt)1 + Mathf.RoundToInt(Mathf.Floor(PLServer.Instance.ChaosLevel / 3) * PLGlobal.Instance.Galaxy.GenerationSettings.EnemyShipPowerScalar);
+                            inPlayer.Talents[(int)ETalents.SCI_HEAL_NEARBY] = (ObscuredInt)5;
+                            break;
+                        case 3: //WEAP
+                            inPlayer.Talents[(int)ETalents.WPNS_MISSILE_EXPERT] = (ObscuredInt)1 + Mathf.RoundToInt(Mathf.Floor(PLServer.Instance.ChaosLevel / 3) * PLGlobal.Instance.Galaxy.GenerationSettings.EnemyShipPowerScalar);
+                            inPlayer.Talents[(int)ETalents.WPNS_COOLING] = (ObscuredInt)5;
+                            inPlayer.Talents[(int)ETalents.WPNS_REDUCE_PAWN_DMG] = (ObscuredInt)2 + Mathf.RoundToInt(Mathf.Floor(PLServer.Instance.ChaosLevel / 3) * PLGlobal.Instance.Galaxy.GenerationSettings.EnemyShipPowerScalar);
+                            inPlayer.Talents[(int)ETalents.WPNS_BOOST_CREW_TURRET_CHARGE] = (ObscuredInt)2 + Mathf.RoundToInt(Mathf.Floor(PLServer.Instance.ChaosLevel / 3) * PLGlobal.Instance.Galaxy.GenerationSettings.EnemyShipPowerScalar);
+                            inPlayer.Talents[(int)ETalents.WPNS_BOOST_CREW_TURRET_DAMAGE] = (ObscuredInt)2 + Mathf.RoundToInt(Mathf.Floor(PLServer.Instance.ChaosLevel / 3) * PLGlobal.Instance.Galaxy.GenerationSettings.EnemyShipPowerScalar);
+                            inPlayer.Talents[(int)ETalents.WPN_SCREEN_HACKER] = (ObscuredInt)2 + Mathf.RoundToInt(Mathf.Floor(PLServer.Instance.ChaosLevel / 3) * PLGlobal.Instance.Galaxy.GenerationSettings.EnemyShipPowerScalar);
+                            inPlayer.Talents[(int)ETalents.E_TURRET_COOLING_CREW_WEAPONS] = (ObscuredInt)5;
+                            break;
+                        case 4: //ENG
+                            inPlayer.Talents[(int)ETalents.ENG_FIRE_REDUCTION] = (ObscuredInt)5;
+                            inPlayer.Talents[(int)ETalents.ENG_COOLANT_MIX_CUSTOM] = (ObscuredInt)5;
+                            inPlayer.Talents[(int)ETalents.ENG_REPAIR_DRONES] = (ObscuredInt)5 + Mathf.RoundToInt(Mathf.Floor(PLServer.Instance.ChaosLevel / 3) * PLGlobal.Instance.Galaxy.GenerationSettings.EnemyShipPowerScalar);
+                            inPlayer.Talents[(int)ETalents.ENG_COREPOWERBOOST] = (ObscuredInt)50;
+                            inPlayer.Talents[(int)ETalents.ENG_CORECOOLINGBOOST] = (ObscuredInt)2 + Mathf.RoundToInt(Mathf.Floor(PLServer.Instance.ChaosLevel / 3) * PLGlobal.Instance.Galaxy.GenerationSettings.EnemyShipPowerScalar);
+                            inPlayer.Talents[(int)ETalents.E_TURRET_COOLING_CREW_ENGINEER] = (ObscuredInt)5;
+                            break;
+                    }
+                    inPlayer.MyInventory.Clear();
+                    switch (inPlayer.GetClassID())
+                    {
+                        case 0:
+                            inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 9, 0, 5, 1);
+                            break;
+                        case 1:
+                            inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 10, 0, 5, 1);
+                            break;
+                        case 2:
+                            inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 11, 0, 5, 1);
+                            break;
+                        case 3:
+                            inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 12, 0, 5, 1);
+                            break;
+                        case 4:
+                            inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 2, 0, 5, 1);
+                            break;
+                    }
+
+                    if (inPlayer.GetClassID() != 4)
+                    {
+                        int inNetID1 = PLServer.Instance.PawnInvItemIDCounter++;
+                        inPlayer.MyInventory.UpdateItem(inNetID1, 3, 0, 5, 2);
+                    }
+                    else
+                    {
+                        int inNetID3 = PLServer.Instance.PawnInvItemIDCounter++;
+                        inPlayer.MyInventory.UpdateItem(inNetID3, 23, 0, 5, 2);
+                    }
+                    int inNetID2 = PLServer.Instance.PawnInvItemIDCounter++;
+                    inPlayer.MyInventory.UpdateItem(inNetID2, 4, 0, 5, 3);
+                    if (inPlayer.GetClassID() == 0)
+                    {
+                        inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 13, 0, 0, 4);
+                    }
+                    inPlayer.gameObject.name += " ExGal";
                 }
             }
 
@@ -2625,20 +2722,22 @@ namespace ExpandedGalaxy
             [HarmonyPatch(typeof(PLServer), "Update")]
             internal class UpdateCaravan
             {
-                
+                private static PLPersistantShipInfo persistantCaravanInfo = null;
                 private static void Postfix()
                 {
                     if (PLServer.Instance == null)
                         return;
                     if (!PhotonNetwork.isMasterClient)
                         return;
-                    PLPersistantShipInfo persistantCaravanInfo = null;
-                    foreach (PLPersistantShipInfo pLPersistantShipInfo in PLServer.Instance.AllPSIs)
+                    if (persistantCaravanInfo == null)
                     {
-                        if (pLPersistantShipInfo.ShipName == "Wandering Caravan" && pLPersistantShipInfo.Type == EShipType.E_ROLAND && pLPersistantShipInfo.SelectedActorID == "ExGal_RelicCaravan")
+                        foreach (PLPersistantShipInfo pLPersistantShipInfo in PLServer.Instance.AllPSIs)
                         {
-                            persistantCaravanInfo = pLPersistantShipInfo;
-                            break;
+                            if (pLPersistantShipInfo.ShipName == "Wandering Caravan" && pLPersistantShipInfo.Type == EShipType.E_ROLAND && pLPersistantShipInfo.SelectedActorID == "ExGal_RelicCaravan")
+                            {
+                                persistantCaravanInfo = pLPersistantShipInfo;
+                                break;
+                            }
                         }
                     }
                     if (persistantCaravanInfo == null || persistantCaravanInfo.IsShipDestroyed)
@@ -2647,27 +2746,33 @@ namespace ExpandedGalaxy
                         CaravanTraderData = persistantCaravanInfo.OptionalTPDE;
                     if (persistantCaravanInfo.OptionalTPDE == null && CaravanTraderData != null)
                         persistantCaravanInfo.OptionalTPDE = CaravanTraderData;
+                    if (persistantCaravanInfo.ShipInstance != null && persistantCaravanInfo.ShipInstance.ShipNameValue.Contains("Wandering Caravan"))
+                        persistantCaravanInfo.ShipInstance.ShipNameValue = "Wandering Caravan";
                     if (CaravanCurrentSector != -1 && PLServer.GetCurrentSector() != null && CaravanCurrentSector == PLServer.GetCurrentSector().ID && PLEncounterManager.Instance.PlayerShip != null && !PLEncounterManager.Instance.PlayerShip.InWarp)
                     {
 
-                        if (persistantCaravanInfo != null && !persistantCaravanInfo.IsShipDestroyed)
+                        if (persistantCaravanInfo != null && !persistantCaravanInfo.IsShipDestroyed && persistantCaravanInfo.ShipInstance == null)
                         {
                             persistantCaravanInfo.MyCurrentSector = PLServer.GetCurrentSector();
                             persistantCaravanInfo.CreateShipInstance(PLEncounterManager.Instance.GetCPEI());
                         }
                     }
                     bool flag = false;
+                    bool flag1 = false;
                     if (CaravanCurrentSector != -1 && PLServer.GetCurrentSector() != null && CaravanCurrentSector != PLServer.GetCurrentSector().ID)
                     {
                         if (PLServer.Instance.GetEstimatedServerMs() > 0 && PLServer.Instance.GetEstimatedServerMs() - CaravanUpdateTime > 0)
                         {
                             CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 60000;
-                            if (CaravanTargetSector != -1 && CaravanPath.Count > 1)
+                            if (CaravanTargetSector != -1)
                             {
-                                if (CaravanPath.Count > 1)
+                                if (CaravanPath.Count > 1 && CaravanPath.Count > CaravanPathIndex + 1)
                                 {
                                     if (CaravanPath[CaravanPathIndex + 1].MySPI.Faction == 4 || CaravanPath[CaravanPathIndex + 1].DistressSignalActive)
+                                    {
                                         flag = true;
+                                        flag1 = true;
+                                    }
                                     else
                                     {
                                         CaravanCurrentSector = CaravanPath[CaravanPathIndex + 1].ID;
@@ -2739,6 +2844,7 @@ namespace ExpandedGalaxy
 
                                         }
                                         flag = true;
+                                        flag1 = true;
                                         CaravanUpdateTime += 60000;
                                     }
                                 }
@@ -2748,10 +2854,16 @@ namespace ExpandedGalaxy
                                 }
                             }
                             else
+                            {
                                 flag = true;
+                                flag1 = true;
+                            }
                             if (flag)
                             {
-                                List<ESectorVisualIndication> potentialTargets = new List<ESectorVisualIndication>()
+                                int targetID = CaravanTargetSector;
+                                if (flag1)
+                                {
+                                    List<ESectorVisualIndication> potentialTargets = new List<ESectorVisualIndication>()
                             {
                                 ESectorVisualIndication.CORNELIA_HUB,
                                 ESectorVisualIndication.DESERT_HUB,
@@ -2759,20 +2871,23 @@ namespace ExpandedGalaxy
                                 ESectorVisualIndication.GENTLEMEN_START,
                                 ESectorVisualIndication.THE_HARBOR
                             };
-                                if (CaravanTargetSector != -1)
-                                    potentialTargets.Remove(PLServer.GetSectorWithID(CaravanTargetSector).VisualIndication);
-                                else
-                                    potentialTargets.Remove(ESectorVisualIndication.AOG_HUB);
-                                if (potentialTargets.Contains(PLServer.GetSectorWithID(CaravanCurrentSector).VisualIndication))
-                                    potentialTargets.Remove(PLServer.GetSectorWithID(CaravanCurrentSector).VisualIndication);
-                                ESectorVisualIndication target = potentialTargets[UnityEngine.Random.Range(0, potentialTargets.Count)];
-                                if (PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(target) != null)
-                                {
-                                    CaravanTargetSector = PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(target).ID;
-                                    CaravanPath.Clear();
-                                    CaravanPath = GetPathToSector_NPC(PLServer.GetSectorWithID(CaravanCurrentSector), PLServer.GetSectorWithID(CaravanTargetSector), 0.12f);
-                                    CaravanPathIndex = 0;
+                                    if (CaravanTargetSector != -1)
+                                        potentialTargets.Remove(PLServer.GetSectorWithID(CaravanTargetSector).VisualIndication);
+                                    else
+                                        potentialTargets.Remove(ESectorVisualIndication.AOG_HUB);
+                                    if (potentialTargets.Contains(PLServer.GetSectorWithID(CaravanCurrentSector).VisualIndication))
+                                        potentialTargets.Remove(PLServer.GetSectorWithID(CaravanCurrentSector).VisualIndication);
+                                    ESectorVisualIndication target = potentialTargets[UnityEngine.Random.Range(0, potentialTargets.Count)];
+                                    if (PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(target) != null)
+                                        targetID = PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(target).ID;
+                                    else
+                                        targetID = -1;
                                 }
+                                CaravanTargetSector = targetID;
+                                CaravanPath.Clear();
+                                if (CaravanTargetSector != -1)
+                                    CaravanPath = GetPathToSector_NPC(PLServer.GetSectorWithID(CaravanCurrentSector), PLServer.GetSectorWithID(CaravanTargetSector), 0.12f);
+                                CaravanPathIndex = 0;
                             }
                         }
                     }
@@ -2979,6 +3094,39 @@ namespace ExpandedGalaxy
                 for (; plSectorInfo.SearchParentNode != null; plSectorInfo = plSectorInfo.SearchParentNode)
                     ReturnSolution.Add(plSectorInfo);
                 ReturnSolution.Add(plSectorInfo);
+            }
+
+            [HarmonyPatch(typeof(PLShipInfoBase), "Ship_WarpOutNow")]
+            private class HandleCaravanEmergencyWarp
+            {
+                private static bool Prefix(PLShipInfoBase __instance)
+                {
+                    if (__instance.PersistantShipInfo == null || !(__instance.PersistantShipInfo.ShipName == "Wandering Caravan" && __instance.PersistantShipInfo.Type == EShipType.E_ROLAND && __instance.PersistantShipInfo.SelectedActorID == "ExGal_RelicCaravan"))
+                        return true;
+                    PLSectorInfo currentSector = PLServer.GetCurrentSector();
+                    if (currentSector.Neighbors.Count > 0)
+                    {
+                        PLServer.Instance.photonView.RPC("WarpOutEffect", PhotonTargets.All, (object)__instance.Exterior.transform.position, (object)__instance.Exterior.transform.rotation);
+                        CaravanCurrentSector = currentSector.Neighbors[UnityEngine.Random.Range(0, currentSector.Neighbors.Count)].ID;
+                        CaravanPath.Clear();
+                        CaravanPathIndex = 0;
+                        CaravanUpdateTime += 60000;
+                    }
+                    else
+                    {
+                        if (CaravanPath.Count > CaravanPathIndex + 1)
+                        {
+                            PLServer.Instance.photonView.RPC("WarpOutEffect", PhotonTargets.All, (object)__instance.Exterior.transform.position, (object)__instance.Exterior.transform.rotation);
+                            CaravanCurrentSector = CaravanPath[CaravanPathIndex + 1].ID;
+                            CaravanPathIndex++;
+                            CaravanUpdateTime += 60000;
+                        }
+                        else
+                            return false;
+                    }
+                    PhotonNetwork.Destroy(__instance.ShipRoot);
+                    return false;
+                }
             }
 
             [HarmonyPatch(typeof(PLPersistantEncounterInstance), "OnEndWarp")]

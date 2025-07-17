@@ -27,6 +27,8 @@ namespace ExpandedGalaxy
             {
                 if (PhotonNetwork.isMasterClient)
                 {
+                    if (!InComp.ShipStats.Ship.ShipNameValue.Contains("The Recompiler Config: " + PFSectorCommander.bossFlag.ToString()))
+                        InComp.ShipStats.Ship.ShipNameValue = "The Recompiler Config: " + PFSectorCommander.bossFlag.ToString();
                     if (InComp.SubTypeData < 0)
                         InComp.SubTypeData = 300;
                     if (InComp.IsEquipped && InComp.SubTypeData < 300)
@@ -185,12 +187,12 @@ namespace ExpandedGalaxy
                 if (ship.GetIsCloakingSystemActive() && InComp.ShipStats.Ship.PersistantShipInfo.MyCurrentSector.ID == ship.PersistantShipInfo.MyCurrentSector.ID && !ship.Get_IsInWarpMode())
                     ship.TakeDamage(500f, false, EDamageType.E_ENERGY, 1f, -1, InComp.ShipStats.Ship, -1);
 
-                if (LastEMPTime == -1f && !PLEncounterManager.Instance.PlayerShip.Get_IsInWarpMode())
+                if (LastEMPTime == -1f || PLEncounterManager.Instance.PlayerShip.Get_IsInWarpMode())
                 {
                     LastEMPTime = Time.time;
                     InComp.SubTypeData = 0;
                 }
-                if ((double)Time.time - (double)LastEMPTime > 20.0)
+                if ((double)Time.time - (double)LastEMPTime > 20.0 && !PLEncounterManager.Instance.PlayerShip.Get_IsInWarpMode())
                 {
                     InComp.SubTypeData = 1;
                     if ((double)Time.time - (double)LastEMPTime > 30.0)
@@ -271,12 +273,12 @@ namespace ExpandedGalaxy
                 if (ship.GetIsCloakingSystemActive() && InComp.ShipStats.Ship.PersistantShipInfo.MyCurrentSector.ID == ship.PersistantShipInfo.MyCurrentSector.ID && !ship.Get_IsInWarpMode())
                     ship.TakeDamage(500f, false, EDamageType.E_ENERGY, 1f, -1, InComp.ShipStats.Ship, -1);
 
-                if (LastEMPTime == -1f && !PLEncounterManager.Instance.PlayerShip.Get_IsInWarpMode())
+                if (LastEMPTime == -1f || PLEncounterManager.Instance.PlayerShip.Get_IsInWarpMode())
                 {
                     LastEMPTime = Time.time;
                     InComp.SubTypeData = 0;
                 }
-                if ((double)Time.time - (double)LastEMPTime > 20.0)
+                if ((double)Time.time - (double)LastEMPTime > 20.0 && !PLEncounterManager.Instance.PlayerShip.Get_IsInWarpMode())
                 {
                     InComp.SubTypeData = 1;
                     if ((double)Time.time - (double)LastEMPTime > 30.0)

@@ -45,6 +45,12 @@ namespace ExpandedGalaxy
                         (object) this.SubTypeData,
                     });
             }
+
+            public override void OnWarp()
+            {
+                base.OnWarp();
+                this.SubTypeData = 0;
+            }
         }
         public static PLSensorDish CreateSensorDish(int Subtype, int level)
         {
@@ -55,18 +61,6 @@ namespace ExpandedGalaxy
                 return new AncientSensorDish((ESensorDishType)Subtype, level);
             }
             return sensorDish;
-        }
-
-        [HarmonyPatch(typeof(PLShipComponent), "OnWarp")]
-        internal class warpDataReset
-        {
-            private static void Postfix(PLShipComponent __instance)
-            {
-                PLSensorDish sensorDish = __instance as PLSensorDish;
-                if (sensorDish == null)
-                    return;
-                sensorDish.SubTypeData = 0;
-            }
         }
 
         public static UITexture[] createButtonsFromSubType(PLScientistSensorScreen screen, int subType)
