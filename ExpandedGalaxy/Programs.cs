@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using CodeStage.AntiCheat.ObscuredTypes;
+using HarmonyLib;
 using PulsarModLoader;
 using PulsarModLoader.Content.Components.Hull;
 using PulsarModLoader.Content.Components.WarpDriveProgram;
@@ -239,26 +240,45 @@ namespace ExpandedGalaxy
         [HarmonyPatch(typeof(PLWarpDriveProgram), MethodType.Constructor, new Type[3] { typeof(EWarpDriveProgramType), typeof(int), typeof(short) })]
         internal class ProgramText
         {
-            private static void Postfix(PLWarpDriveProgram __instance, EWarpDriveProgramType inType, int inLevel = 0, short inSubData = 0)
+            private static void Postfix(PLWarpDriveProgram __instance, EWarpDriveProgramType inType, int inLevel, short inSubData, ref float ___Detector_BoostAmount, ref float ___Detector_ActiveTime, ref float ___ShieldBooster_ActiveTime, ref ObscuredInt ___m_MarketPrice)
             {
                 if (inType == EWarpDriveProgramType.SHIELD_BOOSTER)
                     __instance.Desc = "Increases the charge rate of shields by 25% for 15 seconds.";
-                if (inType == EWarpDriveProgramType.SUPER_SHIELD_BOOSTER)
+                else if (inType == EWarpDriveProgramType.SUPER_SHIELD_BOOSTER)
                     __instance.Desc = "Increases the charge rate of shields by 50% for 15 seconds.";
-                if (inType == EWarpDriveProgramType.OVERCHARGE)
+                else if (inType == EWarpDriveProgramType.OVERCHARGE)
                 {
-                    __instance.Desc = "Increases reactor output by 50% and prevents meltdown for 20 seconds.";
+                    __instance.Desc = "Increases reactor output by 50% and prevents meltdown for 15 seconds.";
                     Traverse.Create(__instance).Field("Overcharge_ActiveTime").SetValue(15f);
                 }
-                if (inType == EWarpDriveProgramType.EXTENDED_SHIELDS)
+                else if (inType == EWarpDriveProgramType.EXTENDED_SHIELDS)
                 {
                     __instance.Desc = "Increases max shields by +100 for 60 seconds.";
                     Traverse.Create(__instance).Field("ExShields_BoostAmount").SetValue(100f);
                 }
-                if (inType == EWarpDriveProgramType.VIRUS_BOOSTER)
+                else if (inType == EWarpDriveProgramType.VIRUS_BOOSTER)
                     __instance.Desc = "+0.5 CyberAttack for 30 seconds";
-                if (inType == EWarpDriveProgramType.BARRAGE)
+                else if (inType == EWarpDriveProgramType.BARRAGE)
                     __instance.Desc += " This effect does not stack.";
+                else if (inType == EWarpDriveProgramType.TROJAN_HORSE_VIRUS_PROGRAM)
+                    __instance.Desc = "Broadcasts [Backdoor] virus to nearby ships on activation. Confers a moderate Cyber-Atk boost when infecting.\n\nBackdoor: Disables firewalls for 3 minutes";
+                else if (inType == EWarpDriveProgramType.SITTING_DUCK_VIRUS_PROGRAM)
+                    __instance.Desc = "Broadcasts [Sitting Duck] virus to nearby ships on activation. Incurs a slight Cyber-Atk penalty when infecting.\n\nSitting Duck: Disables ship thrusters for 60 seconds";
+                else if (inType == EWarpDriveProgramType.GENTLEMENS_WELCOME)
+                    __instance.Desc = "Broadcasts [Gentlemen's Welcome] virus to nearby ships on activation. Incurs a moderate Cyber-Atk penalty when infecting.\n\nGentleman's Welcome: Disables quantum shields for 3 minutes";
+                else if (inType == EWarpDriveProgramType.SHUTDOWN_DEFENSES)
+                    __instance.Desc = "Broadcasts [Shutdown Defenses] virus to nearby ships on activation. Incurs a slight Cyber-Atk penalty when infecting.\n\nShutdown Defenses: Disables defensive systems for 20 seconds";
+                else if (inType == EWarpDriveProgramType.DETECTOR)
+                {
+                    __instance.Desc = "Reveals all ships in the sector for 30 seconds.";
+                    ___Detector_BoostAmount = 1f;
+                    ___Detector_ActiveTime = 30f;
+
+                }
+                else if (inType == EWarpDriveProgramType.BLOCK_LONG_RANGE_COMMS)
+                    ___m_MarketPrice = (ObscuredInt)9000;
+                else if (inType == EWarpDriveProgramType.RAND_LARGE)
+                    __instance.VirusType = EVirusType.RAND_LARGE;
             }
         }
 
@@ -318,10 +338,117 @@ namespace ExpandedGalaxy
             }
         }
 
+        [HarmonyPatch(typeof(PLSensorObject), "InternalDetectionSignatureIsDetected")]
+        internal class DetectorRework
+        {
+            private static void Postfix(PLSensorObject __instance, ref PLSensorObjectCacheData socd, float sqDist, float signature, float detection, PLShipInfoBase detectorShip)
+            {
+                if (!(__instance is PLSensorObjectShip))
+                    return;
+                socd.IsDetected |= HasActiveProgramOfType(detectorShip, 15);
+            }
+        }
+
+        [HarmonyPatch(typeof(PLVirus), MethodType.Constructor, new Type[3] { typeof(EVirusType), typeof(int), typeof(short) })]
+        internal class BetterRand
+        {
+            private static void Postfix(PLVirus __instance, EVirusType inType, int inLevel, short inSubTypeData)
+            {
+                if (__instance.SubType != (int)EVirusType.RAND_SMALL && __instance.SubType != (int)EVirusType.RAND_LARGE)
+                    return;
+                if (PhotonNetwork.isMasterClient)
+                {
+                    PLRand rand = new PLRand((int)PLServer.Instance.GalaxySeed + PLServer.Instance.GetEstimatedServerMs());
+                    __instance.SubTypeData = (short)(rand.Next() % 4);
+                }
+                if (__instance.SubType == (int)EVirusType.RAND_SMALL)
+                {
+                    switch ((int)__instance.SubTypeData)
+                    {
+                        case 0:
+                            __instance.Desc = "Backdoor/Phalanx";
+                            break;
+                        case 1:
+                            __instance.Desc = "Sitting Duck/Warp Disable";
+                            break;
+                        case 2:
+                            __instance.Desc = "Blindfold/Expose";
+                            break;
+                        case 3:
+                            __instance.Desc = "Sitting Duck/Phalanx";
+                            break;
+                    }
+                }
+                else
+                {
+                    switch ((int)__instance.SubTypeData)
+                    {
+                        case 0:
+                            __instance.Desc = "Syber's Shield/Phalanx";
+                            break;
+                        case 1:
+                            __instance.Desc = "Armor Flaw/Breathless";
+                            break;
+                        case 2:
+                            __instance.Desc = "Backdoor/Lazy Guns";
+                            break;
+                        case 3:
+                            __instance.Desc = "Blindfold/Warp Disable";
+                            break;
+                    }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(PLVirus), "ShouldApplyRandSmallEffectID")]
+        internal class RandSmallFix
+        {
+            private static bool Prefix(PLVirus __instance, int inID, ref bool __result)
+            {
+                if (__instance.SubType != 14 || __instance.NetID == -1)
+                {
+                    __result = false;
+                    return false;
+                }
+                __result = (int)__instance.SubTypeData == inID;
+                return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(PLVirus), "FinalLateAddStats")]
+        internal class VirusEffect
+        {
+            private static bool Prefix(PLVirus __instance, ref PLShipStats inStats)
+            {
+                if (__instance.SubType != (int)EVirusType.RAND_LARGE)
+                    return true;
+                switch ((int)__instance.SubTypeData)
+                {
+                    case 0:
+                        inStats.TurretDamageFactor *= 0.7f;
+                        inStats.ShieldsChargeRate = 0.0f;
+                        break;
+                    case 1:
+                        inStats.HullArmor *= 0.5f;
+                        inStats.OxygenRefillRate = 0.0f;
+                        break;
+                    case 2:
+                        inStats.CyberDefenseRating = 0.0f;
+                        inStats.TurretChargeFactor *= 0.7f;
+                        break;
+                    case 3:
+                        inStats.EMDetection = 0.0f;
+                        inStats.WarpChargeRate = 0.0f;
+                        break;
+                }
+                return true;
+            }
+        }
+
         [HarmonyPatch(typeof(PLShop_Exotic1), "CreateInitialWares")]
         internal class Shop_Exotic1Heat
         {
-            private static void Postfix(PLShop_Processors __instance, TraderPersistantDataEntry inPDE)
+            private static void Postfix(PLShop_Exotic1 __instance, TraderPersistantDataEntry inPDE)
             {
                 if (inPDE == null)
                     return;
@@ -331,5 +458,31 @@ namespace ExpandedGalaxy
                 ++inPDE.ServerWareIDCounter;
             }
         }
+
+        [HarmonyPatch(typeof(PLShop_Exotic2), "CreateInitialWares")]
+        internal class Shop_Exotic2RandLarge
+        {
+            private static void Postfix(PLShop_Exotic2 __instance, TraderPersistantDataEntry inPDE)
+            {
+                if (inPDE == null)
+                    return;
+                PLShipComponent componentFromHash = PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_PROGRAM, (int)EWarpDriveProgramType.RAND_LARGE, 0, 0, 12));
+                componentFromHash.NetID = inPDE.ServerWareIDCounter;
+                inPDE.Wares.Add(inPDE.ServerWareIDCounter, (PLWare)componentFromHash);
+                ++inPDE.ServerWareIDCounter;
+            }
+        }
+
+        public static bool HasActiveProgramOfType(PLShipInfoBase shipInfo, int programType)
+        {
+            foreach (PLWarpDriveProgram program in shipInfo.MyStats.GetComponentsOfType(ESlotType.E_COMP_PROGRAM))
+            {
+                if (program.SubType == programType)
+                    if ((double)program.GetActiveTimerAlpha() > 0.0 && (double)program.GetActiveTimerAlpha() < 1.0)
+                        return true;
+            }
+            return false;
+        }
     }
 }
+

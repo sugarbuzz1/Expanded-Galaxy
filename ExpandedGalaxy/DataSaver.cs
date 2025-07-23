@@ -7,12 +7,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Talents.Framework;
+using UnityEngine;
 
 namespace ExpandedGalaxy
 {
     internal class DataSaver : PMLSaveData
     {
-        public override uint VersionID => 2;
+        public override uint VersionID => 3;
 
         public override string Identifier() => "sugarbuzz1.ExpandedGalaxy";
 
@@ -53,6 +54,21 @@ namespace ExpandedGalaxy
                         data.Add(binaryReader.ReadSingle());
 
                     DelayedLoadData(data);
+
+                    if (VersionID < 3)
+                        return;
+
+                    Relic.PickupQueue.Clear();
+                    int pickupQueueCount = binaryReader.ReadInt32();
+                    for (int i = 0; i < pickupQueueCount; i++)
+                    {
+                        int sectorID = binaryReader.ReadInt32();
+                        int hashCount = binaryReader.ReadInt32();
+                        List<int> hashes = new List<int>();
+                        for (int j = 0; j < hashCount; j++)
+                            hashes.Add(binaryReader.ReadInt32());
+                        Relic.PickupQueue.Add(sectorID, hashes);
+                    }
                 }
             }
         }
@@ -92,6 +108,15 @@ namespace ExpandedGalaxy
                     binaryWriter.Write(PLEncounterManager.Instance.PlayerShip.MyAmmoRefills.Length);
                     foreach (PLAmmoRefill refill in PLEncounterManager.Instance.PlayerShip.MyAmmoRefills)
                         binaryWriter.Write(refill.SupplyAmount);
+
+                    binaryWriter.Write(Relic.PickupQueue.Count);
+                    foreach(int sectorID in Relic.PickupQueue.Keys)
+                    {
+                        binaryWriter.Write(sectorID);
+                        binaryWriter.Write(Relic.PickupQueue[sectorID].Count);
+                        foreach (int hash in Relic.PickupQueue[sectorID])
+                            binaryWriter.Write(hash);
+                    }
                 }
                 return output.ToArray();
             }
@@ -133,6 +158,7 @@ namespace ExpandedGalaxy
             {
                 PFSectorCommander.bossFlag = 0;
                 Relic.RelicData = 0U;
+                Relic.PickupQueue.Clear();
                 Relic.MiningDroneQuest.dronesActive = true;
                 Relic.MiningDroneQuest.GXData = 0;
                 SyncCheck.checkedPlayers.Clear();

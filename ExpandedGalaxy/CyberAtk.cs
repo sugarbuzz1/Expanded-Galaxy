@@ -60,7 +60,7 @@ namespace ExpandedGalaxy
                     }
                     if (inVirus.Sender.ShipID == PLEncounterManager.Instance.PlayerShip.ShipID)
                     {
-                        if ((double)1.0 + inVirus.Sender.MyStats.CyberAttackRating > (double)__instance.MyStats.CyberDefenseRating)
+                        if ((double)1.0 + inVirus.Sender.MyStats.CyberAttackRating + GetVirusCyberAtkModifier(inVirus.SubType) > (double)__instance.MyStats.CyberDefenseRating)
                         {
                             __result = true;
                             return;
@@ -70,7 +70,7 @@ namespace ExpandedGalaxy
                     {
                         if (SensorDish.IsSensorWeaknessActiveReal(__instance, 3, -1))
                         {
-                            if ((double)1.0 + inVirus.Sender.MyStats.CyberAttackRating > (double)__instance.MyStats.CyberDefenseRating)
+                            if ((double)1.0 + inVirus.Sender.MyStats.CyberAttackRating + GetVirusCyberAtkModifier(inVirus.SubType) > (double)__instance.MyStats.CyberDefenseRating)
                             {
                                 __result = true;
                                 return;
@@ -159,6 +159,27 @@ namespace ExpandedGalaxy
             {
                 __result = PLLocalize.Localize("+100% EM SIG") + "\n" + PLLocalize.Localize("+25% Shield Recharge Rate") + "\n" + PLLocalize.Localize("+1.0 Cyber-Defense");
             }
+        }
+
+        public static double GetVirusCyberAtkModifier(int inSubType)
+        {
+            double mod = 0.0;
+            switch (inSubType)
+            {
+                case (int)EVirusType.TROJAN_HORSE:
+                    mod = 0.5;
+                    break;
+                case (int)EVirusType.SITTING_DUCK:
+                    mod = -0.25;
+                    break;
+                case (int)EVirusType.GENTLEMENS_WELCOME:
+                    mod = -0.5;
+                    break;
+                case (int)EVirusType.SHUTDOWN_DEFENSES:
+                    mod = -0.25;
+                    break;
+            }
+            return mod;
         }
     }
 }

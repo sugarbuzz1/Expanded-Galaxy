@@ -244,9 +244,7 @@ namespace ExpandedGalaxy
                                 item.AmmoCurrent += num0;
                                 item.AmmoCurrent = Mathf.Min(item.AmmoCurrent, item.AmmoMax);
                                 float num2 = Mathf.Abs(item.AmmoCurrent - num1) * (Ammunition.AmmoRefillPercent() / (float)item.AmmoMax);
-                                if (!PhotonNetwork.isMasterClient)
-                                    refill.SupplyAmount -= item.AmmoCurrent - num2;
-                                PLServer.Instance.photonView.RPC("RemoveAmmoSupply", PhotonTargets.MasterClient, arguments[0], 0, num2, PLNetworkManager.Instance.LocalPlayer.GetPlayerID());
+                                refill.SupplyAmount -= item.AmmoCurrent - num2;
                                 if (player == PLNetworkManager.Instance.LocalPlayer)
                                 {
                                     PLPawn pawn = player.GetPawn();

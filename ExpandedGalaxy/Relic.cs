@@ -15,7 +15,9 @@ using PulsarModLoader.Content.Components.Shield;
 using PulsarModLoader.Content.Components.Turret;
 using PulsarModLoader.Content.Components.WarpDriveProgram;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -27,6 +29,7 @@ namespace ExpandedGalaxy
     internal class Relic
     {
         internal static ulong RelicData = 0U;
+        internal static Dictionary<int, List<int>> PickupQueue = new Dictionary<int, List<int>>();
         static readonly int MaxRelicType = 10;
         private static Color relicColor = new Color(85f / 255f, 0f, 255f / 255f);
 
@@ -108,13 +111,23 @@ namespace ExpandedGalaxy
                     return;
                 if (__instance is PLWastedWingEncounter || __instance is PLAOGFactionMission_MadmansMansion || __instance.LevelID == (ObscuredInt)113)
                 {
-                    if (PLServer.GetCurrentSector() != null && !PLServer.GetCurrentSector().Visited && PhotonNetwork.isMasterClient)
+                    if (PLServer.GetCurrentSector() != null && (!PLServer.GetCurrentSector().Visited || PickupQueue.ContainsKey(PLServer.GetCurrentSector().ID)) && PhotonNetwork.isMasterClient)
                     {
-                        int[] hashes = new int[1]
+                        int[] hashes;
+                        if (PickupQueue.ContainsKey(PLServer.GetCurrentSector().ID))
+                        {
+                            hashes = PickupQueue[PLServer.GetCurrentSector().ID].ToArray();
+                        }
+                        else
+                        {
+                            hashes = new int[1]
                         {
                             (int)Relic.GenerateRelic(PLServer.Instance.GalaxySeed).getHash()
                         };
-                        Relic.AddCompToPlanet(__instance, hashes, true, true);
+                            PickupQueue.Add(PLServer.GetCurrentSector().ID, hashes.ToList<int>());
+                        }
+                        if (hashes.Length > 0)
+                            Relic.AddCompToPlanet(__instance, hashes, true, true);
                     }
                 }
             }
@@ -136,7 +149,7 @@ namespace ExpandedGalaxy
         {
             await Task.Delay(100);
             while (PLNetworkManager.Instance.CurrentGame == null || !pei.GameInitWithHubID || PLEncounterManager.Instance.GetCPEI() != pei)
-                await Task.Yield();
+                await Task.Delay(100);
             await Task.Delay(100);
             if (PhotonNetwork.isMasterClient)
                 ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.AddCompToPlanetRPC", PhotonTargets.Others, new object[5]
@@ -266,6 +279,25 @@ namespace ExpandedGalaxy
                 }
                 if (compHashes.Length > num)
                     PulsarModLoader.Utilities.Logger.Info(string.Format("Could not place {0} components at sector {1}!", (compHashes.Length - num).ToString(), PLServer.GetCurrentSector().ID.ToString()));
+            }
+        }
+
+        [HarmonyPatch(typeof(PLPlayer), "AttemptToPickupRandomComponentAtID")]
+        internal class MarkPickupAsPickedUp
+        {
+            private static bool Prefix(int inPickupComponentID)
+            {
+                if (PLNetworkManager.Instance.CurrentGame == null)
+                    return false;
+                if (PLServer.GetCurrentSector() != null && PickupQueue.ContainsKey(PLServer.GetCurrentSector().ID))
+                {
+                    PLPickupRandomComponent randomComponentAtId = PLGameStatic.Instance.GetPickupRandomComponentAtID(inPickupComponentID);
+                    if (randomComponentAtId == null || randomComponentAtId.PickedUp)
+                        return false;
+                    if (PickupQueue[PLServer.GetCurrentSector().ID].Contains(randomComponentAtId.RandComp))
+                        PickupQueue[PLServer.GetCurrentSector().ID].Remove(randomComponentAtId.RandComp);
+                }
+                return true;
             }
         }
 
@@ -548,30 +580,49 @@ namespace ExpandedGalaxy
             {
                 private static void Postfix(PLShipInfoBase __instance, PLShipInfoBase inShip, ref bool __result)
                 {
-                    if (!PhotonNetwork.isMasterClient || !__instance.IsDrone || __instance.MyStats == null || __instance is PLWarpGuardian || __instance is PLUnseenEye)
+                    if (!PhotonNetwork.isMasterClient || __instance.MyStats == null || __instance is PLWarpGuardian || __instance is PLUnseenEye)
                         return;
-                    bool flag = false;
-                    foreach (PLShipComponent component in __instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_DISTRESS_SIGNAL))
+                    if (__instance.IsDrone)
                     {
-                        if (component is MiningDroneSignal)
+                        bool flag = false;
+                        foreach (PLShipComponent component in __instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_DISTRESS_SIGNAL))
                         {
-                            if (!__instance.PersistantShipInfo.ForcedHostile && (component.Level < 4 && __instance.LastTookDamageTime() == float.MinValue) || !Relic.MiningDroneQuest.dronesActive)
+                            if (component is MiningDroneSignal)
                             {
-                                flag = true;
-                                break;
-                            }
-                            if (inShip.FactionID == 6)
-                            {
-                                flag = true;
-                                break;
+                                if (!__instance.PersistantShipInfo.ForcedHostile && (component.Level < 4 && __instance.LastTookDamageTime() == float.MinValue) || !Relic.MiningDroneQuest.dronesActive)
+                                {
+                                    flag = true;
+                                    break;
+                                }
+                                if (inShip.FactionID == 6)
+                                {
+                                    flag = true;
+                                    break;
+                                }
                             }
                         }
+                        if (flag)
+                        {
+                            __result = false;
+                            if (__instance.HostileShips.Contains(inShip.ShipID))
+                                __instance.HostileShips.Remove(inShip.ShipID);
+                        }
                     }
-                    if (flag)
+                    else if (inShip.IsDrone)
                     {
-                        __result = false;
-                        if (__instance.HostileShips.Contains(inShip.ShipID))
-                            __instance.HostileShips.Remove(inShip.ShipID);
+                        foreach (PLShipComponent component in inShip.MyStats.GetComponentsOfType(ESlotType.E_COMP_DISTRESS_SIGNAL))
+                        {
+                            if (component is MiningDroneSignal)
+                            {
+                                if ((!inShip.PersistantShipInfo.ForcedHostile || !dronesActive) && component.Level < 4)
+                                {
+                                    __result = false;
+                                    break;
+                                }
+                                else
+                                    break;
+                            }
+                        }
                     }
                 }
             }
@@ -678,17 +729,24 @@ namespace ExpandedGalaxy
 
                                     };
                                     pLPersistantShipInfo.CompOverrides.AddRange((IEnumerable<ComponentOverrideData>)GetComponentsFromDroneType(1, rand));
-                                    Vector3 pos = GetEmptyLocationForEscortDrone(PLEncounterManager.Instance.GetCPEI(), pLPersistantShipInfo);
+                                    Vector3 pos = GetEmptyLocationForEscortDrone(PLEncounterManager.Instance.GetCPEI(), pLPersistantShipInfo, out Quaternion entryDir);
                                     if (pos != Vector3.zero)
                                     {
-                                        PLServer.Instance.AllPSIs.Add(pLPersistantShipInfo);
-                                        PLEncounterManager.Instance.GetCPEI().SpawnEnemyShip(pLPersistantShipInfo.Type, pLPersistantShipInfo, spawnPos: pos);
+                                        PLServer.Instance.StartCoroutine(TimedShipWarpInDirectional(pLPersistantShipInfo, pos, entryDir));
                                     }
                                 }
                             }
                         }
                     }
                 }
+            }
+
+            private static IEnumerator TimedShipWarpInDirectional(PLPersistantShipInfo newPSI, Vector3 spawnPos, Quaternion spawnRot)
+            {
+                PLServer.Instance.photonView.RPC("WarpInEffect", PhotonTargets.All, (object)spawnPos, (object)spawnRot);
+                yield return new WaitForSeconds(0.5f);
+                PLServer.Instance.AllPSIs.Add(newPSI);
+                newPSI.ShipInstance = PLEncounterManager.Instance.GetCPEI().SpawnEnemyShip(newPSI.Type, newPSI, spawnPos);
             }
 
             [HarmonyPatch(typeof(PLShipInfoBase), "Ship_WarpOutNow")]
@@ -845,7 +903,7 @@ namespace ExpandedGalaxy
                 }
             }
 
-            private static Vector3 GetEmptyLocationForEscortDrone(PLPersistantEncounterInstance inPEI, PLPersistantShipInfo inPSI)
+            private static Vector3 GetEmptyLocationForEscortDrone(PLPersistantEncounterInstance inPEI, PLPersistantShipInfo inPSI, out Quaternion outEntryDir)
             {
                 if (PLServer.Instance != null)
                 {
@@ -873,11 +931,15 @@ namespace ExpandedGalaxy
                                 pos.y = playerPos.y;
                                 pos.z += playerPos.z;
                                 if (traverse.Method("Check_IsPositionSafeForShipCheck", new Type[1] { typeof(Vector3) }).GetValue<bool>(new object[1] { pos }))
+                                {
+                                    outEntryDir = Quaternion.LookRotation((playerPos - pos).normalized);
                                     return pos;
+                                }
                             }
                         }
                     }
                 }
+                outEntryDir = Quaternion.Euler(Vector3.zero);
                 return Vector3.zero;
             }
 
@@ -3136,13 +3198,23 @@ namespace ExpandedGalaxy
                 {
                     if (__instance is PLCanyonPlanetEncounter)
                     {
-                        if (PLServer.GetCurrentSector() != null && !PLServer.GetCurrentSector().Visited && PLServer.GetCurrentSector().MissionSpecificID == 8000002 && PhotonNetwork.isMasterClient)
+                        if (PLServer.GetCurrentSector() != null && (!PLServer.GetCurrentSector().Visited || PickupQueue.ContainsKey(PLServer.GetCurrentSector().ID) && PLServer.GetCurrentSector().MissionSpecificID == 8000002 && PhotonNetwork.isMasterClient))
                         {
-                            int[] hashes = new int[1]
+                            int[] hashes;
+                            if (PickupQueue.ContainsKey(PLServer.GetCurrentSector().ID))
                             {
-                            (int)PLMissionShipComponent.CreateMissionComponentFromHash(8, 0, 0).getHash()
+                                hashes = PickupQueue[PLServer.GetCurrentSector().ID].ToArray();
+                            }
+                            else
+                            {
+                                hashes = new int[1]
+                            {
+                            (int)Relic.GenerateRelic(PLServer.Instance.GalaxySeed).getHash()
                             };
-                            Relic.AddCompToPlanet(__instance, hashes, true, true);
+                                PickupQueue.Add(PLServer.GetCurrentSector().ID, hashes.ToList<int>());
+                            }
+                            if (hashes.Length > 0)
+                                Relic.AddCompToPlanet(__instance, hashes, true, true, true);
                         }
                     }
                 }

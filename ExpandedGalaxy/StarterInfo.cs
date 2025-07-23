@@ -214,6 +214,14 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
+                foreach (PLWarpDriveProgram program in __instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_PROGRAM))
+                {
+                    if (program.SubType == (int)EWarpDriveProgramType.BLOCK_LONG_RANGE_COMMS)
+                    {
+                        __instance.MyStats.RemoveShipComponentByNetID(program.NetID);
+                    }
+                }
+                __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_PROGRAM, (int)EWarpDriveProgramType.DETECTOR, 0, 0, (int)ESlotType.E_COMP_PROGRAM)));
                 if (startingPlayerShip)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
@@ -252,6 +260,12 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
+                foreach (PLWarpDriveProgram program in __instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_PROGRAM))
+                {
+                    if (program.SubType == (int)EWarpDriveProgramType.BLOCK_LONG_RANGE_COMMS)
+                        __instance.MyStats.RemoveShipComponentByNetID(program.NetID);
+                }
+                __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_PROGRAM, (int)EWarpDriveProgramType.DETECTOR, 0, 0, (int)ESlotType.E_COMP_PROGRAM)));
                 if (startingPlayerShip)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);

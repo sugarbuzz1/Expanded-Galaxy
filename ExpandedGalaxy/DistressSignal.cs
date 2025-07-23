@@ -33,6 +33,8 @@ namespace ExpandedGalaxy
                 this.UpdateDescription();
                 if (!(this.IsEquipped && this.ShipStats != null && this.ShipStats.Ship != null && this.ShipStats.Ship.IsDrone))
                     return;
+                if (this.ShipStats.Ship.MyShieldGenerator != null && this.ShipStats.Ship.MyShieldGenerator.CanBeDroppedOnShipDeath)
+                    this.ShipStats.Ship.MyShieldGenerator.CanBeDroppedOnShipDeath = false;
                 if (this.Level == 0)
                 {
                     this.ShipStats.Ship.ShipNameValue = "Mining Drone";

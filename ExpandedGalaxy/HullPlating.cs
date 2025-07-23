@@ -22,7 +22,7 @@ namespace ExpandedGalaxy
                 this.Level = inLevel;
                 this.Name = "Heavy Duty Plating";
                 this.Desc = "This heavyset plating is designed to further reinforce the hull, at the expense of ship maneuverability";
-                this.m_MarketPrice = (ObscuredInt)16500;
+                this.m_MarketPrice = (ObscuredInt)6500;
 
             }
 
@@ -52,7 +52,7 @@ namespace ExpandedGalaxy
                 this.SubType = HullPlatingModManager.Instance.GetHullPlatingIDFromName("LightHullPlating");
                 this.Level = inLevel;
                 this.Name = "Light Hull Plating";
-                this.Desc = "A lighter version of the standard hull plating that can somewhat deflect incoming attacks";
+                this.Desc = "A lighter version of the standard hull plating that boosts dodging capabilities";
                 this.m_MarketPrice = (ObscuredInt)9000;
             }
 
@@ -82,7 +82,7 @@ namespace ExpandedGalaxy
                 this.SubType = HullPlatingModManager.Instance.GetHullPlatingIDFromName("NanoActivePlating");
                 this.Level = inLevel;
                 this.Name = "Nano-Active Hull Plating";
-                this.Desc = "";
+                this.Desc = "Utilizing nanite technology this plating reinforces itself, getting stronger over time";
                 this.m_MarketPrice = (ObscuredInt)8000;
                 this.Experimental = true;
                 this.UpdateArmorValue();

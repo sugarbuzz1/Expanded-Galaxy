@@ -12,7 +12,8 @@ namespace ExpandedGalaxy
             private static PickupMissionData CreateData()
             {
                 PickupMissionData pickupMissionData = new PickupMissionData();
-                pickupMissionData.Name = "\"Special\" Offer"; ;
+                pickupMissionData.Name = "\"Special\" Offer";
+                pickupMissionData.Desc = "I'm looking for something. On the outside it looks like a worthless hunk of garbage, but it's actully considered a high deity to some denizens of the galaxy. If you can find it and bring it to me, I will make it worth your while.";
                 pickupMissionData.CanBeAbandonedByPlayers = false;
                 pickupMissionData.MissionID = 8000000;
                 pickupMissionData.CanBeBlockedByOtherPickupMissions = false;
@@ -81,6 +82,7 @@ namespace ExpandedGalaxy
             {
                 PickupMissionData pickupMissionData = new PickupMissionData();
                 pickupMissionData.Name = "Junk Processing";
+                pickupMissionData.Desc = "Incredible! I'm suprised you were able to find it in a galaxy so vast... assuming what you've brought me is authentic that is! I'll need some time to make sure what you brought me isn't actually junk. Come find me later and I'll give you your reward.";
                 pickupMissionData.CanBeAbandonedByPlayers = false;
                 pickupMissionData.MissionID = 8000001;
                 pickupMissionData.CanBeBlockedByOtherPickupMissions = false;
@@ -129,6 +131,7 @@ namespace ExpandedGalaxy
             {
                 PickupMissionData pickupMissionData = new PickupMissionData();
                 pickupMissionData.Name = "Recover Junk Cube";
+                pickupMissionData.Desc = "I was wondering when you'd return for that. Unfortunatly some bandits took off with it while we were stopped at Cornelia. They kept shouting \"Praise be the Cube,\" whatever that means. I've tracked them to this sector, bring it back to me so I can finish looking it over and get you your reward.";
                 pickupMissionData.CanBeAbandonedByPlayers = false;
                 pickupMissionData.MissionID = 8000002;
                 pickupMissionData.CanBeBlockedByOtherPickupMissions = false;
@@ -222,6 +225,7 @@ namespace ExpandedGalaxy
             {
                 PickupMissionData pickupMissionData = new PickupMissionData();
                 pickupMissionData.Name = "Junk Reprocessing";
+                pickupMissionData.Desc = "Nice work. I won't lose it this time I promise! Once I finish examining this come find me and I'll give you your reward.";
                 pickupMissionData.CanBeAbandonedByPlayers = false;
                 pickupMissionData.MissionID = 8000003;
                 pickupMissionData.CanBeBlockedByOtherPickupMissions = false;
