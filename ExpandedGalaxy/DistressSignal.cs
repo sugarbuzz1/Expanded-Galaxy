@@ -35,6 +35,7 @@ namespace ExpandedGalaxy
                     return;
                 if (this.ShipStats.Ship.MyShieldGenerator != null && this.ShipStats.Ship.MyShieldGenerator.CanBeDroppedOnShipDeath)
                     this.ShipStats.Ship.MyShieldGenerator.CanBeDroppedOnShipDeath = false;
+                this.ShipStats.Ship.ClearModifiers();
                 if (this.Level == 0)
                 {
                     this.ShipStats.Ship.ShipNameValue = "Mining Drone";
@@ -196,8 +197,11 @@ namespace ExpandedGalaxy
                     this.ShipStats.ShieldsMax = 0f;
                     this.ShipStats.ShieldsChargeRate = 0f;
                     this.ShipStats.ThrustOutputMax = 0f;
+                    this.ShipStats.ThrustOutputCurrent = 0f;
                     this.ShipStats.ManeuverThrustOutputMax = 0f;
+                    this.ShipStats.ManeuverThrustOutputCurrent = 0f;
                     this.ShipStats.InertiaThrustOutputMax = 0f;
+                    this.ShipStats.InertiaThrustOutputCurrent = 0f;
                 }
             }
         }

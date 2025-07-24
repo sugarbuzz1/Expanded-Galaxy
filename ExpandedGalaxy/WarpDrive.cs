@@ -20,11 +20,11 @@ namespace ExpandedGalaxy
                     case (int)EWarpDriveType.E_WARPDR_CU_STANDARD_JUMP_MODULE:
                         __instance.NumberOfChargingNodes = 4;
                         break;
-                    case (int)EWarpDriveType.E_WARPDR_CU_EXTREMERANGE_JUMP_MODULE:
-                        __instance.NumberOfChargingNodes = 2;
+                    case (int)EWarpDriveType.E_WARPDR_WDMILITARYJUMP:
+                        __instance.NumberOfChargingNodes = 5;
                         break;
                     case (int)EWarpDriveType.E_WARPDR_EXPLORERS:
-                        __instance.NumberOfChargingNodes = 1;
+                        __instance.NumberOfChargingNodes = 3;
                         break;
                 }
             }

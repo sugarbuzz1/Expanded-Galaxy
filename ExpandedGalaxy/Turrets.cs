@@ -998,7 +998,8 @@ namespace ExpandedGalaxy
                         {
                             if (hull.SubType == (int)EHullType.E_NANO_ACTIVE_HULL || hull.SubType == (int)EHullType.E_POLYTECH_HULL)
                                 healNum *= 4f;
-                            PLServer.Instance.photonView.RPC("ServerRepairHull", PhotonTargets.MasterClient, attackingShip.ShipID, (int)healNum, 0);
+                            PLServer.Instance.ClientRepairHull(attackingShip.ShipID, (int)healNum, 0);
+                            PLServer.Instance.photonView.RPC("ClientRepairHull", PhotonTargets.Others, attackingShip.ShipID, (int)healNum, 0);
                         }
                     }
                 }

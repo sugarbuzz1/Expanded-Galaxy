@@ -17,6 +17,9 @@ namespace ExpandedGalaxy
                 pickupMissionData.CanBeAbandonedByPlayers = false;
                 pickupMissionData.MissionID = 8000000;
                 pickupMissionData.CanBeBlockedByOtherPickupMissions = false;
+                pickupMissionData.LongRangeDialogueActorID = "";
+                pickupMissionData.LongRangeDialogueDisplayName = "";
+                pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
                 List<ObjectiveData> objectiveDatas = new List<ObjectiveData>()
                 {
                     new ObjectiveData
@@ -86,6 +89,9 @@ namespace ExpandedGalaxy
                 pickupMissionData.CanBeAbandonedByPlayers = false;
                 pickupMissionData.MissionID = 8000001;
                 pickupMissionData.CanBeBlockedByOtherPickupMissions = false;
+                pickupMissionData.LongRangeDialogueActorID = "";
+                pickupMissionData.LongRangeDialogueDisplayName = "";
+                pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
                 List<ObjectiveData> objectiveDatas = new List<ObjectiveData>()
                 {
                     new ObjectiveData
@@ -135,6 +141,9 @@ namespace ExpandedGalaxy
                 pickupMissionData.CanBeAbandonedByPlayers = false;
                 pickupMissionData.MissionID = 8000002;
                 pickupMissionData.CanBeBlockedByOtherPickupMissions = false;
+                pickupMissionData.LongRangeDialogueActorID = "";
+                pickupMissionData.LongRangeDialogueDisplayName = "";
+                pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
                 List<ObjectiveData> objectiveDatas = new List<ObjectiveData>()
                 {
                     new ObjectiveData
@@ -229,6 +238,9 @@ namespace ExpandedGalaxy
                 pickupMissionData.CanBeAbandonedByPlayers = false;
                 pickupMissionData.MissionID = 8000003;
                 pickupMissionData.CanBeBlockedByOtherPickupMissions = false;
+                pickupMissionData.LongRangeDialogueActorID = "";
+                pickupMissionData.LongRangeDialogueDisplayName = "";
+                pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
                 List<ObjectiveData> objectiveDatas = new List<ObjectiveData>()
                 {
                     new ObjectiveData

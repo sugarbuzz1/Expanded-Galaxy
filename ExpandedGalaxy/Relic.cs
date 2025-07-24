@@ -617,6 +617,8 @@ namespace ExpandedGalaxy
                                 if ((!inShip.PersistantShipInfo.ForcedHostile || !dronesActive) && component.Level < 4)
                                 {
                                     __result = false;
+                                    if (__instance.HostileShips.Contains(inShip.ShipID))
+                                        __instance.HostileShips.Remove(inShip.ShipID);
                                     break;
                                 }
                                 else
@@ -2276,6 +2278,8 @@ namespace ExpandedGalaxy
                 public override void CreateSpecials(TraderPersistantDataEntry inPDE)
                 {
                 }
+
+                public override float GetWareBuyPriceScalar() => 1f;
             }
 
             [HarmonyPatch(typeof(PLRolandInfo), "SetupShipStats")]
@@ -2808,7 +2812,7 @@ namespace ExpandedGalaxy
                         CaravanTraderData = persistantCaravanInfo.OptionalTPDE;
                     if (persistantCaravanInfo.OptionalTPDE == null && CaravanTraderData != null)
                         persistantCaravanInfo.OptionalTPDE = CaravanTraderData;
-                    if (persistantCaravanInfo.ShipInstance != null && persistantCaravanInfo.ShipInstance.ShipNameValue.Contains("Wandering Caravan"))
+                    if (persistantCaravanInfo.ShipInstance != null && !persistantCaravanInfo.ShipInstance.ShipNameValue.Contains("Wandering Caravan"))
                         persistantCaravanInfo.ShipInstance.ShipNameValue = "Wandering Caravan";
                     if (CaravanCurrentSector != -1 && PLServer.GetCurrentSector() != null && CaravanCurrentSector == PLServer.GetCurrentSector().ID && PLEncounterManager.Instance.PlayerShip != null && !PLEncounterManager.Instance.PlayerShip.InWarp)
                     {
@@ -2873,7 +2877,7 @@ namespace ExpandedGalaxy
                                                 }
                                                 else if (num == 1)
                                                 {
-                                                    if (UnityEngine.Random.Range(0f, 1000f) > 500f)
+                                                    if (UnityEngine.Random.Range(0f, 1000f) > 900f)
                                                     {
                                                         persistantCaravanInfo.OptionalTPDE.Wares.Remove(currentKey);
                                                         persistantCaravanInfo.OptionalTPDE.ServerAddWare(GetSpecialOffer());
