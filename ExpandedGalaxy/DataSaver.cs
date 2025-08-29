@@ -8,6 +8,7 @@ using PulsarModLoader.Content.Components.PolytechModule;
 using PulsarModLoader.SaveData;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Talents.Framework;
 using UnityEngine;
@@ -16,7 +17,7 @@ namespace ExpandedGalaxy
 {
     internal class DataSaver : PMLSaveData
     {
-        public override uint VersionID => 3;
+        public override uint VersionID => 2;
 
         public override string Identifier() => "sugarbuzz1.ExpandedGalaxy";
 
@@ -72,13 +73,6 @@ namespace ExpandedGalaxy
                             hashes.Add(binaryReader.ReadInt32());
                         Relic.PickupQueue.Add(sectorID, hashes);
                     }
-                        CrewLogData logData = new CrewLogData();
-                        logData.timeStamp = binaryReader.ReadSingle();
-                        logData.Text = binaryReader.ReadString();
-                        logData.optionalSectorID = binaryReader.ReadInt32();
-                        Color color = new Color(binaryReader.ReadSingle(), binaryReader.ReadSingle(), binaryReader.ReadSingle(), binaryReader.ReadSingle());
-                        logData.optionalColor = color;
-                        CrewLogManager.Instance.AddLog(logData);
                 }
             }
         }
@@ -127,13 +121,6 @@ namespace ExpandedGalaxy
                         foreach (int hash in Relic.PickupQueue[sectorID])
                             binaryWriter.Write(hash);
                     }
-                        binaryWriter.Write(logData.timeStamp);
-                        binaryWriter.Write(logData.Text);
-                        binaryWriter.Write(logData.optionalSectorID);
-                        binaryWriter.Write(logData.optionalColor.r);
-                        binaryWriter.Write(logData.optionalColor.g);
-                        binaryWriter.Write(logData.optionalColor.b);
-                        binaryWriter.Write(logData.optionalColor.a);
                 }
                 return output.ToArray();
             }
@@ -183,8 +170,6 @@ namespace ExpandedGalaxy
                 Relic.RelicCaravan.CaravanTargetSector = -1;
                 Relic.RelicCaravan.CaravanUpdateTime = 60000;
                 Relic.RelicCaravan.ClearCaravanPath();
-                PersistantScrapManager.Instance.ClearData();
-                CrewLogManager.Instance.OnNewGame();
             }
         }
 
