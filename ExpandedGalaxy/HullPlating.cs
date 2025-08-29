@@ -1,5 +1,6 @@
 ﻿using CodeStage.AntiCheat.ObscuredTypes;
 using HarmonyLib;
+using PulsarModLoader;
 using PulsarModLoader.Content.Components.HullPlating;
 using UnityEngine;
 
@@ -119,9 +120,82 @@ namespace ExpandedGalaxy
             public override string GetStatLineRight() => (this.armor).ToString("0") + "\n" + (this.MaxArmor()).ToString("0") + "\n" + (10f + (75f + 10f * this.Level) * (armor / this.MaxArmor())).ToString("0") + "\n";
         }
 
-        [HarmonyPatch(typeof(PLShipStats), "TakeHullDamage")]
-        internal class UpdateNanoArmor
+        private class BonePlatingMod : HullPlatingMod
         {
+            public override string Name => "Bone Plating";
+
+            public override PLShipComponent PLHullPlating => new BonePlating(EHullPlatingType.E_HULLPLATING_CCGE, 0);
+        }
+
+        internal class BonePlating : PLHullPlating
+        {
+            private float lastUpdateTime = float.MinValue;
+            public BonePlating(EHullPlatingType inType, int inLevel) : base(inType, inLevel)
+            {
+                this.SubType = HullPlatingModManager.Instance.GetHullPlatingIDFromName("Bone Plating");
+                this.Level = inLevel;
+                this.Name = "Bone Plating";
+                this.Desc = "Hull plating made from the ever-growing exoskeleton of am infected carrier. It can block anything, but will take some time to regrow...";
+                this.m_MarketPrice = (ObscuredInt)7600;
+                this.Contraband = true;
+                this.SubTypeData = 0;
+            }
+
+            public override void Update()
+            {
+                base.Update();
+                if (this.IsEquipped)
+                {
+                    if (this.SubTypeData > 0 && Time.time - this.lastUpdateTime > 1f)
+                    {
+                        this.lastUpdateTime = Time.time;
+                        --this.SubTypeData;
+                    }
+                    /*ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                        {
+                        (object) this.ShipStats.Ship.ShipID,
+                        (object) this.NetID,
+                        (object) this.SubTypeData,
+                        });*/
+                }
+                else
+                {
+                    this.SubTypeData = (short)Mathf.Clamp(21 - this.Level, 8f, float.MaxValue);
+                }
+            }
+
+            public override string GetStatLineLeft() => "Status:" + "\n" + "Regrow Time:" + "\n";
+
+            public override string GetStatLineRight()
+            {
+                string line;
+                if (!this.IsEquipped)
+                    line = "INACTIVE" + "\n";
+                int num = this.SubTypeData;
+                if (num > 0)
+                    line = (num).ToString("0") + "s\n";
+                else
+                    line = "ACTIVE" + "\n";
+                return line + Mathf.Clamp(20 - this.Level, 7f, float.MaxValue).ToString("0") + "s\n";
+            }
+        }
+
+        [HarmonyPatch(typeof(PLShipStats), "TakeHullDamage")]
+        internal class UpdateArmor
+        {
+            private static bool Prefix(PLShipStats __instance, float inDmg, EDamageType inDmgType, PLShipInfoBase attackingShip, PLTurret turret, ref float __result)
+            {
+                if (__instance.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING) == null)
+                    return true;
+                PLHullPlating hullPlating = __instance.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING);
+                if (hullPlating is BonePlating && hullPlating.SubTypeData == 0)
+                {
+                    __result = 0;
+                    hullPlating.SubTypeData = (short)Mathf.Clamp(21 - hullPlating.Level, 8f, float.MaxValue);
+                    return false;
+                }
+                return true;
+            }
             private static void Postfix(PLShipStats __instance, float inDmg, EDamageType inDmgType, PLShipInfoBase attackingShip, PLTurret turret, ref float __result)
             {
                 if (__instance.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING) == null)

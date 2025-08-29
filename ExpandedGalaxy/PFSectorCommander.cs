@@ -25,7 +25,6 @@ namespace ExpandedGalaxy
                 PLSectorInfo sectorWithId = PLServer.GetSectorWithID(inHubID);
                 if (sectorWithId != null && sectorWithId.MySPI.Faction == 5)
                 {
-                    __instance.MyPersistantData.SpecialNetObjectPersistantData.Clear();
                     PFSectorCommanderUpdate.ambientMusic = false;
                     PFSectorCommanderUpdate.bossMusic = false;
                     PTModules.BossPT4.LastEMPTime = -1f;

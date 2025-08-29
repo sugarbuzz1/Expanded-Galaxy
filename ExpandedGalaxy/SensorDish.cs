@@ -239,30 +239,6 @@ namespace ExpandedGalaxy
             }
         }
 
-        [HarmonyPatch(typeof(PLScientistSensorScreen), "OptimizeForBot")]
-        internal class cacheBotPlayer
-        {
-            private static bool Prefix(PLScientistSensorScreen __instance, PLBot inBot)
-            {
-                if (!PhotonNetwork.isMasterClient)
-                    return true;
-                if (!((UnityEngine.Object)inBot != (UnityEngine.Object)null) || !((UnityEngine.Object)inBot.PlayerOwner != (UnityEngine.Object)null) || !((UnityEngine.Object)inBot.PlayerOwner.GetPawn() != (UnityEngine.Object)null) || !((UnityEngine.Object)inBot.PlayerOwner.GetPawn().CurrentShip != (UnityEngine.Object)null) || !((UnityEngine.Object)__instance.MyScreenHubBase.OptionalShipInfo != (UnityEngine.Object)null))
-                    return true;
-                if (!((UnityEngine.Object)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip != (UnityEngine.Object)null) || (double)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MySensorObjectShip.GetDetectionSignal(Vector3.SqrMagnitude(__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.Exterior.transform.position - __instance.MyScreenHubBase.OptionalShipInfo.Exterior.transform.position), __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MyStats.EMSignature, __instance.MyScreenHubBase.OptionalShipInfo.MyStats.EMDetection, (PLShipInfoBase)__instance.MyScreenHubBase.OptionalShipInfo, (PLSensorObject)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MySensorObjectShip) < 18.0 || !((UnityEngine.Object)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip != (UnityEngine.Object)__instance.MyScreenHubBase.OptionalShipInfo) || (double)Time.time - (double)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.LastRecievedWeaknessTime <= 30.0)
-                    return true;
-                if (SensorDish.screenInfos.ContainsKey(__instance))
-                {
-                    SensorDish.lastToInteract = inBot.PlayerOwner;
-                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.cachePlayer", PhotonTargets.Others, new object[1]
-                    {
-                    (object) inBot.PlayerOwner.GetPlayerID(),
-                    });
-                }
-                return true;
-
-            }
-        }
-
         [HarmonyPatch(typeof(PLScientistSensorScreen), "Update")]
         internal class updateSensorScreen
         {

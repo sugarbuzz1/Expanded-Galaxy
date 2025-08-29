@@ -92,7 +92,13 @@
   <ItemGroup>
     <Compile Include="CaptainChair.cs" />
     <Compile Include="Ammunition.cs" />
+    <Compile Include="ChaosEvents.cs" />
+    <Compile Include="NPCData.cs" />
+    <Compile Include="CrewAI.cs" />
+    <Compile Include="ExGalCommand.cs" />
+    <Compile Include="CrewLog.cs" />
     <Compile Include="WarpDrive.cs" />
+    <Compile Include="PersistantScrapManager.cs" />
     <Compile Include="DistressSignal.cs" />
     <Compile Include="Missions.cs" />
     <Compile Include="Talent.cs" />

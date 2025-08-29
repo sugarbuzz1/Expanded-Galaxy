@@ -2985,7 +2985,7 @@ namespace ExpandedGalaxy
                         component = PLMegaTurret.CreateMainTurretFromHash(1, level, 1);
                         break;
                     case 3:
-                        component = PLMegaTurret.CreateMainTurretFromHash(3, level, 1);
+                        component = new Turrets.MainTurrets.PhysicalTurret();
                         break;
                     case 4:
                         component = PLShieldGenerator.CreateShieldGeneratorFromHash((int)EShieldGeneratorType.E_XC7_SHIELDS, level, 0);

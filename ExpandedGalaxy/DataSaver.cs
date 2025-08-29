@@ -8,6 +8,7 @@ using PulsarModLoader.Content.Components.PolytechModule;
 using PulsarModLoader.SaveData;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Talents.Framework;
 using UnityEngine;
@@ -16,7 +17,7 @@ namespace ExpandedGalaxy
 {
     internal class DataSaver : PMLSaveData
     {
-        public override uint VersionID => 3;
+        public override uint VersionID => 4;
 
         public override string Identifier() => "sugarbuzz1.ExpandedGalaxy";
 
@@ -72,6 +73,30 @@ namespace ExpandedGalaxy
                             hashes.Add(binaryReader.ReadInt32());
                         Relic.PickupQueue.Add(sectorID, hashes);
                     }
+
+                    if (VersionID < 4)
+                        return;
+
+                    PersistantScrapManager.Instance.ClearData();
+                    int totalScrapDatas = binaryReader.ReadInt32();
+                    for (int i = 0; i < totalScrapDatas; i++)
+                    {
+                        ExtraScrapData scrapData = new ExtraScrapData();
+                        scrapData.ID = binaryReader.ReadInt32();
+                        scrapData.sectorID = binaryReader.ReadInt32();
+                        scrapData.compHash = binaryReader.ReadInt32();
+                        scrapData.forceComp = binaryReader.ReadBoolean();
+                        Vector3 vector3 = new Vector3(binaryReader.ReadSingle(), binaryReader.ReadSingle(), binaryReader.ReadSingle());
+                        scrapData.location = vector3;
+                        Quaternion quaternion = new Quaternion(binaryReader.ReadSingle(), binaryReader.ReadSingle(), binaryReader.ReadSingle(), binaryReader.ReadSingle());
+                        scrapData.rotation = quaternion;
+                        PersistantScrapManager.Instance.LoadScrap(scrapData);
+                    }
+                    CrewLogManager.Instance.OnNewGame();
+                    int totalLogs = binaryReader.ReadInt32();
+                    Debug.Log("Loading " + totalLogs.ToString() + " Logs...");
+                    for (int i = 0; i < totalLogs; i++)
+                    {
                         CrewLogData logData = new CrewLogData();
                         logData.timeStamp = binaryReader.ReadSingle();
                         logData.Text = binaryReader.ReadString();
@@ -79,6 +104,8 @@ namespace ExpandedGalaxy
                         Color color = new Color(binaryReader.ReadSingle(), binaryReader.ReadSingle(), binaryReader.ReadSingle(), binaryReader.ReadSingle());
                         logData.optionalColor = color;
                         CrewLogManager.Instance.AddLog(logData);
+                    }
+                    Debug.Log("Loaded All Logs");
                 }
             }
         }
@@ -127,6 +154,25 @@ namespace ExpandedGalaxy
                         foreach (int hash in Relic.PickupQueue[sectorID])
                             binaryWriter.Write(hash);
                     }
+
+                    binaryWriter.Write(PersistantScrapManager.Instance.GetTotalScrapDatas());
+                    foreach (ExtraScrapData scrapData in PersistantScrapManager.Instance.GetAllScrapDatas())
+                    {
+                        binaryWriter.Write(scrapData.ID);
+                        binaryWriter.Write(scrapData.sectorID);
+                        binaryWriter.Write(scrapData.compHash);
+                        binaryWriter.Write(scrapData.forceComp);
+                        binaryWriter.Write(scrapData.location.x);
+                        binaryWriter.Write(scrapData.location.y);
+                        binaryWriter.Write(scrapData.location.z);
+                        binaryWriter.Write(scrapData.rotation.x);
+                        binaryWriter.Write(scrapData.rotation.y);
+                        binaryWriter.Write(scrapData.rotation.z);
+                        binaryWriter.Write(scrapData.rotation.w);
+                    }
+                    binaryWriter.Write(CrewLogManager.Instance.GetLogs().Count);
+                    foreach (CrewLogData logData in CrewLogManager.Instance.GetLogs())
+                    {
                         binaryWriter.Write(logData.timeStamp);
                         binaryWriter.Write(logData.Text);
                         binaryWriter.Write(logData.optionalSectorID);
@@ -134,6 +180,8 @@ namespace ExpandedGalaxy
                         binaryWriter.Write(logData.optionalColor.g);
                         binaryWriter.Write(logData.optionalColor.b);
                         binaryWriter.Write(logData.optionalColor.a);
+                    }
+                    Debug.Log("Saved " + CrewLogManager.Instance.GetLogs().Count.ToString() + " Logs to File");
                 }
                 return output.ToArray();
             }

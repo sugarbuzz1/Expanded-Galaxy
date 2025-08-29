@@ -43,6 +43,20 @@ namespace ExpandedGalaxy
             public override PLShipComponent PLTurret => (PLShipComponent)new AuxTurrets.SylvassiTurret();
         }
 
+        private class SeekerTurretMod : TurretMod
+        {
+            public override string Name => "Seeker Turret";
+
+            public override PLShipComponent PLTurret => new AuxTurrets.SeekerTurret();
+        }
+
+        private class MissileTurretMk2Mod : TurretMod
+        {
+            public override string Name => "Missile Turret Mk. II";
+
+            public override PLShipComponent PLTurret => new AuxTurrets.MissileTurretMk2();
+        }
+
         private class DisassemblerMod : MegaTurretMod
         {
             public override string Name => "The Disassembler";
@@ -69,6 +83,20 @@ namespace ExpandedGalaxy
             public override string Name => "GuardianMainTurret";
 
             public override PLShipComponent PLMegaTurret => (PLShipComponent)new MainTurrets.GuardianMainTurret();
+        }
+
+        private class RipperTurretMod : MegaTurretMod
+        {
+            public override string Name => "Ripper Turret";
+
+            public override PLShipComponent PLMegaTurret => new MainTurrets.RipperTurrret();
+        }
+
+        private class PhysicalTurretMod : MegaTurretMod
+        {
+            public override string Name => "Physical Main Turret";
+
+            public override PLShipComponent PLMegaTurret => new MainTurrets.PhysicalTurret();
         }
 
         private class AutoLaserMod : AutoTurretMod
@@ -134,7 +162,7 @@ namespace ExpandedGalaxy
                         return;
                     }
 
-                    this.CalculatedMaxPowerUsage_Watts = 7000f;
+                    this.CalculatedMaxPowerUsage_Watts = 7000f * this.LevelMultiplier(0.1f);
                     if ((UnityEngine.Object)this.beamPS == (UnityEngine.Object)null || (UnityEngine.Object)this.beamPS2 == (UnityEngine.Object)null)
                     {
                         this.beamPS = this.TurretInstance.BeamObject.GetComponent<ParticleSystem>();
@@ -298,7 +326,7 @@ namespace ExpandedGalaxy
                     this.ColorCorrected = true;
                 }
 
-                public void UpdateMaxPowerUsageWatts() => this.CalculatedMaxPowerUsage_Watts = 8000f * this.LevelMultiplier(0.2f);
+                public void UpdateMaxPowerUsageWatts() => this.CalculatedMaxPowerUsage_Watts = 8000f * this.LevelMultiplier(0.1f);
 
                 private float RangeDamageScalar(Vector3 targetPosition)
                 {
@@ -453,7 +481,7 @@ namespace ExpandedGalaxy
 
             internal class SylvassiTurret : PLLaserTurret
             {
-                private bool ColorCorrected;
+                protected bool ColorCorrected;
                 public SylvassiTurret(int inLevel = 0, int inSubTypeData = 0) : base()
                 {
                     this.Name = "Sylvassi Turret";
@@ -494,7 +522,7 @@ namespace ExpandedGalaxy
                     base.Tick();
                     if (this.IsEquipped && !this.ColorCorrected)
                         this.CorrectColors();
-                }
+            }
 
                 public override void Unequip()
                 {
@@ -921,6 +949,285 @@ namespace ExpandedGalaxy
                         this.HeatGeneratedOnFire = 0.2f;
                 }
             }
+
+            internal class SeekerTurret : PLTurret
+            {
+                private PLShipInfoBase currentTargetShip;
+                public SeekerTurret(int inLevel = 0, int inSubTypeData = 0)
+                {
+                    this.Name = "Seeker Turret";
+                    this.Desc = "A turret that shoots tracking projectiles that can hit even the most evasive ships.";
+                    this.m_Damage = 25f;
+                    this.FireDelay = 0.4f;
+                    this.MinFireDelay = 0.2f;
+                    this.SubType = TurretModManager.Instance.GetTurretIDFromName(this.Name);
+                    this.m_MarketPrice = (ObscuredInt)9000;
+                    this.ProjSpeed = 600f;
+                    this.TurretRange = 6000f;
+                    this.CargoVisualPrefabID = 3;
+                    this.Level = inLevel;
+                    this.HeatGeneratedOnFire = 0.07f;
+                }
+
+                public override void Fire(int inProjID, Vector3 dir)
+                {
+                    this.LastFireTime = Time.time;
+                    this.ChargeAmount = 0.0f;
+                    PLMusic.PostEvent("play_abyss_simple_shot_sub", this.TurretInstance.gameObject);
+                    if ((double)Time.time - (double)this.ShipStats.Ship.LastCloakingSystemActivatedTime > 2.0)
+                        this.ShipStats.Ship.SetIsCloakingSystemActive(false);
+                    GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(this.TurretInstance.Proj, this.TurretInstance.FiringLoc.transform.position, this.TurretInstance.FiringLoc.transform.rotation);
+                    gameObject.AddComponent(typeof(PLMissle));
+                    PLMissle component1 = gameObject.GetComponent<PLMissle>();
+                    PLProjectile component2 = gameObject.GetComponent<PLProjectile>();
+                    component1.AccelerationFactor = 0.1f;
+                    component1.MissileFlag = true;
+                    component2.MissileFlag = true;
+                    component1.ExplosionPrefab = component2.ExplosionPrefab;
+                    component1.DmgRadius = 10f;
+                    gameObject.GetComponent<Rigidbody>().velocity = this.ShipStats.Ship.Exterior.GetComponent<Rigidbody>().velocity + dir * this.m_ProjSpeed;
+                    component2.ProjID = inProjID;
+                    component1.MaxDamage = this.m_Damage * this.LevelMultiplier(0.15f) * this.ShipStats.TurretDamageFactor;
+                    component1.Damage = this.m_Damage * this.LevelMultiplier(0.15f) * this.ShipStats.TurretDamageFactor;
+                    component2.MaxLifetime = 8f;
+                    component1.MaxLifetime = 8f;
+                    component2.OwnerShipID = this.ShipStats.Ship.ShipID;
+                    component1.TurnFactor = 1f;
+                    if (currentTargetShip != null)
+                        component1.TargetShipID = currentTargetShip.ShipID;
+                    component2.TurretID = this.TurretID;
+                    component1.TargetShip = this.currentTargetShip;
+                    component2.ExplodeOnMaxLifetime = false;
+                    component2.MyDamageType = EDamageType.E_PHYSICAL;
+                    component1.TrackingDelay = 0f;
+                    component1.Speed = this.ProjSpeed;
+                    component1.SetShouldLeadTargetShip(true);
+                    component1.SetLerpedSpeed(this.ShipStats.Ship.ExteriorRigidbody.velocity.magnitude * 1.5f);
+                    Physics.IgnoreCollision(this.ShipStats.Ship.Exterior.GetComponent<Collider>(), gameObject.GetComponent<Collider>());
+                    PLServer.Instance.m_ActiveProjectiles.Add(component2);
+                    this.Heat += this.HeatGeneratedOnFire;
+                    this.TurretInstance.GetComponent<Animation>().Play(this.TurretInstance.FireAnimationName);
+                    foreach (AnimationState animationState in this.TurretInstance.GetComponent<Animation>())
+                        animationState.speed = this.FireDelay * 0.95f;
+                }
+
+                public override void Tick()
+                {
+                    base.Tick();
+                    if (!this.IsEquipped)
+                        return;
+                    PLShipInfoBase potentialTarget = null;
+                    if (this.GetCurrentOperator() != null && !this.GetCurrentOperator().IsBot && PLNetworkManager.Instance.LocalPlayer != null && this.GetCurrentOperator() == PLNetworkManager.Instance.LocalPlayer)
+                        potentialTarget = Systems.TurretTargetingUI(this);
+                    if (potentialTarget != null)
+                        currentTargetShip = potentialTarget;
+                    else
+                        currentTargetShip = this.ShipStats.Ship.TargetShip;
+                }
+
+                protected override string GetTurretPrefabPath() => "NetworkPrefabs/Component_Prefabs/Turret";
+            }
+
+            public static bool IsSeekerProj(PLProjectile projectile)
+            {
+                if (projectile.OwnerShipID != -1 && projectile.TurretID != -1)
+                {
+                    PLShipInfoBase ship = PLEncounterManager.Instance.GetShipFromID(projectile.OwnerShipID);
+                    PLTurret turret = ship.GetTurretAtID(projectile.TurretID);
+                    if (turret is SeekerTurret)
+                        return true;
+                }
+                return false;
+            }
+
+            [HarmonyPatch(typeof(PLMissle), "FixedUpdate")]
+            internal class SeekerProjFix
+            {
+                private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+                {
+                    Label failed = generator.DefineLabel();
+                    Label succeed = generator.DefineLabel();
+
+                    List<CodeInstruction> list = instructions.ToList();
+
+                    List<CodeInstruction> targetSequence = new List<CodeInstruction>() {
+                    new CodeInstruction(OpCodes.Ldc_R4, 15f),
+                };
+                    List<CodeInstruction> patchSequence = new List<CodeInstruction>()
+                {
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    CodeInstruction.Call(typeof(ExpandedGalaxy.Turrets.AuxTurrets), "IsSeekerProj", new Type[1] {typeof(PLProjectile)}),
+                    new CodeInstruction(OpCodes.Brfalse_S, failed),
+                    new CodeInstruction(OpCodes.Ldc_R4, 100f),
+                    new CodeInstruction(OpCodes.Br_S, succeed),
+                    new CodeInstruction(OpCodes.Ldc_R4, 15f),
+                    new CodeInstruction(OpCodes.Nop)
+                };
+                    patchSequence[patchSequence.Count - 1].labels.Add(succeed);
+                    patchSequence[patchSequence.Count - 2].labels.Add(failed);
+                    return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.REPLACE, HarmonyHelpers.CheckMode.NONNULL, false);
+                }
+            }
+
+            internal class MissileTurretMk2 : PLTurret
+            {
+                private PLShipInfoBase currentTargetShip = null;
+
+                public MissileTurretMk2(int inLevel = 0, int inSubTypeData = 0)
+                {
+                    this.Name = "Missile Turret Mk. II";
+                    this.Desc = "This iteration of the missile turret has an upgraded targeting system that allows for autonomous missile firing.";
+                    this.Level = inLevel;
+                    this.m_Damage = 100f;
+                    this.SetFireDelay();
+                    this.SubType = TurretModManager.Instance.GetTurretIDFromName(this.Name);
+                    this.m_MarketPrice = (ObscuredInt)12300;
+                    this.TurretRange = 8000f;
+                    this.CargoVisualPrefabID = 3;
+                    this.HeatGeneratedOnFire = 0f;
+                    this.HasTrackingMissileCapability = true;
+                    this.TrackerMissileReloadTime = 0f;
+                }
+
+                private float UpdateBaseDamage()
+                {
+                    PLTrackerMissile missile = this.ShipStats.GetComponentFromNetID<PLTrackerMissile>(this.ShipStats.Ship.SelectedMissileLauncher.NetID);
+                    if (missile != null)
+                    {
+                        return missile.Damage;
+                    }
+                    return 0f;
+                }
+
+                private void SetFireDelay()
+                {
+                    this.FireDelay = 20f - 0.8f * this.Level;
+                    this.FireDelay = Mathf.Clamp(this.FireDelay, 10f, float.MaxValue);
+                }
+
+                public override void Fire(int inProjID, Vector3 dir)
+                {
+                    this.LastFireTime = Time.time;
+                    if ((double)Time.time - (double)this.ShipStats.Ship.LastCloakingSystemActivatedTime > 2.0)
+                        this.ShipStats.Ship.SetIsCloakingSystemActive(false);
+                    bool flag = currentTargetShip != null;
+                    PLTrackerMissile missile = this.ShipStats.GetComponentFromNetID<PLTrackerMissile>(this.ShipStats.Ship.SelectedMissileLauncher.NetID);
+                    if (missile != null)
+                        flag &= missile.SubTypeData > (short)0;
+                    else
+                        flag = false;
+                    if (flag)
+                    {
+                        this.ChargeAmount = 0f;
+                        PLMusic.PostEvent("play_sx_ship_generic_external_weapon_rocket_shoot", this.TurretInstance.gameObject);
+                        if (PhotonNetwork.isMasterClient)
+                        {
+                            PLServer.Instance.photonView.RPC("MegaTurret_MissileLaunch", PhotonTargets.MasterClient, (object)this.ShipStats.Ship.ShipID, (object)this.NetID, (object)this.ShipStats.Ship.SelectedMissileLauncher.NetID, (object)currentTargetShip.ShipID);
+                            this.LastFireMissileTime = Time.time;
+                        }
+                    }
+                    else
+                    {
+                        this.ChargeAmount = 0.9f;
+                        PLMusic.PostEvent("play_sx_ship_generic_external_weapon_rocket_failed", this.TurretInstance.gameObject);
+                    }                    
+                    this.TurretInstance.GetComponent<Animation>().Play(this.TurretInstance.FireAnimationName);
+                    foreach (AnimationState animationState in this.TurretInstance.GetComponent<Animation>())
+                        animationState.speed = this.FireDelay * 0.95f;
+                }
+
+                public override void Tick()
+                {
+                    base.Tick();
+                    UpdateBaseDamage();
+                    SetFireDelay();
+                    if (!this.IsEquipped)
+                        return;
+                    PLShipInfoBase potentialTarget = null;
+                    if (this.GetCurrentOperator() != null && !this.GetCurrentOperator().IsBot && PLNetworkManager.Instance.LocalPlayer != null && this.GetCurrentOperator() == PLNetworkManager.Instance.LocalPlayer)
+                        potentialTarget = Systems.TurretTargetingUI(this);
+                    if (potentialTarget != null)
+                        currentTargetShip = potentialTarget;
+                    else
+                        currentTargetShip = this.ShipStats.Ship.TargetShip;
+                    if (this.LockedOnAmount > 0f)
+                        this.LockedOnAmount = 0f;
+                }
+
+                protected override void OnTurretInstanceCreated()
+                {
+                    base.OnTurretInstanceCreated();
+                    this.TurretInstance.OptionalSecondaryFiringLoc = this.TurretInstance.FiringLoc;
+                }
+
+                protected override bool ShouldAIFire(bool operatedByBot, float heatOffset, float heatGeneratedOnFire)
+                {
+                    return currentTargetShip != null && base.ShouldAIFire(operatedByBot, heatOffset, heatGeneratedOnFire);
+                }
+                protected override string GetTurretPrefabPath() => "NetworkPrefabs/Component_Prefabs/Turret";
+            }
+
+            [HarmonyPatch(typeof(PLRailgunTurret), MethodType.Constructor, new Type[2] {typeof(int), typeof(int)})]
+            internal class RailgunTurretFix
+            {
+                private static void Postfix(PLRailgunTurret __instance, int inLevel, int inSubTypeData)
+                {
+                    __instance.ProjSpeed = 3600f;
+                    __instance.m_Damage = 55f;
+                }
+            }
+
+            [HarmonyPatch(typeof(PLBasicTurret), MethodType.Constructor, new Type[2] { typeof(int), typeof(int) })]
+            internal class PlasmaTurretFix
+            {
+                private static void Postfix(PLRailgunTurret __instance, int inLevel, int inSubTypeData)
+                {
+                    __instance.m_Damage = 150f;
+                    Traverse traverse = Traverse.Create(__instance);
+                    traverse.Field("FireDelay").SetValue(5f);
+                    traverse.Field("TurretRange").SetValue(4500f);
+                    traverse.Field("HeatGeneratedOnFire").SetValue(0.45f);
+                    __instance.Desc = "A standard armament that can be found on many ships. It fires bolts of volatile plasma that detonates on contact or when it reaches max range.";
+                }
+            }
+
+            [HarmonyPatch(typeof(PLTurret), "GetDamageTypeString")]
+            internal class ExplosionDamageString
+            {
+                private static void Postfix(PLTurret __instance, ref string __result)
+                {
+                    if (__instance.SubType == (int)ETurretType.PLASMA || __instance.SubType == (int)ETurretType.BURST || __instance.SubType == (int)ETurretType.DEFENDER)
+                        __result = "PHYS (EXPLD)";
+                }
+            }
+
+            [HarmonyPatch(typeof(PLFocusLaserTurret), MethodType.Constructor, new Type[2] { typeof(int), typeof(int) })]
+            internal class FocusLaserDamageNerf
+            {
+                private static void Postfix(PLFocusLaserTurret __instance)
+                {
+                    __instance.m_Damage = 80f;
+                }
+            }
+
+            [HarmonyPatch(typeof(PLLightningTurret), MethodType.Constructor, new Type[2] { typeof(int), typeof(int) })]
+            internal class LightningDamageNerf
+            {
+                private static void Postfix(PLFocusLaserTurret __instance)
+                {
+                    __instance.m_Damage = 30f;
+                }
+            }
+
+            [HarmonyPatch(typeof(PLLightningTurret), "Tick")]
+            internal class LightningDamageShockDrone
+            {
+                private static void Postfix(PLLightningTurret __instance)
+                {
+                    if (__instance.IsEquipped && __instance.m_Damage != 80f && __instance.ShipStats.Ship != null && __instance.ShipStats.Ship.ShipTypeID == EShipType.E_SHOCK_DRONE)
+                        __instance.m_Damage = 80f;
+                }
+            }
         }
 
         internal class MainTurrets
@@ -1017,7 +1324,7 @@ namespace ExpandedGalaxy
                     this.SubType = MegaTurretModManager.Instance.GetMegaTurretIDFromName("Imperial Glaive");
                     this.m_MarketPrice = (ObscuredInt)40000;
                     this.FireDelay = 32f;
-                    this.m_MaxPowerUsage_Watts = 13000f;
+                    this.m_MaxPowerUsage_Watts = 10800f;
                     this.TurretRange = 13000f;
                     this.BeamColor = new Color(58f / 255f, 0f, 175f / 255f);
                     this.m_KickbackForceMultiplier = 1.2f;
@@ -1058,6 +1365,7 @@ namespace ExpandedGalaxy
                 public override void Tick()
                 {
                     base.Tick();
+                    this.m_MaxPowerUsage_Watts = 10800f * this.LevelMultiplier(0.2f);
                     if (this.IsEquipped && !this.ColorCorrected)
                         this.CorrectColors();
                     if (tickCharge)
@@ -1124,7 +1432,7 @@ namespace ExpandedGalaxy
                     this.SubType = MegaTurretModManager.Instance.GetMegaTurretIDFromName("WDStandard");
                     this.m_MarketPrice = (ObscuredInt)20000;
                     this.FireDelay = 20f;
-                    this.m_MaxPowerUsage_Watts = 19000f;
+                    this.m_MaxPowerUsage_Watts = 14150f;
                     this.CargoVisualPrefabID = 5;
                     this.TurretRange = 7000f;
                     this.BeamColor = new Color(1f, 0.3f, 0f);
@@ -1132,7 +1440,7 @@ namespace ExpandedGalaxy
                     this.Level = inLevel;
                     this.m_KickbackForceMultiplier = 0.67f;
                     this.m_AutoAimMinDotPrd = 0.98f;
-                    this.HeatGeneratedOnFire = 0.30f;
+                    this.HeatGeneratedOnFire = 0.23f;
                     this.AutoAimEnabled = true;
                     this.IsMainTurret = true;
                     this.HasTrackingMissileCapability = true;
@@ -1194,6 +1502,7 @@ namespace ExpandedGalaxy
                     if (this.SubTypeData >= this.ShotsMax && (double)this.ChargeAmount > 0.99f)
                         this.SubTypeData = 0;
                     base.Tick();
+                    this.m_MaxPowerUsage_Watts = 14150f * this.LevelMultiplier(0.2f);
                     if (this.IsEquipped && !this.ColorCorrected)
                         this.CorrectColors();
                     /*if (this.IsEquipped && PhotonNetwork.isMasterClient && (double)Time.time - this.lastUpdateTime > 4.0)
@@ -1237,7 +1546,7 @@ namespace ExpandedGalaxy
                     this.SubType = MegaTurretModManager.Instance.GetMegaTurretIDFromName("GuardianMainTurret");
                     this.m_MarketPrice = (ObscuredInt)19200;
                     this.FireDelay = 9f;
-                    this.m_MaxPowerUsage_Watts = 10000f;
+                    this.m_MaxPowerUsage_Watts = 8300f;
                     this.CargoVisualPrefabID = 5;
                     this.TurretRange = 8000f;
                     this.BeamColor = Color.green;
@@ -1279,6 +1588,7 @@ namespace ExpandedGalaxy
                 public override void Tick()
                 {
                     base.Tick();
+                    this.m_MaxPowerUsage_Watts = 8300f * this.LevelMultiplier(0.2f);
                     if (this.IsEquipped && !this.ColorCorrected)
                         this.CorrectColors();
                 }
@@ -1292,12 +1602,220 @@ namespace ExpandedGalaxy
                 protected override string GetDamageTypeString() => "PHASE (BEAM)";
             }
 
+            internal class RipperTurrret : PLMegaTurret_Proj
+            {
+                private int ProjectilesPerShot = 8;
+                public RipperTurrret(int inLevel = 0, int inSubTypeData = 1) : base(inLevel, inSubTypeData)
+                {
+                    this.Name = "Ripper Turret";
+                    this.Desc = "Main turret that shoots several projectiles that tear through both hull and shields alike.";
+                    this.m_Damage = 42f;
+                    this.FireDelay = 0.9f;
+                    this.MinFireDelay = 0.5f;
+                    this.HeatGeneratedOnFire = 0.28f;
+                    this.m_MaxPowerUsage_Watts = 12000f;
+                    this.SubType = MegaTurretModManager.Instance.GetMegaTurretIDFromName(this.Name);
+                    this.m_MarketPrice = (ObscuredInt)17800;
+                    this.TurretRange = 4700f;
+                }
+
+                protected override float GetDPS() => base.GetDPS() * ProjectilesPerShot;
+
+                public override void Fire(int inProjID, Vector3 dir)
+                {
+                    this.ChargeAmount = 0.0f;
+                    this.LastFireTime = Time.time;
+                    PLMusic.PostEvent("play_ship_generic_external_weapon_scattergun_shoot_first_second", this.TurretInstance.gameObject);
+                    this.Heat += this.HeatGeneratedOnFire;
+                    PLRand plRand = new PLRand(inProjID);
+                    Collider[] colliderArray = new Collider[this.ProjectilesPerShot];
+                    if (this.TurretInstance != null)
+                        this.TurretInstance.GetComponent<Animation>().Play(this.TurretInstance.FireAnimationName);
+                    for (int index1 = 0; index1 < this.ProjectilesPerShot; ++index1)
+                    {
+                        Vector3 normalized = new Vector3(plRand.Next(-1f, 1f), plRand.Next(-1f, 1f), plRand.Next(-1f, 1f)).normalized;
+                        GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(this.TurretInstance.Proj, this.TurretInstance.FiringLoc.transform.position, this.TurretInstance.FiringLoc.transform.rotation);
+                        gameObject.GetComponent<Rigidbody>().velocity = this.ShipStats.Ship.Exterior.GetComponent<Rigidbody>().velocity + dir * this.m_ProjSpeed + normalized * this.m_ProjSpeed * 0.1f * (float)plRand.NextDouble() * Mathf.Clamp((float)plRand.NextDouble(), 0.5f, 1f);
+                        gameObject.GetComponent<PLProjectile>().ProjID = inProjID + index1;
+                        gameObject.GetComponent<PLProjectile>().Damage = this.m_Damage * this.LevelMultiplier(0.15f) * this.ShipStats.TurretDamageFactor;
+                        gameObject.GetComponent<PLProjectile>().MaxLifetime = 3f;
+                        gameObject.GetComponent<PLProjectile>().OwnerShipID = this.ShipStats.Ship.ShipID;
+                        gameObject.GetComponent<PLProjectile>().TurretID = this.TurretID;
+                        gameObject.GetComponent<PLProjectile>().ExplodeOnMaxLifetime = false;
+                        gameObject.GetComponent<PLProjectile>().MyDamageType = EDamageType.E_PHYSICAL;
+                        if (this.ShipStats.Ship.GetExteriorMeshCollider() != null)
+                            Physics.IgnoreCollision((Collider)this.ShipStats.Ship.GetExteriorMeshCollider(), gameObject.GetComponent<Collider>());
+                        colliderArray[index1] = gameObject.GetComponent<Collider>();
+                        for (int index2 = index1 - 1; index2 >= 0; --index2)
+                            Physics.IgnoreCollision(colliderArray[index1], colliderArray[index2]);
+                        PLServer.Instance.m_ActiveProjectiles.Add(gameObject.GetComponent<PLProjectile>());
+                    }
+                    ++this.CurrentCameraShake;
+                    if ((double)Time.time - (double)this.ShipStats.Ship.LastCloakingSystemActivatedTime <= 2.0)
+                        return;
+                    this.ShipStats.Ship.SetIsCloakingSystemActive(false);
+                }
+
+                protected override void InnerCheckFire()
+                {
+                    PLServer.Instance.photonView.RPC("TurretFire", PhotonTargets.All, (object)this.ShipStats.Ship.ShipID, (object)this.TurretID, (object)PLServer.Instance.ServerProjIDCounter, (object)Vector3.zero);
+                    PLServer.Instance.ServerProjIDCounter += this.ProjectilesPerShot;
+                }
+            }
+
+            internal class PhysicalTurret : PLMegaTurret_Proj
+            {
+                private float LastSwitchedFiringMode;
+
+                public PhysicalTurret(int inLevel = 0, int inSubTypeData = 1) : base(inLevel, inSubTypeData)
+                {
+                    this.Name = "Coil Artillery";
+                    this.Desc = "A projectile-based main turret with two modes of fire. Despite being develpoed before the widespread use of laser weaponry, it is still commonly found on modern starships.";
+                    this.m_Damage = 80f;
+                    this.FireDelay = 2f;
+                    this.SubType = MegaTurretModManager.Instance.GetMegaTurretIDFromName(this.Name);
+                    this.SubTypeData = 0;
+                    this.TurretRange = 10000f;
+                    this.m_MaxPowerUsage_Watts = 11000f;
+                    this.AbyssProjDisplay = true;
+                    this.HasPulseLaser = false;
+                    this.CanHitMissiles = false;
+                }
+
+                private void UpdateFiringMode()
+                {
+                    if (this.SubTypeData == 0)
+                    {
+                        this.m_Damage = 80f;
+                        this.FireDelay = 2f;
+                        this.ProjSpeed = 6000f * 0.7f;
+                        this.TurretRange = 10000f;
+                        this.HeatGeneratedOnFire = 0.23f;
+                    }
+                    else
+                    {
+                        this.m_Damage = 280f;
+                        this.FireDelay = 6f;
+                        this.ProjSpeed = 1500f * 0.7f;
+                        this.TurretRange = 5000f;
+                        this.HeatGeneratedOnFire = 0.48f;
+                    }
+                }
+
+                public override void Tick()
+                {
+                    base.Tick();
+                    if (this.IsEquipped)
+                    {
+                        if (this.ShipStats.Ship.GetCurrentTurretControllerPlayerID(this.TurretID) == PLNetworkManager.Instance.LocalPlayerID)
+                        {
+                            if ((double)Time.time - (double)this.LastSwitchedFiringMode > 1.0 && PLInput.Instance.GetButtonUp(PLInputBase.EInputActionName.right_click) && (double)PLInput.Instance.GetHeldDownTime(PLInputBase.EInputActionName.right_click) < 0.15000000596046448 + (double)Time.deltaTime)
+                            {
+                                int data = 0;
+                                if (this.SubTypeData == 0)
+                                {
+                                    this.SubTypeData = 1;
+                                    data = 1;
+                                    PLMusic.PostEvent("play_sx_ship_changetransmission_manual", this.TurretInstance.gameObject);
+                                }
+                                else
+                                {
+                                    this.SubTypeData = 0;
+                                    PLMusic.PostEvent("play_sx_ship_changetransmission_auto", this.TurretInstance.gameObject);
+                                }
+                                this.LastSwitchedFiringMode = Time.time;
+                                this.ChargeAmount = 0f;
+                                ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.SwitchTurretModeRPC", PhotonTargets.Others, new object[3]
+                                {
+                                (object) this.ShipStats.Ship.ShipID,
+                                (object) this.NetID,
+                                (object) (short)data,
+                                });
+                            }
+                        }
+                        else if (this.GetCurrentOperator() != null && this.GetCurrentOperator().IsBot)
+                        {
+                            if ((double)Time.time - (double)this.LastSwitchedFiringMode > 5.0)
+                            {
+                                if (this.ShipStats.Ship.TargetSpaceTarget != null && (this.ShipStats.Ship.TargetSpaceTarget.GetCurrentSensorPosition() - this.ShipStats.Ship.GetCurrentSensorPosition()).magnitude < 1000f)
+                                {
+                                    this.SubTypeData = 1;
+                                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.SwitchTurretModeRPC", PhotonTargets.Others, new object[3]
+                                {
+                                (object) this.ShipStats.Ship.ShipID,
+                                (object) this.NetID,
+                                (object) this.SubTypeData,
+                                });
+                                }
+                                else if (this.SubTypeData == (short)1)
+                                {
+                                    this.SubTypeData = 0;
+                                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.SwitchTurretModeRPC", PhotonTargets.Others, new object[3]
+                                {
+                                (object) this.ShipStats.Ship.ShipID,
+                                (object) this.NetID,
+                                (object) this.SubTypeData,
+                                });
+                                }
+                            }
+                        }
+                        this.UpdateFiringMode();
+                    }
+                }
+
+                protected override string GetInfoString() => base.GetInfoString() + " " + ((this.SubTypeData == 0) ? "(Long Range)" : "(Short Range)");
+
+                protected override string GetDamageTypeString() => (this.SubTypeData == 0) ? "PHYSICAL" : "PHYS (EXPLD)";
+
+            }
+
+            private class SwitchTurretModeRPC : ModMessage
+            {
+                public override void HandleRPC(object[] arguments, PhotonMessageInfo sender)
+                {
+                    PLShipInfoBase shipInfo = PLEncounterManager.Instance.GetShipFromID((int)arguments[0]);
+                    if (shipInfo.MyStats != null)
+                    {
+                        PhysicalTurret turret = (PhysicalTurret)shipInfo.MyStats.GetComponentFromNetID((int)arguments[1]);
+                        if (turret != null)
+                        {
+                            turret.SubTypeData = (short)arguments[2];
+                            turret.ChargeAmount = 0f;
+                        }
+                    }
+                }
+            }
+
             [HarmonyPatch(typeof(PLMegaTurret_RapidFire), MethodType.Constructor, new Type[2] { typeof(int), typeof(int) })]
             internal class RapidfirePrice
             {
                 private static void Postfix(PLMegaTurret_RapidFire __instance, int inLevel, int inSubTypeData, ref ObscuredInt ___m_MarketPrice)
                 {
                     ___m_MarketPrice = (ObscuredInt)19200;
+                }
+            }
+
+            [HarmonyPatch(typeof(PLMegaTurret), "Tick")]
+            internal class TickPowerUsage
+            {
+                private static void Postfix(PLMegaTurret __instance)
+                {
+                    switch (__instance.SubType)
+                    {
+                        case 0: //MAIN TURRET
+                            __instance.CalculatedMaxPowerUsage_Watts = 6800f * __instance.LevelMultiplier(0.2f);
+                            break;
+                        case 1: //CU LONG
+                        case 5: //MODIFIED CU LONG
+                            __instance.CalculatedMaxPowerUsage_Watts = 11500f * __instance.LevelMultiplier(0.2f);
+                            break;
+                        case 3: //RAPIDFIRE
+                            __instance.CalculatedMaxPowerUsage_Watts = 11600f * __instance.LevelMultiplier(0.2f);
+                            break;
+                        case 4: //FLASHFIRE
+                            __instance.CalculatedMaxPowerUsage_Watts = 11600 * __instance.LevelMultiplier(0.1f);
+                            break;
+                    }
                 }
             }
         }
@@ -1854,6 +2372,150 @@ namespace ExpandedGalaxy
                 Vector3 eulerAngles = __instance.targetWorldRot.eulerAngles;
                 if (float.IsNaN(eulerAngles.x) || float.IsNaN(eulerAngles.y) || float.IsNaN(eulerAngles.z))
                     __instance.targetWorldRot.eulerAngles = new Vector3(0.0f, 0.0f, 0.0f);
+            }
+        }
+
+        [HarmonyPatch(typeof(PLProjectile), "Update")]
+        internal class StrictProjRange
+        {
+            private static void Postfix(PLProjectile __instance)
+            {
+                if (!(__instance != null))
+                    return;
+                if (!__instance.MissileFlag && __instance.TurretID != -1 && __instance.OwnerShipID != -1)
+                {
+                    PLShipInfoBase shipFromID = PLEncounterManager.Instance.GetShipFromID(__instance.OwnerShipID);
+                    if (shipFromID != null)
+                    {
+                        PLTurret turret = shipFromID.GetTurretAtID(__instance.TurretID);
+                        if (turret == null)
+                            turret = shipFromID.GetAutoTurretAtID(__instance.TurretID);
+                        if (turret != null && turret.TurretInstance != null)
+                        {
+                            Traverse travere = Traverse.Create(turret);
+                            if ((__instance.transform.position - turret.TurretInstance.RefJoint.position).magnitude > travere.Field("TurretRange").GetValue<float>() / 5f)
+                            {
+                                if (__instance.ExplodeOnMaxLifetime)
+                                {
+                                    __instance.EmitExplostionParticleSystem(__instance._transform.position);
+                                    ServerExplosiveProjExplode(__instance, null);
+                                }
+                                UnityEngine.Object.Destroy(__instance.gameObject);
+                            }
+                            else
+                                __instance.MaxLifetime = travere.Field("TurretRange").GetValue<float>() / 1000f * 200f / __instance.Speed + 3f;
+                        }
+                    }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(PLTurret), "Fire")]
+        internal class ProjDamageTypePatch
+        {
+            private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                List<CodeInstruction> list = instructions.ToList();
+
+                List<CodeInstruction> targetSequence = new List<CodeInstruction>() {
+                    new CodeInstruction(OpCodes.Ldc_I4_2),
+                    CodeInstruction.StoreField(typeof(PLProjectile), "MyDamageType")
+                };
+                List<CodeInstruction> patchSequence = new List<CodeInstruction>()
+                {
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    CodeInstruction.Call(typeof(ExpandedGalaxy.Turrets), "GetTurretDamageType", new Type[1] {typeof(PLTurret)}),
+                    CodeInstruction.StoreField(typeof(PLProjectile), "MyDamageType"),
+                };
+                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.REPLACE, HarmonyHelpers.CheckMode.NONNULL, false);
+            }
+        }
+
+        public static int GetTurretDamageType(PLTurret turret)
+        {
+            if (turret.SlotType == ESlotType.E_COMP_TURRET)
+            {
+                switch (turret.SubType)
+                {
+                    case (int)ETurretType.PLASMA:
+                    case (int)ETurretType.BURST:
+                        return 16;
+                }               
+            }
+            else if (turret.SlotType == ESlotType.E_COMP_MAINTURRET)
+            {
+                if (turret.SubType == MegaTurretModManager.Instance.GetMegaTurretIDFromName("Physical Main Turret"))
+                    if (turret.SubTypeData == 1)
+                        return 16;
+            }
+            return 2;
+        }
+
+        public static bool IsProjectileAOE(PLProjectile projectile) { return projectile.MyDamageType == (EDamageType)16; }
+
+
+        public static void ServerExplosiveProjExplode(PLProjectile projectile, PLSpaceTarget hitTarget = null)
+        {
+            if (!PhotonNetwork.isMasterClient)
+                return;
+            if (projectile != null && projectile.MyDamageType == (EDamageType)16)
+            {
+                foreach (PLSpaceTarget target in UnityEngine.Object.FindObjectsOfType<PLSpaceTarget>())
+                {
+                    if (target.SpaceTargetID != (hitTarget != null ? hitTarget.SpaceTargetID : -1))
+                    {
+                        bool flag = false;
+                        PLShipInfoBase inShip = target as PLShipInfoBase;
+                        if (inShip != null && inShip.ShipID != projectile.OwnerShipID && (inShip.Exterior.transform.position - projectile.transform.position).magnitude < 100f)
+                        {
+                            if ((double)Vector3.Dot((projectile.transform.position - inShip.Exterior.transform.position).normalized, -inShip.Exterior.transform.up) > -0.10000000149011612)
+                                flag = true;
+                            PLServer.Instance.photonView.RPC("ClientShipTakeDamage", PhotonTargets.All, (object)inShip.ShipID, (object)projectile.Damage, (object)flag, (object)(int)projectile.MyDamageType, (object)1f, (object)projectile.TargetShipSystemID, (object)projectile.OwnerShipID, (object)projectile.TurretID);
+                        }
+                        else if (target != null && (target.transform.position - projectile.transform.position).magnitude < 100f)
+                            PLServer.Instance.photonView.RPC("ClientSpaceTargetTakeDamage", PhotonTargets.All, (object)target.SpaceTargetID, (object)projectile.Damage);
+                    }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(PLProjectile), "Explode")]
+        internal class ExplosionAOE
+        {
+            private static bool Prefix(PLProjectile __instance, PLSpaceTarget target, Vector3 pos, Vector3 norm)
+            {
+                if (__instance.MyDamageType == (EDamageType)16)
+                {
+                    ServerExplosiveProjExplode(__instance, target);
+                }
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(PLShipComponent), "CreateRandom")]
+        internal class RandomMegaTurretInShop
+        {
+            private static bool Prefix(ref PLShipComponent __result)
+            {
+                int num = UnityEngine.Random.Range(0, 5000000) % 1000;
+                if (num < 20)
+                {
+                    switch (num % 5)
+                    {
+                        case 0:
+                            __result = new PLMegaTurret_RapidFire();
+                            break;
+                        case 1:
+                            __result = new MainTurrets.RipperTurrret();
+                            break;
+                        default:
+                            __result = new PLMegaTurret();
+                            break;
+                    }
+                    __result.Level += Mathf.RoundToInt((UnityEngine.Object)PLServer.Instance != (UnityEngine.Object)null ? (float)PLServer.Instance.ChaosLevel * 0.5f : 0.0f);
+                    return false;
+                }
+                return true;
             }
         }
     }
