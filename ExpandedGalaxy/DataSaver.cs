@@ -276,10 +276,10 @@ namespace ExpandedGalaxy
                     stream.SendNext(PFSectorCommander.bossFlag);
                     stream.SendNext(Relic.MiningDroneQuest.dronesActive);
                     stream.SendNext(Relic.MiningDroneQuest.GXData);
-                    stream.SendNext(Jetpack.AdvancedJetPack);
-                    stream.SendNext(Ammunition.DynamicAmmunition);
                     stream.SendNext(Relic.RelicCaravan.CaravanCurrentSector);
                     stream.SendNext(Relic.RelicCaravan.CaravanTargetSector);
+                    stream.SendNext(Jetpack.AdvancedJetPack);
+                    stream.SendNext(Ammunition.DynamicAmmunition);
                 }
                 else
                 {
