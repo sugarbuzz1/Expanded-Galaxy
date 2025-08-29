@@ -234,6 +234,68 @@ namespace ExpandedGalaxy
             return (PLPlayer)null;
         }
 
+        [HarmonyPatch(typeof(PLServer), "ClaimShip")]
+        internal class LoseRepOnShipClaim
+        {
+            private static bool Prefix(PLServer __instance, int inShipID)
+            {
+                PLShipInfo shipFromId = PLEncounterManager.Instance.GetShipFromID(inShipID) as PLShipInfo;
+                if (shipFromId == null || shipFromId == PLEncounterManager.Instance.PlayerShip)
+                    return true;
+                if (!shipFromId.Abandoned && !shipFromId.IsFlagged && !shipFromId.NoRepLossOnKilled && shipFromId.TeamID == 1 && shipFromId.FactionID != -1 && shipFromId.FactionID < 6)
+                {
+                    if (!PLServer.Instance.LongRangeCommsDisabled)
+                    {
+                        ref ObscuredInt local = ref PLServer.Instance.RepLevels[shipFromId.FactionID];
+                        local = (ObscuredInt)((int)local - 2);
+                        PLServer.Instance.AddToShipLog_OneStringLocalized("REP", "-2 Rep for [STR0] (due to removing claim)", Color.white, inString0: PLGlobal.GetFactionTextForFactionID(shipFromId.FactionID));
+                    }
+                    else
+                        PLServer.Instance.AddToShipLog("REP", "Long range transmission blocked (prevented Reputation loss)", Color.white);
+                }
+                return true;
+            }
+        }
+
+        internal static PLShipInfoBase TurretTargetingUI(PLTurret turret)
+        {
+            if (PLUIOutsideWorldUI.Instance != null && PLCameraSystem.Instance.GetModeString() == "Turret")
+            {
+                float greatestDot = 0f;
+                PLShipInfoBase shipInfo = null;
+                Traverse traverse = Traverse.Create(PLUIOutsideWorldUI.Instance);
+                foreach (PLShipInfoBase pLShipInfoBase in UnityEngine.Object.FindObjectsOfType<PLShipInfoBase>())
+                {
+                    if (pLShipInfoBase != turret.ShipStats.Ship)
+                    {
+                        Vector3 dir = (pLShipInfoBase.Exterior.transform.position - turret.ShipStats.Ship.Exterior.transform.position).normalized;
+                        float dot = Vector3.Dot(dir, turret.TurretInstance.RefJoint.forward.normalized);
+                        if (dot > 0.85f && dot > greatestDot)
+                        {
+                            greatestDot = dot;
+                            shipInfo = pLShipInfoBase;
+                        }
+                    }
+                }
+                if (shipInfo != null)
+                {
+                    traverse.Method("RequestKeenUIElement", new Type[3]
+                            {
+                                typeof(Transform),
+                                typeof(string),
+                                typeof(PLSpaceLevelObjective)
+                            }).GetValue(new object[3]
+                            {
+                                shipInfo.Exterior.transform,
+                                "Target",
+                                null
+                            });
+                    return shipInfo;
+                }
+            }
+            return null;
+        }
+
         public class PilotDrone : ModMessage
         {
             public override void HandleRPC(object[] arguments, PhotonMessageInfo sender)
@@ -480,7 +542,7 @@ namespace ExpandedGalaxy
             {
                 if (__instance.ShipStats != null && (UnityEngine.Object)__instance.ShipStats.Ship != (UnityEngine.Object)null)
                 {
-                    if (__instance.ShipStats.Ship.ShipID == PLEncounterManager.Instance.PlayerShip.ShipID)
+                    if (__instance.ShipStats.Ship == PLEncounterManager.Instance.PlayerShip)
                     {
                         if (!__instance.ShipStats.Ship.IsAuxSystemActive(4))
                         {

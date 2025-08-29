@@ -16,6 +16,8 @@ namespace ExpandedGalaxy
 
         public static bool GetIsOnHomeShip(PLPawn pawn)
         {
+            if (PLEncounterManager.Instance.PlayerShip == null)
+                return false;
             if (pawn.GetPlayer() != null && pawn.GetPlayer().GetPlayerID() == PLNetworkManager.Instance.LocalPlayer.GetPlayerID())
             {
                 bool flag = false;

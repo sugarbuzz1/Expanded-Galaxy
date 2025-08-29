@@ -11,7 +11,7 @@ namespace ExpandedGalaxy
             {
                 if (__instance.CPUClass == ECPUClass.CYBERWARFARE_MODULE)
                 {
-                    float value = (0.225f * __instance.LevelMultiplier(0.75f) * __instance.GetPowerPercentInput());
+                    float value = 0.225f * __instance.LevelMultiplier(0.75f);
                     __result = __instance.ShipStats == null || (bool)__instance.ShipStats.isPreview || __instance.InCargoSlot() ? value.ToString() : (value * __instance.GetPowerPercentInput()).ToString("0.0") + "/" + value.ToString("0.0") + "\n";
                 }
             }
@@ -37,7 +37,18 @@ namespace ExpandedGalaxy
             {
                 if (__instance.MyScreenHubBase.OptionalShipInfo.SensorDishTargetShipID != -1)
                 {
-                    ___VirusPanel_Title.text = PLLocalize.Localize("CYBER-ATK") + ": " + ((double)(1.0 + __instance.MyScreenHubBase.OptionalShipInfo.MyStats.CyberAttackRating) - PLEncounterManager.Instance.GetShipFromID(__instance.MyScreenHubBase.OptionalShipInfo.SensorDishTargetShipID).MyStats.CyberDefenseRating).ToString("0.0");
+                    double modifier = 0.0;
+                    foreach(PLUIScreen screen in __instance.MyScreenHubBase.AllScreens)
+                    {
+                        if (screen is PLScientistComputerScreen)
+                        {
+                            PLWarpDriveProgram program = Traverse.Create(screen).Field("CurrentSelectedProgram").GetValue<PLWarpDriveProgram>();
+                            if (program != null)
+                                modifier = GetVirusCyberAtkModifier(program.SubType);
+                            break;
+                        }
+                    }
+                    ___VirusPanel_Title.text = PLLocalize.Localize("CYBER-ATK") + ": " + ((double)(1.0 + __instance.MyScreenHubBase.OptionalShipInfo.MyStats.CyberAttackRating + modifier) - PLEncounterManager.Instance.GetShipFromID(__instance.MyScreenHubBase.OptionalShipInfo.SensorDishTargetShipID).MyStats.CyberDefenseRating).ToString("0.0");
                 }
                 else
                 {
@@ -58,32 +69,10 @@ namespace ExpandedGalaxy
                         __result = false;
                         return;
                     }
-                    if (inVirus.Sender.ShipID == PLEncounterManager.Instance.PlayerShip.ShipID)
+                    if ((double)1.0 + inVirus.Sender.MyStats.CyberAttackRating + GetVirusCyberAtkModifier(inVirus.SubType) > (double)__instance.MyStats.CyberDefenseRating)
                     {
-                        if ((double)1.0 + inVirus.Sender.MyStats.CyberAttackRating + GetVirusCyberAtkModifier(inVirus.SubType) > (double)__instance.MyStats.CyberDefenseRating)
-                        {
-                            __result = true;
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        if (SensorDish.IsSensorWeaknessActiveReal(__instance, 3, -1))
-                        {
-                            if ((double)1.0 + inVirus.Sender.MyStats.CyberAttackRating + GetVirusCyberAtkModifier(inVirus.SubType) > (double)__instance.MyStats.CyberDefenseRating)
-                            {
-                                __result = true;
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            if ((double)1.0 + inVirus.Sender.MyStats.CyberAttackRating > (double)__instance.MyStats.CyberDefenseRating * 0.6)
-                            {
-                                __result = true;
-                                return;
-                            }
-                        }
+                        __result = true;
+                        return;
                     }
                 }
                 __result = false;

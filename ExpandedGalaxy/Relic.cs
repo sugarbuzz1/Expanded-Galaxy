@@ -18,7 +18,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -102,12 +101,14 @@ namespace ExpandedGalaxy
             return (RelicData & (1U << relicType)) > 0U;
         }
 
-        [HarmonyPatch(typeof(PLPersistantEncounterInstance), "OnEndWarp")]
+        [HarmonyPatch(typeof(PLPersistantEncounterInstance), "InitGame")]
         internal class RelicCompPickups
         {
             private static void Postfix(PLPersistantEncounterInstance __instance)
             {
                 if (!PhotonNetwork.isMasterClient)
+                    return;
+                if (PLServer.Instance == null)
                     return;
                 if (__instance is PLWastedWingEncounter || __instance is PLAOGFactionMission_MadmansMansion || __instance.LevelID == (ObscuredInt)113)
                 {
@@ -346,11 +347,7 @@ namespace ExpandedGalaxy
             PLTurret turret = ware as PLTurret;
             if (turret != null)
             {
-                if (turret.ActualSlotType == ESlotType.E_COMP_TURRET && turret.SubType == TurretModManager.Instance.GetTurretIDFromName("Mining Laser"))
-                {
-                    return true;
-                }
-                else if (turret.ActualSlotType == ESlotType.E_COMP_AUTO_TURRET && turret.SubType == AutoTurretModManager.Instance.GetAutoTurretIDFromName("Ancient Auto Laser Turret"))
+                if (turret.ActualSlotType == ESlotType.E_COMP_AUTO_TURRET && turret.SubType == AutoTurretModManager.Instance.GetAutoTurretIDFromName("Ancient Auto Laser Turret"))
                 {
                     return true;
                 }
@@ -2395,7 +2392,7 @@ namespace ExpandedGalaxy
                             RelicCaravan.CaravanCurrentSector = info.ID;
                             caravanInfo.CompOverrides.AddRange(CaravanComponents(__instance.Seed));
                             PLServer.Instance.AllPSIs.Add(caravanInfo);
-                            CaravanUpdateTime = 60000;
+                            CaravanUpdateTime = 120000;
                         }
                     }
                 }
@@ -2829,7 +2826,7 @@ namespace ExpandedGalaxy
                     {
                         if (PLServer.Instance.GetEstimatedServerMs() > 0 && PLServer.Instance.GetEstimatedServerMs() - CaravanUpdateTime > 0)
                         {
-                            CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 60000;
+                            CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 120000;
                             if (CaravanTargetSector != -1)
                             {
                                 if (CaravanPath.Count > 1 && CaravanPath.Count > CaravanPathIndex + 1)
@@ -2911,7 +2908,7 @@ namespace ExpandedGalaxy
                                         }
                                         flag = true;
                                         flag1 = true;
-                                        CaravanUpdateTime += 60000;
+                                        CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 120000;
                                     }
                                 }
                                 else
@@ -2954,6 +2951,7 @@ namespace ExpandedGalaxy
                                 if (CaravanTargetSector != -1)
                                     CaravanPath = GetPathToSector_NPC(PLServer.GetSectorWithID(CaravanCurrentSector), PLServer.GetSectorWithID(CaravanTargetSector), 0.12f);
                                 CaravanPathIndex = 0;
+                                CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 240000;
                             }
                         }
                     }

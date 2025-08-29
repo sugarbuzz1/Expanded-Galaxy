@@ -2,6 +2,10 @@
 using PulsarModLoader.Content.Components.MegaTurret;
 using PulsarModLoader.Content.Components.Shield;
 using PulsarModLoader.Content.Components.Turret;
+using PulsarModLoader.Patches;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
 using UnityEngine;
 
 namespace ExpandedGalaxy
@@ -214,13 +218,18 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                foreach (PLWarpDriveProgram program in __instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_PROGRAM))
+                PLShipComponent[] shipComponents = __instance.MyStats.AllComponents.ToArray();
+                int netID = -1;
+                foreach (PLShipComponent shipComponent in shipComponents)
                 {
-                    if (program.SubType == (int)EWarpDriveProgramType.BLOCK_LONG_RANGE_COMMS)
+                    if (shipComponent is PLWarpDriveProgram && shipComponent.SubType == (int)EWarpDriveProgramType.BLOCK_LONG_RANGE_COMMS)
                     {
-                        __instance.MyStats.RemoveShipComponentByNetID(program.NetID);
+                        netID = shipComponent.NetID;
+                        break;
                     }
                 }
+                if (netID != -1)
+                    __instance.MyStats.RemoveShipComponentByNetID(netID);
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_PROGRAM, (int)EWarpDriveProgramType.DETECTOR, 0, 0, (int)ESlotType.E_COMP_PROGRAM)));
                 if (startingPlayerShip)
                     return;
@@ -260,11 +269,18 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                foreach (PLWarpDriveProgram program in __instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_PROGRAM))
+                PLShipComponent[] shipComponents = __instance.MyStats.AllComponents.ToArray();
+                int netID = -1;
+                foreach (PLShipComponent shipComponent in shipComponents)
                 {
-                    if (program.SubType == (int)EWarpDriveProgramType.BLOCK_LONG_RANGE_COMMS)
-                        __instance.MyStats.RemoveShipComponentByNetID(program.NetID);
+                    if (shipComponent is PLWarpDriveProgram && shipComponent.SubType == (int)EWarpDriveProgramType.BLOCK_LONG_RANGE_COMMS)
+                    {
+                        netID = shipComponent.NetID;
+                        break;
+                    }
                 }
+                if (netID != -1)
+                    __instance.MyStats.RemoveShipComponentByNetID(netID);
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_PROGRAM, (int)EWarpDriveProgramType.DETECTOR, 0, 0, (int)ESlotType.E_COMP_PROGRAM)));
                 if (startingPlayerShip)
                     return;

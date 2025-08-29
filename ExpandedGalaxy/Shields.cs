@@ -45,8 +45,9 @@ namespace ExpandedGalaxy
                 {
                     if (cachedDamage > 0f)
                     {
+                        float damage = Mathf.Clamp(cachedDamage * 1.3f, 0f, pLShieldGenerator.ShipStats.HullMax * 0.66f);
                         pLShieldGenerator.Current = 0f;
-                        pLShieldGenerator.ShipStats.Ship.TakeDamage(cachedDamage * 1.3f, false, EDamageType.E_ENERGY, 1f, -1, null, -1);
+                        pLShieldGenerator.ShipStats.Ship.TakeDamage(damage, false, EDamageType.E_ENERGY, 1f, -1, null, -1);
                         cachedDamage = 0f;
                     }
                 }

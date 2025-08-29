@@ -60,13 +60,6 @@ namespace ExpandedGalaxy
             public override void Tick(PLShipComponent InComp)
             {
                 base.Tick(InComp);
-                if (PhotonNetwork.isMasterClient)
-                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
-                    {
-                        (object) InComp.ShipStats.Ship.ShipID,
-                        (object) InComp.NetID,
-                        (object) InComp.SubTypeData,
-                    });
                 if (InComp.SubTypeData == 0)
                 {
                     if (InComp.IsEquipped && PLNetworkManager.Instance.LocalPlayer.IsSittingInCaptainsChair() && PLInput.Instance.GetButtonUp(PLInputBase.EInputActionName.pilot_ability))
@@ -88,6 +81,12 @@ namespace ExpandedGalaxy
                                 if (Puppet.shipDatas.ContainsKey(InComp.SubTypeData))
                                     Puppet.shipDatas.Remove(InComp.SubTypeData);
                                 InComp.SubTypeData = -1;
+                                ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                                {
+                                (object) InComp.ShipStats.Ship.ShipID,
+                                (object) InComp.NetID,
+                                (object) InComp.SubTypeData,
+                                });
                             }
                             if (!InComp.IsEquipped)
                             {
@@ -95,6 +94,12 @@ namespace ExpandedGalaxy
                                 if (Puppet.shipDatas.ContainsKey(InComp.SubTypeData))
                                     Puppet.shipDatas.Remove(InComp.SubTypeData);
                                 InComp.SubTypeData = -1;
+                                ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                                {
+                                (object) InComp.ShipStats.Ship.ShipID,
+                                (object) InComp.NetID,
+                                (object) InComp.SubTypeData,
+                                });
                             }
                         }
                         else
@@ -102,6 +107,12 @@ namespace ExpandedGalaxy
                             if (Puppet.shipDatas.ContainsKey(InComp.SubTypeData))
                                 Puppet.shipDatas.Remove(InComp.SubTypeData);
                             InComp.SubTypeData = -1;
+                            ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                            {
+                            (object) InComp.ShipStats.Ship.ShipID,
+                            (object) InComp.NetID,
+                            (object) InComp.SubTypeData,
+                            });
                         }
                     }
                     if (InComp.IsEquipped && PLNetworkManager.Instance.LocalPlayer.IsSittingInCaptainsChair() && PLInput.Instance.GetButtonUp(PLInputBase.EInputActionName.pilot_ability))
@@ -126,6 +137,12 @@ namespace ExpandedGalaxy
                                     if (depot != null && InComp.SubTypeData == -1 && !InComp.ShipStats.Ship.InWarp)
                                     {
                                         InComp.SubTypeData = 0;
+                                        ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                                        {
+                                        (object) InComp.ShipStats.Ship.ShipID,
+                                        (object) InComp.NetID,
+                                        (object) InComp.SubTypeData,
+                                        });
                                         break;
                                     }
                                 }
@@ -170,6 +187,12 @@ namespace ExpandedGalaxy
                     info.OrbitCameraMinDistance = 7f;
                     info.photonView.RPC("Captain_NameShip", PhotonTargets.All, (object)"Surveyer Drone");
                     chair.SubTypeData = (short)info.ShipID;
+                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                    {
+                        (object) chair.ShipStats.Ship.ShipID,
+                        (object) chair.NetID,
+                        (object) chair.SubTypeData,
+                    });
                     Puppet.shipDatas.Add(info.ShipID, (int)arguments[0]);
                     info.photonView.RPC("NewShipController", PhotonTargets.All, -1);
                     if (sender.sender.IsMasterClient)

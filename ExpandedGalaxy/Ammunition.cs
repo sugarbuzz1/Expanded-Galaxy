@@ -480,7 +480,7 @@ namespace ExpandedGalaxy
                         return true;
                     if (inventory.ActiveItem != null)
                     {
-                        ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ClientSendAmmoToServer", PhotonTargets.MasterClient, new object[3] { inventory.InventoryID, new int[1] {inItem.NetID}, new int[1] { inventory.ActiveItem.AmmoMax } });
+                        ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ClientSendAmmoToServer", PhotonTargets.MasterClient, new object[3] { inventory.InventoryID, new int[1] {inItem.NetID}, new int[1] { inventory.ActiveItem.AmmoCurrent } });
                     }
                 }
                 return true;

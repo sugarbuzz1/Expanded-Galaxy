@@ -12,9 +12,9 @@ namespace ExpandedGalaxy
 {
     internal class SensorDish
     {
-        private static PLPlayer lastToInteract;
+        internal static PLPlayer lastToInteract;
 
-        private static Dictionary<PLScientistSensorScreen, int> screenInfos = new Dictionary<PLScientistSensorScreen, int>();
+        internal static Dictionary<PLScientistSensorScreen, int> screenInfos = new Dictionary<PLScientistSensorScreen, int>();
         private static Dictionary<PLScientistSensorScreen, UITexture[]> buttons = new Dictionary<PLScientistSensorScreen, UITexture[]>();
         private static Dictionary<PLScientistSensorScreen, UITexture[]> buttonsCustom = new Dictionary<PLScientistSensorScreen, UITexture[]>();
 
@@ -37,6 +37,12 @@ namespace ExpandedGalaxy
             public override void Tick()
             {
                 base.Tick();
+            }
+
+            public override void OnWarp()
+            {
+                base.OnWarp();
+                this.SubTypeData = 0;
                 if (PhotonNetwork.isMasterClient)
                     ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
                     {
@@ -44,12 +50,6 @@ namespace ExpandedGalaxy
                         (object) this.NetID,
                         (object) this.SubTypeData,
                     });
-            }
-
-            public override void OnWarp()
-            {
-                base.OnWarp();
-                this.SubTypeData = 0;
             }
         }
         public static PLSensorDish CreateSensorDish(int Subtype, int level)
@@ -74,7 +74,7 @@ namespace ExpandedGalaxy
                 object[] params1;
                 params1 = new object[6]
                 {
-                    (Texture2D)Resources.Load("Icons/78_Thrusters"),
+                    (Texture2D)PLGlobal.Instance.ClassIcons[1],
                     new Vector3(175f, -70f),
                     new Vector2(num, num),
                     Color.black,
@@ -105,7 +105,7 @@ namespace ExpandedGalaxy
                 params1 = new object[7]
                 {
                     "weaknessScanCyberDef",
-                    (Texture2D)Resources.Load("Icons/78_Thrusters"),
+                    (Texture2D)PLGlobal.Instance.ClassIcons[1],
                     new Vector3(175f, -70f),
                     new Vector2(num, num),
                     Color.white,
@@ -394,6 +394,13 @@ namespace ExpandedGalaxy
                 PLShipInfoBase target = (PLShipInfoBase)PLEncounterManager.Instance.GetShipFromID((int)arguments[1]);
 
                 playerShip.MySensorDish.SubTypeData = 1;
+                if (PhotonNetwork.isMasterClient)
+                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                    {
+                        (object) playerShip.ShipID,
+                        (object) playerShip.MySensorDish.NetID,
+                        (object) playerShip.MySensorDish.SubTypeData,
+                    });
                 Puppet.shipDatas[target.ShipID] = playerShip.ShipID;
                 target.IsFlagged = true;
                 target.TargetShip = playerShip.TargetShip;
@@ -430,13 +437,12 @@ namespace ExpandedGalaxy
                                 target.ShipID
                             });
                 }
-                ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.hostileTakeoverRPC", PhotonTargets.All, new object[2]
+            }
+            ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.hostileTakeoverRPC", PhotonTargets.All, new object[2]
                 {
                     player.GetPawn().CurrentShip.ShipID,
                     target.ShipID
                 });
-
-            }
         }
 
         private static async void removePuppet(PLShipInfoBase ship)

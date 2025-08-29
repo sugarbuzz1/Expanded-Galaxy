@@ -1,7 +1,10 @@
 ﻿using CodeStage.AntiCheat.ObscuredTypes;
 using HarmonyLib;
-using Pathfinding.Serialization;
 using PulsarModLoader;
+using PulsarModLoader.Content.Components.CPU;
+using PulsarModLoader.Content.Components.HullPlating;
+using PulsarModLoader.Content.Components.MegaTurret;
+using PulsarModLoader.Content.Components.PolytechModule;
 using PulsarModLoader.SaveData;
 using System.Collections.Generic;
 using System.IO;
@@ -69,6 +72,13 @@ namespace ExpandedGalaxy
                             hashes.Add(binaryReader.ReadInt32());
                         Relic.PickupQueue.Add(sectorID, hashes);
                     }
+                        CrewLogData logData = new CrewLogData();
+                        logData.timeStamp = binaryReader.ReadSingle();
+                        logData.Text = binaryReader.ReadString();
+                        logData.optionalSectorID = binaryReader.ReadInt32();
+                        Color color = new Color(binaryReader.ReadSingle(), binaryReader.ReadSingle(), binaryReader.ReadSingle(), binaryReader.ReadSingle());
+                        logData.optionalColor = color;
+                        CrewLogManager.Instance.AddLog(logData);
                 }
             }
         }
@@ -117,6 +127,13 @@ namespace ExpandedGalaxy
                         foreach (int hash in Relic.PickupQueue[sectorID])
                             binaryWriter.Write(hash);
                     }
+                        binaryWriter.Write(logData.timeStamp);
+                        binaryWriter.Write(logData.Text);
+                        binaryWriter.Write(logData.optionalSectorID);
+                        binaryWriter.Write(logData.optionalColor.r);
+                        binaryWriter.Write(logData.optionalColor.g);
+                        binaryWriter.Write(logData.optionalColor.b);
+                        binaryWriter.Write(logData.optionalColor.a);
                 }
                 return output.ToArray();
             }
@@ -166,96 +183,204 @@ namespace ExpandedGalaxy
                 Relic.RelicCaravan.CaravanTargetSector = -1;
                 Relic.RelicCaravan.CaravanUpdateTime = 60000;
                 Relic.RelicCaravan.ClearCaravanPath();
+                PersistantScrapManager.Instance.ClearData();
+                CrewLogManager.Instance.OnNewGame();
             }
         }
-    }
 
-    internal class RecieveData : ModMessage
-    {
-        public override void HandleRPC(object[] arguments, PhotonMessageInfo sender)
+
+        internal class RecieveData : ModMessage
         {
-            if (sender.sender.IsMasterClient)
+            public override void HandleRPC(object[] arguments, PhotonMessageInfo sender)
             {
-                PFSectorCommander.bossFlag = (int)arguments[0];
-                Relic.MiningDroneQuest.dronesActive = (bool)arguments[1];
-                Relic.MiningDroneQuest.GXData = (int)arguments[2];
-                Jetpack.AdvancedJetPack = (bool)arguments[3];
-                Ammunition.DynamicAmmunition = (bool)arguments[4];
-                Relic.RelicCaravan.CaravanCurrentSector = (int)arguments[5];
-                Relic.RelicCaravan.CaravanTargetSector = (int)arguments[6];
-            }
-
-        }
-    }
-
-    [HarmonyPatch(typeof(PLShipInfoBase), "Update")]
-    internal class SendData
-    {
-        private static void Postfix(PLShipInfoBase __instance)
-        {
-            if (__instance == null || !__instance.GetIsPlayerShip())
-                return;
-            if (Jetpack.AdvancedJetPack)
-            {
-                TalentModManager.Instance.HideTalent((int)ETalents.INC_JETPACK);
-                TalentModManager.Instance.UnHideTalent((int)TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve"));
-            }
-            else
-            {
-                TalentModManager.Instance.UnHideTalent((int)ETalents.INC_JETPACK);
-                TalentModManager.Instance.HideTalent((int)TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve"));
-            }
-            if (Ammunition.DynamicAmmunition)
-            {
-                TalentModManager.Instance.HideTalent((int)ETalents.WPN_AMMO_BOOST);
-                TalentModManager.Instance.UnHideTalent((int)TalentModManager.Instance.GetTalentIDFromName("Reloader"));
-            }
-            else
-            {
-                TalentModManager.Instance.UnHideTalent((int)ETalents.WPN_AMMO_BOOST);
-                TalentModManager.Instance.HideTalent((int)TalentModManager.Instance.GetTalentIDFromName("Reloader"));
-            }
-            TalentModManager.Instance.HideTalent((int)ETalents.SCI_RESEARCH_SPECIALTY);
-            if (PLNetworkManager.Instance.LocalPlayer != null) {
-                foreach (PLPlayer player in PLServer.Instance.AllPlayers)
+                if (sender.sender.IsMasterClient)
                 {
-                    if (player != null && player.TeamID == PLNetworkManager.Instance.LocalPlayer.TeamID)
+                    PFSectorCommander.bossFlag = (int)arguments[0];
+                    Relic.MiningDroneQuest.dronesActive = (bool)arguments[1];
+                    Relic.MiningDroneQuest.GXData = (int)arguments[2];
+                    Jetpack.AdvancedJetPack = (bool)arguments[3];
+                    Ammunition.DynamicAmmunition = (bool)arguments[4];
+                    Relic.RelicCaravan.CaravanCurrentSector = (int)arguments[5];
+                    Relic.RelicCaravan.CaravanTargetSector = (int)arguments[6];
+                }
+
+            }
+        }
+
+        [HarmonyPatch(typeof(PLShipInfoBase), "Update")]
+        internal class ShipUpdatePatch
+        {
+            private static void Postfix(PLShipInfoBase __instance)
+            {
+                if (__instance == null || !__instance.GetIsPlayerShip())
+                    return;
+                if (Jetpack.AdvancedJetPack)
+                {
+                    TalentModManager.Instance.HideTalent((int)ETalents.INC_JETPACK);
+                    TalentModManager.Instance.UnHideTalent((int)TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve"));
+                }
+                else
+                {
+                    TalentModManager.Instance.UnHideTalent((int)ETalents.INC_JETPACK);
+                    TalentModManager.Instance.HideTalent((int)TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve"));
+                }
+                if (Ammunition.DynamicAmmunition)
+                {
+                    TalentModManager.Instance.HideTalent((int)ETalents.WPN_AMMO_BOOST);
+                    TalentModManager.Instance.UnHideTalent((int)TalentModManager.Instance.GetTalentIDFromName("Reloader"));
+                }
+                else
+                {
+                    TalentModManager.Instance.UnHideTalent((int)ETalents.WPN_AMMO_BOOST);
+                    TalentModManager.Instance.HideTalent((int)TalentModManager.Instance.GetTalentIDFromName("Reloader"));
+                }
+                TalentModManager.Instance.HideTalent((int)ETalents.SCI_RESEARCH_SPECIALTY);
+                if (PLNetworkManager.Instance.LocalPlayer != null)
+                {
+                    foreach (PLPlayer player in PLServer.Instance.AllPlayers)
                     {
-                        if (Jetpack.AdvancedJetPack && player.Talents[(int)ETalents.INC_JETPACK] > 0)
+                        if (player != null && player.TeamID == PLNetworkManager.Instance.LocalPlayer.TeamID)
                         {
-                            int num = (int)player.Talents[(int)ETalents.INC_JETPACK];
-                            player.Talents[TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve")] = (ObscuredInt)num;
-                            player.Talents[(int)ETalents.INC_JETPACK] = (ObscuredInt)0;
-                        }
-                        else if (!Jetpack.AdvancedJetPack && player.Talents[TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve")] > 0)
-                        {
-                            int num = (int)player.Talents[TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve")];
-                            player.Talents[(int)ETalents.INC_JETPACK] = (ObscuredInt)num;
-                            player.Talents[(int)TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve")] = (ObscuredInt)0;
+                            if (Jetpack.AdvancedJetPack && player.Talents[(int)ETalents.INC_JETPACK] > 0)
+                            {
+                                int num = (int)player.Talents[(int)ETalents.INC_JETPACK];
+                                player.Talents[TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve")] = (ObscuredInt)num;
+                                player.Talents[(int)ETalents.INC_JETPACK] = (ObscuredInt)0;
+                            }
+                            else if (!Jetpack.AdvancedJetPack && player.Talents[TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve")] > 0)
+                            {
+                                int num = (int)player.Talents[TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve")];
+                                player.Talents[(int)ETalents.INC_JETPACK] = (ObscuredInt)num;
+                                player.Talents[(int)TalentModManager.Instance.GetTalentIDFromName("Jetpack Fuel Reserve")] = (ObscuredInt)0;
+                            }
                         }
                     }
                 }
-            }
-            if (!PhotonNetwork.isMasterClient)
-                return;
-            ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.RecieveData", PhotonTargets.Others, new object[7]
-            {
-                    (object) PFSectorCommander.bossFlag,
-                    (object) Relic.MiningDroneQuest.dronesActive,
-                    (object) Relic.MiningDroneQuest.GXData,
-                    (object) Jetpack.AdvancedJetPack,
-                    (object) Ammunition.DynamicAmmunition,
-                    (object) Relic.RelicCaravan.CaravanCurrentSector,
-                    (object) Relic.RelicCaravan.CaravanTargetSector
-            });
-            if (PLServer.Instance == null)
-                return;
-            foreach (PLPlayer player in PLServer.Instance.AllPlayers)
-            {
-                if (player != null && !player.IsBot && player.GetPhotonPlayer() != null && !SyncCheck.checkedPlayers.Contains(player.GetPhotonPlayer()))
+                if (!PhotonNetwork.isMasterClient)
+                    return;
+                /*ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.RecieveData", PhotonTargets.Others, new object[7]
                 {
-                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.RequestSyncCheck", player.GetPhotonPlayer(), new object[0]);
-                    SyncCheck.checkedPlayers.Add(player.GetPhotonPlayer());
+                        (object) PFSectorCommander.bossFlag,
+                        (object) Relic.MiningDroneQuest.dronesActive,
+                        (object) Relic.MiningDroneQuest.GXData,
+                        (object) Jetpack.AdvancedJetPack,
+                        (object) Ammunition.DynamicAmmunition,
+                        (object) Relic.RelicCaravan.CaravanCurrentSector,
+                        (object) Relic.RelicCaravan.CaravanTargetSector
+                });*/
+                if (PLServer.Instance == null)
+                    return;
+                foreach (PLPlayer player in PLServer.Instance.AllPlayers)
+                {
+                    if (player != null && !player.IsBot && player.GetPhotonPlayer() != null && !SyncCheck.checkedPlayers.Contains(player.GetPhotonPlayer()))
+                    {
+                        ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.RequestSyncCheck", player.GetPhotonPlayer(), new object[0]);
+                        SyncCheck.checkedPlayers.Add(player.GetPhotonPlayer());
+                    }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(PLServer), "OnPhotonSerializeView")]
+        internal class SendData
+        {
+            private static void Postfix(PLServer __instance, ref PhotonStream stream, PhotonMessageInfo info)
+            {
+                if (stream.isWriting)
+                {
+                    stream.SendNext(PFSectorCommander.bossFlag);
+                    stream.SendNext(Relic.MiningDroneQuest.dronesActive);
+                    stream.SendNext(Relic.MiningDroneQuest.GXData);
+                    stream.SendNext(Jetpack.AdvancedJetPack);
+                    stream.SendNext(Ammunition.DynamicAmmunition);
+                    stream.SendNext(Relic.RelicCaravan.CaravanCurrentSector);
+                    stream.SendNext(Relic.RelicCaravan.CaravanTargetSector);
+                }
+                else
+                {
+                    PFSectorCommander.bossFlag = (int)stream.ReceiveNext();
+                    Relic.MiningDroneQuest.dronesActive = (bool)stream.ReceiveNext();
+                    Relic.MiningDroneQuest.GXData = (int)stream.ReceiveNext();
+                    Relic.RelicCaravan.CaravanCurrentSector = (int)stream.ReceiveNext();
+                    Relic.RelicCaravan.CaravanTargetSector = (int)stream.ReceiveNext();
+                    Jetpack.AdvancedJetPack = (bool)stream.ReceiveNext();
+                    Ammunition.DynamicAmmunition = (bool)stream.ReceiveNext();
+                }
+            }
+        }
+
+        private static bool ShouldUpdateSubTypeData(PLShipComponent shipComponent)
+        {
+            switch (shipComponent.ActualSlotType)
+            {
+                case ESlotType.E_COMP_CPU:
+                    if (shipComponent.SubType == CPUModManager.Instance.GetCPUIDFromName("Super Shield"))
+                        return true;
+                    break;
+                case ESlotType.E_COMP_HULLPLATING:
+                    if (shipComponent.SubType == HullPlatingModManager.Instance.GetHullPlatingIDFromName("Bone Plating"))
+                        return true;
+                    break;
+                case ESlotType.E_COMP_POLYTECH_MODULE:
+                    if (shipComponent.SubType == PolytechModuleModManager.Instance.GetPolytechModuleIDFromName("P.T. Module: Recompiler 1") || shipComponent.SubType == PolytechModuleModManager.Instance.GetPolytechModuleIDFromName("P.T. Module: Recompiler 4") || shipComponent.SubType == PolytechModuleModManager.Instance.GetPolytechModuleIDFromName("P.T. Module: Recompiler 5"))
+                        return true;
+                    break;
+                case ESlotType.E_COMP_CLOAKING_SYS:
+                    if (shipComponent.SubType == (int)ECloakingSystemType.E_NORMAL || shipComponent.SubType == (int)ECloakingSystemType.E_SYVASSI)
+                        return true;
+                    break;
+                case ESlotType.E_COMP_VIRUS:
+                    if (shipComponent.SubType == (int)EVirusType.RAND_SMALL || shipComponent.SubType == (int)EVirusType.RAND_LARGE)
+                        return true;
+                    break;
+                case ESlotType.E_COMP_MAINTURRET:
+                    if (shipComponent.SubType == MegaTurretModManager.Instance.GetMegaTurretIDFromName("WD Standard"))
+                        return true;
+                    break;
+            }
+            return false;
+        }
+
+        [HarmonyPatch(typeof(PLShipInfoBase), "OnPhotonSerializeView")]
+        internal class SendSubTypeData
+        {
+            private static void Postfix(PLShipInfoBase __instance, ref PhotonStream stream, PhotonMessageInfo info)
+            {
+                if (stream.isWriting)
+                {
+                    Dictionary<int, short> data = new Dictionary<int, short>();
+                    if (__instance.MyStats != null)
+                    {
+                        foreach (PLShipComponent component in __instance.MyStats.AllComponents)
+                            if (ShouldUpdateSubTypeData(component) && component.NetID != -1)
+                            {
+                                data.Add(component.NetID, component.SubTypeData);
+                            }
+                    }
+                    stream.SendNext(data.Count);
+                    if (data.Count > 0)
+                    {
+                        stream.SendNext(data.Keys.ToArray());
+                        stream.SendNext(data.Values.ToArray());
+                    }
+                }
+                else
+                {
+                    int count = (int)stream.ReceiveNext();
+                    if (count > 0)
+                    {
+                        int[] netIDs = (int[])stream.ReceiveNext();
+                        short[] subTypeDatas = (short[])stream.ReceiveNext();
+
+                        if (__instance.MyStats != null)
+                        {
+                            for (int i = 0; i < netIDs.Length; i++)
+                            {
+                                if (__instance.MyStats.GetComponentFromNetID(netIDs[i]) != null && i < subTypeDatas.Length)
+                                    __instance.MyStats.GetComponentFromNetID(netIDs[i]).SubTypeData = subTypeDatas[i];
+                            }
+                        }
+                    }
                 }
             }
         }

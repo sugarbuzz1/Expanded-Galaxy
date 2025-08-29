@@ -421,12 +421,12 @@ namespace ExpandedGalaxy
             private static bool Prefix(PLVirus __instance, ref PLShipStats inStats)
             {
                 if (__instance.SubType == (int)EVirusType.RAND_SMALL || __instance.SubType == (int)EVirusType.RAND_LARGE)
-                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                    /*ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
                     {
                         (object) __instance.ShipStats.Ship.ShipID,
                         (object) __instance.NetID,
                         (object) __instance.SubTypeData,
-                    });
+                    });*/
                 if (__instance.SubType != (int)EVirusType.RAND_LARGE)
                     return true;
                 switch ((int)__instance.SubTypeData)

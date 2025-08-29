@@ -179,12 +179,12 @@ namespace ExpandedGalaxy
         {
             private static void Postfix(PLPlayer __instance, ref float ___LastSciHealPawnFrame, ref bool ___sciHealPawnFrame)
             {
-                if (__instance.GetPawn() == null || PLNetworkManager.Instance.LocalPlayer != __instance)
+                if (!PhotonNetwork.isMasterClient || __instance.GetPawn() == null)
                     return;
                 PLAmmoRefill refill;
                 if (PLNetworkManager.Instance.CurrentGame != null && __instance.GetClassID() == 3 && __instance.Talents[TalentModManager.Instance.GetTalentIDFromName("Reloader")] > 0)
                 {
-                    if (PLEncounterManager.Instance.PlayerShip != null && PLEncounterManager.Instance.PlayerShip.MyAmmoRefills.Length > 0)
+                    if (__instance.StartingShip != null && __instance.StartingShip.MyAmmoRefills.Length > 0)
                     {
                         refill = __instance.StartingShip.MyAmmoRefills[0];
                         if (refill == null || !((double)refill.SupplyAmount > 0.0))
@@ -205,6 +205,31 @@ namespace ExpandedGalaxy
                     if (playerIDs.Count > 0)
                     {
                         ___sciHealPawnFrame = true;
+                        int refillRate = (int)__instance.Talents[TalentModManager.Instance.GetTalentIDFromName("Reloader")];
+                        foreach (int playerID in playerIDs)
+                        {
+                            PLPlayer player = PLServer.Instance.GetPlayerFromPlayerID(playerID);
+                            if (player == null || player.MyInventory == null)
+                                continue;
+                            foreach (PLPawnItem item in player.MyInventory.AllItems)
+                            {
+                                if ((double)refill.SupplyAmount > 0.0 && item != null && item.UsesAmmo)
+                                {
+                                    if (item.AmmoCurrent < item.AmmoMax)
+                                    {
+                                        int num0 = Mathf.CeilToInt(item.AmmoMax * (0.05f * refillRate));
+                                        if (!(num0 > 0))
+                                            num0 = 1;
+                                        int num1 = item.AmmoCurrent;
+                                        int num3 = item.AmmoCurrent;
+                                        num3 += num0;
+                                        num3 = Mathf.Min(num3, item.AmmoMax);
+                                        float num2 = Mathf.Abs(num3 - num1) * (Ammunition.AmmoRefillPercent() / (float)item.AmmoMax);
+                                        refill.SupplyAmount -= num2;
+                                    }
+                                }
+                            }
+                        }
 
                         ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ReloadRPC", PhotonTargets.All, new object[3]
                         {
@@ -222,7 +247,6 @@ namespace ExpandedGalaxy
         {
             public override void HandleRPC(object[] arguments, PhotonMessageInfo sender)
             {
-                PLAmmoRefill refill = (PLEncounterManager.Instance.GetShipFromID((int)arguments[0]) as PLShipInfo).MyAmmoRefills[0];
                 int[] playerIDs = (int[])arguments[1];
                 int refillRate = (int)arguments[2];
                 foreach (int playerID in playerIDs)
@@ -240,11 +264,8 @@ namespace ExpandedGalaxy
                                 if (!(num0 > 0))
                                     num0 = 1;
                                 PLMusic.PostEvent("play_sx_player_item_grenadelauncher_ammorefill", player.GetPawn().gameObject);
-                                int num1 = item.AmmoCurrent;
                                 item.AmmoCurrent += num0;
                                 item.AmmoCurrent = Mathf.Min(item.AmmoCurrent, item.AmmoMax);
-                                float num2 = Mathf.Abs(item.AmmoCurrent - num1) * (Ammunition.AmmoRefillPercent() / (float)item.AmmoMax);
-                                refill.SupplyAmount -= item.AmmoCurrent - num2;
                                 if (player == PLNetworkManager.Instance.LocalPlayer)
                                 {
                                     PLPawn pawn = player.GetPawn();
@@ -347,25 +368,12 @@ namespace ExpandedGalaxy
                     TalentInfo info = PLGlobal.GetTalentInfoForTalentType((ETalents)inTalentID);
                     if (info == null || (int)__instance.Talents[inTalentID] > info.MaxRank || (int)__instance.TalentPointsAvailable <= 0)
                         return;
-                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.AddOneTalentPointRPC", PhotonTargets.All, new object[1]
+                    foreach (PLPlayer player in PLServer.Instance.AllPlayers)
                     {
-                        __instance.GetPlayerID()
-                    });
-                }
-            }
-        }
+                        if (player.TeamID == __instance.TeamID && player.GetClassID() != 0)
+                            ++player.TalentPointsAvailable;
+                    }
 
-        private class AddOneTalentPointRPC : ModMessage
-        {
-            public override void HandleRPC(object[] arguments, PhotonMessageInfo sender)
-            {
-                PLPlayer playerFromID = PLServer.Instance.GetPlayerFromPlayerID((int)arguments[0]);
-                if (playerFromID == null)
-                    return;
-                foreach (PLPlayer player in PLServer.Instance.AllPlayers)
-                {
-                    if (player.TeamID == playerFromID.TeamID && player.GetClassID() != 0)
-                        ++player.TalentPointsAvailable;
                 }
             }
         }

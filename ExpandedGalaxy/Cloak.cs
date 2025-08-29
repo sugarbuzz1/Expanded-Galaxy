@@ -107,12 +107,12 @@ namespace ExpandedGalaxy
                 if (PhotonNetwork.isMasterClient)
                 {
 
-                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                    /*ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
                     {
                         (object) __instance.ShipStats.Ship.ShipID,
                         (object) __instance.NetID,
                         (object) __instance.SubTypeData,
-                    });
+                    });*/
 
                     if (__instance.SubTypeData < 0)
                         __instance.SubTypeData = 0;

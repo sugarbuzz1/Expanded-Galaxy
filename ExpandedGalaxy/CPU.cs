@@ -67,19 +67,28 @@ namespace ExpandedGalaxy
             public override void Tick(PLShipComponent InComp)
             {
                 base.Tick(InComp);
-                if (PhotonNetwork.isMasterClient)
-                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
-                    {
+                PLCPU plcpu = InComp as PLCPU;
+                if (plcpu.SubTypeData < 0 || plcpu.SubTypeData > 1)
+                {
+                    plcpu.SubTypeData = 0;
+                    if (PhotonNetwork.isMasterClient)
+                        ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                        {
                         (object) InComp.ShipStats.Ship.ShipID,
                         (object) InComp.NetID,
                         (object) InComp.SubTypeData,
-                    });
-                PLCPU plcpu = InComp as PLCPU;
-                if (plcpu.SubTypeData < 0 || plcpu.SubTypeData > 1)
-                    plcpu.SubTypeData = 0;
-                if (!plcpu.IsEquipped)
+                        });
+                }
+                if (!plcpu.IsEquipped && plcpu.SubTypeData != 0)
                 {
                     plcpu.SubTypeData = 0;
+                    if (PhotonNetwork.isMasterClient)
+                        ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                        {
+                        (object) InComp.ShipStats.Ship.ShipID,
+                        (object) InComp.NetID,
+                        (object) InComp.SubTypeData,
+                        });
                     return;
                 }
                 if (plcpu.SubTypeData == 0)
@@ -179,12 +188,12 @@ namespace ExpandedGalaxy
                     {
                         InComp.SubTypeData = 30 * 80;
                     }
-                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                    /*ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
                     {
                         (object) InComp.ShipStats.Ship.ShipID,
                         (object) InComp.NetID,
                         (object) InComp.SubTypeData,
-                    });
+                    });*/
                 }
                 if (InComp.IsEquipped && InComp.ShipStats.Ship.ShipID == PLEncounterManager.Instance.PlayerShip.ShipID)
                 {

@@ -1196,7 +1196,7 @@ namespace ExpandedGalaxy
                     base.Tick();
                     if (this.IsEquipped && !this.ColorCorrected)
                         this.CorrectColors();
-                    if (this.IsEquipped && PhotonNetwork.isMasterClient && (double)Time.time - this.lastUpdateTime > 4.0)
+                    /*if (this.IsEquipped && PhotonNetwork.isMasterClient && (double)Time.time - this.lastUpdateTime > 4.0)
                     {
                         ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
                     {
@@ -1205,7 +1205,7 @@ namespace ExpandedGalaxy
                         (object) this.SubTypeData,
                     });
                         this.lastUpdateTime = (double)Time.time;
-                    }
+                    }*/
                 }
 
                 protected override void UpdatePowerUsage(PLPlayer currentOperator)

@@ -33,12 +33,12 @@ namespace ExpandedGalaxy
                         InComp.SubTypeData = 300;
                     if (InComp.IsEquipped && InComp.SubTypeData < 300)
                         InComp.SubTypeData += 10;
-                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                    /*ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
                         {
                         (object) InComp.ShipStats.Ship.ShipID,
                         (object) InComp.NetID,
                         (object) InComp.SubTypeData,
-                        });
+                        });*/
                 }
                 if (InComp.IsEquipped && InComp.ShipStats.Ship.ShipID == PLEncounterManager.Instance.PlayerShip.ShipID)
                 {
@@ -82,12 +82,12 @@ namespace ExpandedGalaxy
                                     if (PhotonNetwork.isMasterClient)
                                     {
                                         component.SubTypeData = 0;
-                                        ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                                        /*ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
                                             {
                                             (object) __instance.Ship.ShipID,
                                             (object) component.NetID,
                                             (object) component.SubTypeData,
-                                            });
+                                            });*/
                                     }
                                 }
                             }
@@ -209,12 +209,12 @@ namespace ExpandedGalaxy
                         }
                     }
                 }
-                ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                /*ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
                         {
                         (object) InComp.ShipStats.Ship.ShipID,
                         (object) InComp.NetID,
                         (object) InComp.SubTypeData,
-                        });
+                        });*/
             }
 
             public override void FinalLateAddStats(PLShipComponent InComp)
@@ -295,12 +295,12 @@ namespace ExpandedGalaxy
                         }
                     }
                 }
-                ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                /*ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
                         {
                         (object) InComp.ShipStats.Ship.ShipID,
                         (object) InComp.NetID,
                         (object) InComp.SubTypeData,
-                        });
+                        });*/
             }
 
             public override void FinalLateAddStats(PLShipComponent InComp)
