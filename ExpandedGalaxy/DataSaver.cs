@@ -342,7 +342,7 @@ namespace ExpandedGalaxy
                                 data.Add(component.NetID, component.SubTypeData);
                             }
                     }
-                    stream.SendNext(data.Count);
+                    stream.SendNext((bool)(data.Count > 0));
                     if (data.Count > 0)
                     {
                         stream.SendNext(data.Keys.ToArray());
@@ -351,8 +351,8 @@ namespace ExpandedGalaxy
                 }
                 else
                 {
-                    int count = (int)stream.ReceiveNext();
-                    if (count > 0)
+                    bool hasIDs = (bool)stream.ReceiveNext();
+                    if (hasIDs)
                     {
                         int[] netIDs = (int[])stream.ReceiveNext();
                         short[] subTypeDatas = (short[])stream.ReceiveNext();
