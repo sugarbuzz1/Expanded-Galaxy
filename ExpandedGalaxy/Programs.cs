@@ -361,41 +361,9 @@ namespace ExpandedGalaxy
                     PLRand rand = new PLRand((int)PLServer.Instance.GalaxySeed + PLServer.Instance.GetEstimatedServerMs());
                     __instance.SubTypeData = (short)(rand.Next() % 4);
                 }
-                if (__instance.SubType == (int)EVirusType.RAND_SMALL)
+                if (__instance.SubType == (int )EVirusType.RAND_LARGE)
                 {
-                    switch ((int)__instance.SubTypeData)
-                    {
-                        case 0:
-                            __instance.Desc = "Backdoor/Phalanx";
-                            break;
-                        case 1:
-                            __instance.Desc = "Sitting Duck/Warp Disable";
-                            break;
-                        case 2:
-                            __instance.Desc = "Blindfold/Expose";
-                            break;
-                        case 3:
-                            __instance.Desc = "Sitting Duck/Phalanx";
-                            break;
-                    }
-                }
-                else
-                {
-                    switch ((int)__instance.SubTypeData)
-                    {
-                        case 0:
-                            __instance.Desc = "Syber's Shield/Phalanx";
-                            break;
-                        case 1:
-                            __instance.Desc = "Armor Flaw/Breathless";
-                            break;
-                        case 2:
-                            __instance.Desc = "Backdoor/Lazy Guns";
-                            break;
-                        case 3:
-                            __instance.Desc = "Blindfold/Warp Disable";
-                            break;
-                    }
+                    __instance.Desc = "Unknown/random function";
                 }
             }
         }
@@ -412,6 +380,60 @@ namespace ExpandedGalaxy
                 }
                 __result = (int)__instance.SubTypeData == inID;
                 return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(PLScientistVirusScreen), "Update")]
+        internal class RandText
+        {
+            private static void Postfix(PLScientistVirusScreen __instance)
+            {
+                foreach (PLVirusDrawInfo drawInfo in __instance.VirusDrawInfos)
+                {
+                    if (drawInfo.MyVirus == null)
+                        continue;
+                    if (drawInfo.MyVirus.SubType == (int)EVirusType.RAND_SMALL || drawInfo.MyVirus.SubType == (int)EVirusType.RAND_LARGE)
+                    {
+                        string Desc = "";
+                        if (drawInfo.MyVirus.SubType == (int)EVirusType.RAND_SMALL)
+                        {
+                            switch (drawInfo.MyVirus.SubTypeData)
+                            {
+                                case 0:
+                                    Desc = "Backdoor/Phalanx";
+                                    break;
+                                case 1:
+                                    Desc = "Sitting Duck/Warp Disable";
+                                    break;
+                                case 2:
+                                    Desc = "Blindfold/Expose";
+                                    break;
+                                case 3:
+                                    Desc = "Sitting Duck/Phalanx";
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            switch (drawInfo.MyVirus.SubTypeData)
+                            {
+                                case 0:
+                                    Desc = "Syber's Shield/Phalanx";
+                                    break;
+                                case 1:
+                                    Desc = "Armor Flaw/Breathless";
+                                    break;
+                                case 2:
+                                    Desc = "Backdoor/Lazy Guns";
+                                    break;
+                                case 3:
+                                    Desc = "Blindfold/Warp Disable";
+                                    break;
+                            }
+                        }
+                        drawInfo.MyDescLabel.text = Desc;
+                    }
+                }
             }
         }
 

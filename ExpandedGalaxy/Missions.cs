@@ -227,7 +227,7 @@ namespace ExpandedGalaxy
                 sectorData.SectorType = (int)ESectorVisualIndication.CANYON;
                 sectorData.Distance = 36f;
                 sectorData.SpawnRegularShipsToo = false;
-                sectorData.UniqueType = true;
+                sectorData.UniqueType = false;
                 pickupMissionData.Sectors.Add(sectorData);
                 pickupMissionData.Objectives.AddRange(objectiveDatas);
                 return pickupMissionData;
