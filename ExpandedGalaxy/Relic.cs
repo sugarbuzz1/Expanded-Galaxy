@@ -101,8 +101,8 @@ namespace ExpandedGalaxy
             return (RelicData & (1U << relicType)) > 0U;
         }
 
-        [HarmonyPatch(typeof(PLPersistantEncounterInstance), "InitGame")]
-        internal class RelicCompPickups
+        [HarmonyPatch(typeof(PLPersistantEncounterInstance), "OnEndWarp")]
+        internal class PlanetCompPickups
         {
             private static void Postfix(PLPersistantEncounterInstance __instance)
             {
@@ -129,6 +129,27 @@ namespace ExpandedGalaxy
                         }
                         if (hashes.Length > 0)
                             Relic.AddCompToPlanet(__instance, hashes, true, true);
+                    }
+                }
+                else if (__instance is PLCanyonPlanetEncounter)
+                {
+                    if (PLServer.GetCurrentSector() != null && (!PLServer.GetCurrentSector().Visited || PickupQueue.ContainsKey(PLServer.GetCurrentSector().ID) && PLServer.GetCurrentSector().MissionSpecificID == 8000002 && PhotonNetwork.isMasterClient))
+                    {
+                        int[] hashes;
+                        if (PickupQueue.ContainsKey(PLServer.GetCurrentSector().ID))
+                        {
+                            hashes = PickupQueue[PLServer.GetCurrentSector().ID].ToArray();
+                        }
+                        else
+                        {
+                            hashes = new int[1]
+                        {
+                            (int)PLMissionShipComponent.CreateMissionComponentFromHash(8, 0, 0).getHash(),
+                        };
+                            PickupQueue.Add(PLServer.GetCurrentSector().ID, hashes.ToList<int>());
+                        }
+                        if (hashes.Length > 0)
+                            Relic.AddCompToPlanet(__instance, hashes, true, true, true);
                     }
                 }
             }
@@ -2392,7 +2413,7 @@ namespace ExpandedGalaxy
                             RelicCaravan.CaravanCurrentSector = info.ID;
                             caravanInfo.CompOverrides.AddRange(CaravanComponents(__instance.Seed));
                             PLServer.Instance.AllPSIs.Add(caravanInfo);
-                            CaravanUpdateTime = 120000;
+                            CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 120000;
                         }
                     }
                 }
@@ -2824,7 +2845,7 @@ namespace ExpandedGalaxy
                     bool flag1 = false;
                     if (CaravanCurrentSector != -1 && PLServer.GetCurrentSector() != null && CaravanCurrentSector != PLServer.GetCurrentSector().ID)
                     {
-                        if (PLServer.Instance.GetEstimatedServerMs() > 0 && PLServer.Instance.GetEstimatedServerMs() - CaravanUpdateTime > 0)
+                        if (PLServer.Instance.GetEstimatedServerMs() - CaravanUpdateTime > 0)
                         {
                             CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 120000;
                             if (CaravanTargetSector != -1)
@@ -3190,35 +3211,6 @@ namespace ExpandedGalaxy
                     }
                     PhotonNetwork.Destroy(__instance.ShipRoot);
                     return false;
-                }
-            }
-
-            [HarmonyPatch(typeof(PLPersistantEncounterInstance), "OnEndWarp")]
-            internal class CanyonPlanetSetupCall
-            {
-                private static void Postfix(PLPersistantEncounterInstance __instance)
-                {
-                    if (__instance is PLCanyonPlanetEncounter)
-                    {
-                        if (PLServer.GetCurrentSector() != null && (!PLServer.GetCurrentSector().Visited || PickupQueue.ContainsKey(PLServer.GetCurrentSector().ID) && PLServer.GetCurrentSector().MissionSpecificID == 8000002 && PhotonNetwork.isMasterClient))
-                        {
-                            int[] hashes;
-                            if (PickupQueue.ContainsKey(PLServer.GetCurrentSector().ID))
-                            {
-                                hashes = PickupQueue[PLServer.GetCurrentSector().ID].ToArray();
-                            }
-                            else
-                            {
-                                hashes = new int[1]
-                            {
-                            (int)Relic.GenerateRelic(PLServer.Instance.GalaxySeed).getHash()
-                            };
-                                PickupQueue.Add(PLServer.GetCurrentSector().ID, hashes.ToList<int>());
-                            }
-                            if (hashes.Length > 0)
-                                Relic.AddCompToPlanet(__instance, hashes, true, true, true);
-                        }
-                    }
                 }
             }
 
