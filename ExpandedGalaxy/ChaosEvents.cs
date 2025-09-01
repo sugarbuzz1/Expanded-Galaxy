@@ -18,13 +18,12 @@ namespace ExpandedGalaxy
                 if (PLServer.Instance != null)
                     if (Mathf.FloorToInt((float)PLServer.Instance.ChaosLevel) > (int)PLServer.Instance.OldChaosLevel && (double)PLServer.Instance.GetProcessedChaosLevel() <= 6.0)
                     {
-                        Traverse traverse = Traverse.Create(PLServer.Instance);
-                        DeactivateAllChaosEvents();
+                        List<int> activePrevious = DeactivateAllChaosEvents();
                         PLRand rand = new PLRand(Mathf.FloorToInt(PLGlobal.Instance.Galaxy.Seed + PLServer.Instance.ChaosLevel + 1));
                         for (int i = 0; i < 100; i++)
                         {
                             EChaosEvent e = (EChaosEvent)rand.Next(0, 10);
-                            if (CanActivateChaosEvent(e))
+                            if (!activePrevious.Contains((int)e) && CanActivateChaosEvent(e))
                             {
                                 PLServer.Instance.SetChaosEventAsActive((int)e);
                                 PLServer.Instance.OnChaosEventActivate(e);
@@ -36,15 +35,20 @@ namespace ExpandedGalaxy
             }
         }
 
-        private static void DeactivateAllChaosEvents()
+        private static List<int> DeactivateAllChaosEvents()
         {
+            List<int> events = new List<int>();
             for (int i = 0; i < (int)EChaosEvent.MAX; i++)
             {
                 if (PLServer.Instance.IsChaosEventActive((EChaosEvent)i))
+                {
                     OnChaosEventDeactivate((EChaosEvent)i);
+                    events.Add(i);
+                }
                     
             }
             PLServer.Instance.ActiveChaosEvents = 0L;
+            return events;
         }
 
         [HarmonyPatch(typeof(PLServer), "OnChaosEventActivate")]
@@ -52,12 +56,41 @@ namespace ExpandedGalaxy
         {
             private static bool Prefix(PLServer __instance, EChaosEvent chaosEvent)
             {
+                bool flag = false;
+                string actorName = "";
                 switch(chaosEvent)
                 {
+                    case EChaosEvent.E_FUEL_SHORTAGE:
+                        actorName = "ExGal_ChaosEvent_FuelShortage";
+                        break;
+                    case EChaosEvent.E_COOLANT_SHORTAGE:
+                        actorName = "ExGal_ChaosEvent_CoolantShortage";
+                        break;
+                    case EChaosEvent.E_CALM:
+                        actorName = "ExGal_ChaosEvent_Contraband";
+                        break;
+                    case EChaosEvent.E_SHOP_STRIKE:
+                        actorName = "ExGal_ChaosEvent_ShopStrike";
+                        break;
                     case EChaosEvent.E_INFECTION_BOOST:
+                        flag = true;
+                        actorName = "ExGal_ChaosEvent_InfectionBoost";
+                        break;
                     case EChaosEvent.E_WD_OFFENSIVE:
-                        return true;
+                        flag = true;
+                        actorName = "ExGal_ChaosEvent_WDOffensive";
+                        break;
+                    case EChaosEvent.E_SHOCK_DRONE_INVASION:
+                        actorName = "ExGal_ChaosEvent_ShockDrones";
+                        break;
+                    case EChaosEvent.E_DEATHSEEKER_DRONE_INVASION:
+                        actorName = "ExGal_ChaosEvent_Deathseekers";
+                        break;
+                    case EChaosEvent.E_PHASE_DRONE_INVASION:
+                        actorName = "ExGal_ChaosEvent_PhaseDrones";
+                        break;
                     case EChaosEvent.E_LONG_RANGE_PRICE_HIKE:
+                        actorName = "ExGal_ChaosEvent_LongRangeDisable";
                         foreach (PLSectorInfo pLSectorInfo in PLGlobal.Instance.Galaxy.AllSectorInfos.Values)
                         {
                             if (pLSectorInfo.VisualIndication == ESectorVisualIndication.WARP_NETWORK_STATION && pLSectorInfo.MySPI.Faction == 0 && pLSectorInfo.IsPartOfLongRangeWarpNetwork)
@@ -70,7 +103,9 @@ namespace ExpandedGalaxy
                         }
                         break;
                 }
-                return false;
+                if (actorName != "")
+                    PLServer.CreateBasicLongRangeDialogueActor(actorName, "CU Information Desk");
+                return flag;
             }
         }
 
@@ -105,7 +140,7 @@ namespace ExpandedGalaxy
                 case EChaosEvent.E_LONG_RANGE_PRICE_HIKE:
                     foreach (PLSectorInfo pLSectorInfo in PLGlobal.Instance.Galaxy.AllSectorInfos.Values)
                     {
-                        if (pLSectorInfo.VisualIndication == ESectorVisualIndication.WARP_NETWORK_STATION && pLSectorInfo.MySPI.Faction != 0 && !pLSectorInfo.IsPartOfLongRangeWarpNetwork)
+                        if (pLSectorInfo.VisualIndication == ESectorVisualIndication.WARP_NETWORK_STATION && pLSectorInfo.MySPI.Faction == 1 && !pLSectorInfo.IsPartOfLongRangeWarpNetwork)
                         {
                             pLSectorInfo.MySPI.Faction = 0;
                             pLSectorInfo.IsPartOfLongRangeWarpNetwork = true;
@@ -127,19 +162,21 @@ namespace ExpandedGalaxy
                     return (double)(float)PLServer.Instance.ChaosLevel >= 2.0;
                 case EChaosEvent.E_COOLANT_SHORTAGE:
                     return (double)(float)PLServer.Instance.ChaosLevel >= 1.0;
-                case EChaosEvent.E_CALM:
-                    return (double)(float)PLServer.Instance.ChaosLevel >= 7.0;
+                case EChaosEvent.E_CALM: //Contraband Inspections
+                    return (double)(float)PLServer.Instance.ChaosLevel >= 1.0;
+                case EChaosEvent.E_SHOP_STRIKE:
+                    return (double)(float)PLServer.Instance.ChaosLevel >= 3.0;
                 case EChaosEvent.E_INFECTION_BOOST:
-                    return (double)(float)PLServer.Instance.ChaosLevel >= 4.0;
+                    return (double)(float)PLServer.Instance.ChaosLevel >= 3.0;
                 case EChaosEvent.E_WD_OFFENSIVE:
                     return (double)(float)PLServer.Instance.ChaosLevel >= 3.0;
                 case EChaosEvent.E_SHOCK_DRONE_INVASION:
                     return (double)(float)PLServer.Instance.ChaosLevel >= 3.0;
                 case EChaosEvent.E_DEATHSEEKER_DRONE_INVASION:
-                    return (double)(float)PLServer.Instance.ChaosLevel >= 3.0;
-                case EChaosEvent.E_PHASE_DRONE_INVASION:
                     return (double)(float)PLServer.Instance.ChaosLevel >= 1.0;
-                case EChaosEvent.E_LONG_RANGE_PRICE_HIKE:
+                case EChaosEvent.E_PHASE_DRONE_INVASION:
+                    return (double)(float)PLServer.Instance.ChaosLevel >= 2.0;
+                case EChaosEvent.E_LONG_RANGE_PRICE_HIKE: //Long Range Warp Disable
                     return (double)(float)PLServer.Instance.ChaosLevel >= 2.0;
                 default:
                     return false;
@@ -217,6 +254,94 @@ namespace ExpandedGalaxy
                     }
                     yield return instruction;
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(PLServer), "AttemptToAddPickupMission")]
+        internal class HandleCargoInspections
+        {
+            private static bool Prefix(PLServer __instance)
+            {
+                if (!__instance.IsChaosEventActive(EChaosEvent.E_CALM) || __instance.HasActiveMissionWithID(8000009) || PLEncounterManager.Instance == null || PLEncounterManager.Instance.PlayerShip == null)
+                    return true;
+                PickupMissionData pickupMission = (PickupMissionData)PLCampaignIO.Instance.GetMissionOfTypeID(8000009);
+                if (pickupMission == null || !__instance.DoesRequirementListPass(pickupMission.StartingRequirements))
+                    return true;
+                bool flag = false;
+                foreach (PLShipComponent component in PLEncounterManager.Instance.PlayerShip.MyStats.AllComponents)
+                {
+                    if (component.Contraband)
+                    {
+                        flag = true;
+                        break;
+                    }
+                }
+                if (!flag)
+                {
+                    foreach (PLServerClassInfo classInfo in PLServer.Instance.ClassInfos)
+                    {
+                        if (classInfo.ClassLockerInventory == null)
+                            continue;
+                        foreach(PLPawnItem item in classInfo.ClassLockerInventory.AllItems)
+                        {
+                            if (item.Contraband)
+                            {
+                                flag = true;
+                                break;
+                            }
+                        }
+                        if (flag)
+                            break;
+                    }
+                }
+                if (!flag)
+                {
+                    foreach (PLPlayer player in PLServer.Instance.AllPlayers)
+                    {
+                        if (player == null || player.TeamID != 0 || player.MyInventory == null)
+                            continue;
+                        foreach (PLPawnItem item in player.MyInventory.AllItems)
+                        {
+                            if (item.Contraband)
+                            {
+                                flag = true;
+                                break;
+                            }
+                        }
+                        if (flag)
+                            break;
+                    }
+                }
+                bool flag2 = false;
+                if (flag)
+                {
+                    if (UnityEngine.Random.Range(0, 1000) > 600)
+                    {
+                        __instance.StartCoroutine(__instance.SafeStartPickupMission(pickupMission));
+                        flag2 = true;
+                    }
+                }
+                else
+                {
+                    if (UnityEngine.Random.Range(0, 1000) > 900)
+                    {
+                        __instance.StartCoroutine(__instance.SafeStartPickupMission(pickupMission));
+                        flag2 = true;
+                    }
+                }
+                return !flag2;
+            }
+        }
+
+        [HarmonyPatch(typeof(PLWarpStationScreen), "Update")]
+        internal class DisableWarpStationScreen
+        {
+            private static void Postfix(PLWarpStationScreen __instance)
+            {
+                if (__instance.gameObject == null || PLServer.Instance == null)
+                    return;
+                if (__instance.gameObject.activeSelf != !PLServer.Instance.IsChaosEventActive(EChaosEvent.E_LONG_RANGE_PRICE_HIKE))
+                    __instance.gameObject.SetActive(!PLServer.Instance.IsChaosEventActive(EChaosEvent.E_LONG_RANGE_PRICE_HIKE));
             }
         }
     }

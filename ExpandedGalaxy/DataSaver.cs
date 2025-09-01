@@ -1,6 +1,7 @@
 ﻿using CodeStage.AntiCheat.ObscuredTypes;
 using HarmonyLib;
 using PulsarModLoader;
+using PulsarModLoader.Content.Components.CaptainsChair;
 using PulsarModLoader.Content.Components.CPU;
 using PulsarModLoader.Content.Components.HullPlating;
 using PulsarModLoader.Content.Components.MegaTurret;
@@ -363,6 +364,10 @@ namespace ExpandedGalaxy
             {
                 case ESlotType.E_COMP_CPU:
                     if (shipComponent.SubType == CPUModManager.Instance.GetCPUIDFromName("Super Shield"))
+                        return true;
+                    break;
+                case ESlotType.E_COMP_CAPTAINS_CHAIR:
+                    if (shipComponent.SubType == CaptainsChairModManager.Instance.GetCaptainsChairIDFromName("Seat of the Surveyor"))
                         return true;
                     break;
                 case ESlotType.E_COMP_HULLPLATING:

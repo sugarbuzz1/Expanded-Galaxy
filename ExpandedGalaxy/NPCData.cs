@@ -390,6 +390,260 @@ namespace ExpandedGalaxy
 
                     __result = data;
                 }
+                else if (inActorName == "ExGal_Inspection_Comms")
+                {
+                    ActorTypeData data = new ActorTypeData();
+                    data.Name = inActorName;
+                    data.HailOnStart = true;
+
+                    LineData opener = new LineData();
+                    opener.TextOptions.Add("[PLAYERSHIP_NAME]: You have been selected for a cargo inspection. Please redirect your course to the nearest inspection station, and you will be compensated for your time. Noncompliance is considered to be a criminal offense and will be reported to the Outpost 448 Command Center. We apologize for the inconvenience and thank you for your cooperation.");
+                    opener.Actions.Add(new LineActionData() { Type = "1" });
+                    opener.Actions.Add(new LineActionData() { Type = "0" });
+                    opener.Actions.Add(new LineActionData() { Type = "3", Parameter = "8000009" });
+
+                    LineData close = new LineData();
+                    close.TextOptions.Add("CLOSE TRANSMISSION");
+                    close.IsPlayerLine = true;
+                    close.Actions.Add(new LineActionData() { Type = "1" });
+                    close.Actions.Add(new LineActionData() { Type = "10" });
+
+                    opener.ChildLines.Add(close);
+
+                    data.OpeningLines.Add(opener);
+
+                    __result = data;
+                }
+                else if (inActorName == "ExGal_ChaosEvent_FuelShortage")
+                {
+                    ActorTypeData data = new ActorTypeData();
+                    data.Name = inActorName;
+                    data.HailOnStart = true;
+
+                    LineData opener = new LineData();
+                    opener.TextOptions.Add("According to a study by independant sources, fuel capsules are becoming harder to come by in component shops. All crews are advised to limit the use of manual program charging for the time being. The Outpost 448 Department of Galactic Transportation recommends all ships moving cargo to be outfitted with warp drives that prioritize range.");
+                    opener.Actions.Add(new LineActionData() { Type = "1" });
+                    opener.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData close = new LineData();
+                    close.TextOptions.Add("CLOSE TRANSMISSION");
+                    close.IsPlayerLine = true;
+                    close.Actions.Add(new LineActionData() { Type = "1" });
+                    close.Actions.Add(new LineActionData() { Type = "10" });
+
+                    opener.ChildLines.Add(close);
+
+                    data.OpeningLines.Add(opener);
+
+                    __result = data;
+                }
+                else if (inActorName == "ExGal_ChaosEvent_CoolantShortage")
+                {
+                    ActorTypeData data = new ActorTypeData();
+                    data.Name = inActorName;
+                    data.HailOnStart = true;
+
+                    LineData opener = new LineData();
+                    opener.TextOptions.Add("Urgent update from the Outpost 448 Command Center: Due to the large demand for coolant for Union research projects all ships are to be advised to limit coolant use in their travels. No information on the aformentioned projects has been cleared for public availibilty by the Command Center at this time.");
+                    opener.Actions.Add(new LineActionData() { Type = "1" });
+                    opener.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData close = new LineData();
+                    close.TextOptions.Add("CLOSE TRANSMISSION");
+                    close.IsPlayerLine = true;
+                    close.Actions.Add(new LineActionData() { Type = "1" });
+                    close.Actions.Add(new LineActionData() { Type = "10" });
+
+                    opener.ChildLines.Add(close);
+
+                    data.OpeningLines.Add(opener);
+
+                    __result = data;
+                }
+                else if (inActorName == "ExGal_ChaosEvent_Contraband")
+                {
+                    ActorTypeData data = new ActorTypeData();
+                    data.Name = inActorName;
+                    data.HailOnStart = true;
+
+                    LineData opener = new LineData();
+                    opener.TextOptions.Add("Urgent update from the Outpost 448 Command Center: A Union-wide crackdown on contraband items has been instated by the Command Center for the time being. All vessels travelling in Union space must be prepared to receive a cargo inspection at any time. Noncompliance is considered to be a criminal offense and will be reported to the Command Center.");
+                    opener.Actions.Add(new LineActionData() { Type = "1" });
+                    opener.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData close = new LineData();
+                    close.TextOptions.Add("CLOSE TRANSMISSION");
+                    close.IsPlayerLine = true;
+                    close.Actions.Add(new LineActionData() { Type = "1" });
+                    close.Actions.Add(new LineActionData() { Type = "10" });
+
+                    opener.ChildLines.Add(close);
+
+                    data.OpeningLines.Add(opener);
+
+                    __result = data;
+                }
+                else if (inActorName == "ExGal_ChaosEvent_ShopStrike")
+                {
+                    ActorTypeData data = new ActorTypeData();
+                    data.Name = inActorName;
+                    data.HailOnStart = true;
+
+                    LineData opener = new LineData();
+                    opener.TextOptions.Add("After recent regulations drafted by a joint commission by Outpost 448 and Wolden-Dorf officials, general store vendors have gone on strike until these regulations meet their demands. A report by the Outpost 448 Department of Commerce indicates that prices for all goods have increased and many crews are now struggling to find good deals for the contents of their cargo holds.");
+                    opener.Actions.Add(new LineActionData() { Type = "1" });
+                    opener.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData close = new LineData();
+                    close.TextOptions.Add("CLOSE TRANSMISSION");
+                    close.IsPlayerLine = true;
+                    close.Actions.Add(new LineActionData() { Type = "1" });
+                    close.Actions.Add(new LineActionData() { Type = "10" });
+
+                    opener.ChildLines.Add(close);
+
+                    data.OpeningLines.Add(opener);
+
+                    __result = data;
+                }
+                else if (inActorName == "ExGal_ChaosEvent_InfectionBoost")
+                {
+                    ActorTypeData data = new ActorTypeData();
+                    data.Name = inActorName;
+                    data.HailOnStart = true;
+
+                    LineData opener = new LineData();
+                    opener.TextOptions.Add("Urgent update from the Outpost 448 Command Center: The Infected has recently shown an unprecedented level of hostility. All crews are advised to avoid sectors bordering Infected space by all means necessary. Do not worry, the Command Center is looking into solutions to quell the Infected. Together we survive.");
+                    opener.Actions.Add(new LineActionData() { Type = "1" });
+                    opener.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData close = new LineData();
+                    close.TextOptions.Add("CLOSE TRANSMISSION");
+                    close.IsPlayerLine = true;
+                    close.Actions.Add(new LineActionData() { Type = "1" });
+                    close.Actions.Add(new LineActionData() { Type = "10" });
+
+                    opener.ChildLines.Add(close);
+
+                    data.OpeningLines.Add(opener);
+
+                    __result = data;
+                }
+                else if (inActorName == "ExGal_ChaosEvent_WDOffensive")
+                {
+                    ActorTypeData data = new ActorTypeData();
+                    data.Name = inActorName;
+                    data.HailOnStart = true;
+
+                    LineData opener = new LineData();
+                    opener.TextOptions.Add("Urgent update from the Outpost 448 Command Center: The Wolden-Dorf Corporation has declared a new offensive against the Alliance of Gentlemen. All civilian vessels are advised to avoid Corporation controlled space for the time being until the conflict is resolved.");
+                    opener.Actions.Add(new LineActionData() { Type = "1" });
+                    opener.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData close = new LineData();
+                    close.TextOptions.Add("CLOSE TRANSMISSION");
+                    close.IsPlayerLine = true;
+                    close.Actions.Add(new LineActionData() { Type = "1" });
+                    close.Actions.Add(new LineActionData() { Type = "10" });
+
+                    opener.ChildLines.Add(close);
+
+                    data.OpeningLines.Add(opener);
+
+                    __result = data;
+                }
+                else if (inActorName == "ExGal_ChaosEvent_ShockDrones")
+                {
+                    ActorTypeData data = new ActorTypeData();
+                    data.Name = inActorName;
+                    data.HailOnStart = true;
+
+                    LineData opener = new LineData();
+                    opener.TextOptions.Add("Colonial Union scout vessels has reported an increase in Shock Drone sightings throughout the galaxy. The Command Center advises all crews to use extreme caution when traversing neutral sectors.");
+                    opener.Actions.Add(new LineActionData() { Type = "1" });
+                    opener.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData close = new LineData();
+                    close.TextOptions.Add("CLOSE TRANSMISSION");
+                    close.IsPlayerLine = true;
+                    close.Actions.Add(new LineActionData() { Type = "1" });
+                    close.Actions.Add(new LineActionData() { Type = "10" });
+
+                    opener.ChildLines.Add(close);
+
+                    data.OpeningLines.Add(opener);
+
+                    __result = data;
+                }
+                else if (inActorName == "ExGal_ChaosEvent_Deathseekers")
+                {
+                    ActorTypeData data = new ActorTypeData();
+                    data.Name = inActorName;
+                    data.HailOnStart = true;
+
+                    LineData opener = new LineData();
+                    opener.TextOptions.Add("Colonial Union scout vessels has reported an increase in Deathseeker sightings throughout the galaxy. The Command Center advises all crews to use extreme caution when traversing neutral sectors and to prioritize the use of well-armored hulls.");
+                    opener.Actions.Add(new LineActionData() { Type = "1" });
+                    opener.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData close = new LineData();
+                    close.TextOptions.Add("CLOSE TRANSMISSION");
+                    close.IsPlayerLine = true;
+                    close.Actions.Add(new LineActionData() { Type = "1" });
+                    close.Actions.Add(new LineActionData() { Type = "10" });
+
+                    opener.ChildLines.Add(close);
+
+                    data.OpeningLines.Add(opener);
+
+                    __result = data;
+                }
+                else if (inActorName == "ExGal_ChaosEvent_PhaseDrones")
+                {
+                    ActorTypeData data = new ActorTypeData();
+                    data.Name = inActorName;
+                    data.HailOnStart = true;
+
+                    LineData opener = new LineData();
+                    opener.TextOptions.Add("Colonial Union scout vessels has reported an increase in Phase Drone sightings throughout the galaxy. The Command Center advises all crews to use extreme caution when traversing neutral sectors and to prioritize equipping high-quality repair equipment.");
+                    opener.Actions.Add(new LineActionData() { Type = "1" });
+                    opener.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData close = new LineData();
+                    close.TextOptions.Add("CLOSE TRANSMISSION");
+                    close.IsPlayerLine = true;
+                    close.Actions.Add(new LineActionData() { Type = "1" });
+                    close.Actions.Add(new LineActionData() { Type = "10" });
+
+                    opener.ChildLines.Add(close);
+
+                    data.OpeningLines.Add(opener);
+
+                    __result = data;
+                }
+                else if (inActorName == "ExGal_ChaosEvent_LongRangeDisable")
+                {
+                    ActorTypeData data = new ActorTypeData();
+                    data.Name = inActorName;
+                    data.HailOnStart = true;
+
+                    LineData opener = new LineData();
+                    opener.TextOptions.Add("Urgent update from the Outpost 448 Command Center: All Long Range Warp Gates have been taken offline due to an unknown network disturbance. The Outpost 448 Department of Galactic Transportation is hard at work to resolve the issue as soon as possible.");
+                    opener.Actions.Add(new LineActionData() { Type = "1" });
+                    opener.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData close = new LineData();
+                    close.TextOptions.Add("CLOSE TRANSMISSION");
+                    close.IsPlayerLine = true;
+                    close.Actions.Add(new LineActionData() { Type = "1" });
+                    close.Actions.Add(new LineActionData() { Type = "10" });
+
+                    opener.ChildLines.Add(close);
+
+                    data.OpeningLines.Add(opener);
+
+                    __result = data;
+                }
             }
         }
 
@@ -467,7 +721,7 @@ namespace ExpandedGalaxy
                 patchSequence,
                 HarmonyHelpers.PatchMode.AFTER,
                 HarmonyHelpers.CheckMode.NONNULL,
-                showDebugOutput: true
+                showDebugOutput: false
             );
         }
 

@@ -415,7 +415,7 @@ namespace ExpandedGalaxy
                 {
                     CodeInstruction.Call(typeof(ExpandedGalaxy.Ammunition), "AmmoRefillPercent"),
                 };
-                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.REPLACE, HarmonyHelpers.CheckMode.ALWAYS, true);
+                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.REPLACE, HarmonyHelpers.CheckMode.ALWAYS, false);
             }
 
             private static bool Prefix(PLAmmoRefill __instance, out bool __state)
@@ -462,7 +462,7 @@ namespace ExpandedGalaxy
                 {
                     CodeInstruction.Call(typeof(ExpandedGalaxy.Ammunition), "AmmoRefillPercent"),
                 };
-                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.REPLACE, HarmonyHelpers.CheckMode.ALWAYS, true);
+                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.REPLACE, HarmonyHelpers.CheckMode.ALWAYS, false);
             }
         }
 

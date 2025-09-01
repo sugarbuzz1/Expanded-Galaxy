@@ -40,7 +40,7 @@ namespace ExpandedGalaxy
                     {
                         __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.photonView.RPC("AddSensorWeakness", PhotonTargets.All, 3, PLServer.Instance.GetEstimatedServerMs(), 0);
                     }
-                    else if (!SensorDish.IsSensorWeaknessActiveReal(__instance.MyScreenHubBase.OptionalShipInfo.TargetShip, 5, 0) && __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MyStats.ReactorTempCurrent / __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MyStats.ReactorTempMax > 0.9f)
+                    else if (!SensorDish.IsSensorWeaknessActiveReal(__instance.MyScreenHubBase.OptionalShipInfo.TargetShip, 5, 0) && __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.ReactorCoolingEnabled ? __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MyStats.ReactorTempCurrent / __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MyStats.ReactorTempMax > 0.9f : __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.CoreInstability < 0.3f && UnityEngine.Random.Range(0, 1000) > 600)
                     {
                         __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.photonView.RPC("AddSensorWeakness", PhotonTargets.All, 5, PLServer.Instance.GetEstimatedServerMs(), 0);
                     }
@@ -177,7 +177,7 @@ namespace ExpandedGalaxy
                 list[671].labels.Add(failed);
                 list[678].labels.Add(succeed);
 
-                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.AFTER, HarmonyHelpers.CheckMode.NONNULL, true);
+                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.AFTER, HarmonyHelpers.CheckMode.NONNULL, false);
             }
         }
     }

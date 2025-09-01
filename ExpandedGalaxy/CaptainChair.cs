@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using PulsarModLoader;
 using PulsarModLoader.Content.Components.CaptainsChair;
+using System;
 using System.Collections.Generic;
 
 namespace ExpandedGalaxy
@@ -238,6 +239,21 @@ namespace ExpandedGalaxy
                         }
                     }
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(PLShipInfoBase), "GetChaosBoost", new Type[2] { typeof(PLPersistantShipInfo), typeof(int) })]
+        internal class DroneScalingFix
+        {
+            private static Exception Finalizer(Exception __exception, PLShipInfoBase __instance, PLPersistantShipInfo inPersistantShipInfo, int offset, ref int __result)
+            {
+                if (!((UnityEngine.Object)PLServer.Instance != (UnityEngine.Object)null) || inPersistantShipInfo == null)
+                    return __exception;
+                if (inPersistantShipInfo.Type == EShipType.E_WDDRONE1 && inPersistantShipInfo.ShipName == "Surveyor Drone")
+                {
+                    __result = 0;
+                }
+                return __exception;
             }
         }
 

@@ -1224,8 +1224,8 @@ namespace ExpandedGalaxy
             {
                 private static void Postfix(PLLightningTurret __instance)
                 {
-                    if (__instance.IsEquipped && __instance.m_Damage != 80f && __instance.ShipStats.Ship != null && __instance.ShipStats.Ship.ShipTypeID == EShipType.E_SHOCK_DRONE)
-                        __instance.m_Damage = 80f;
+                    if (__instance.IsEquipped && __instance.m_Damage != 50f && __instance.ShipStats.Ship != null && __instance.ShipStats.Ship.ShipTypeID == EShipType.E_SHOCK_DRONE)
+                        __instance.m_Damage = 50f;
                 }
             }
         }
@@ -1246,7 +1246,7 @@ namespace ExpandedGalaxy
                     this.CargoVisualPrefabID = 5;
                     this.FireDelay = 1f;
                     this.m_SlotType = ESlotType.E_COMP_MAINTURRET;
-                    this.HeatGeneratedOnFire = 0.35f;
+                    this.HeatGeneratedOnFire = 0.2f;
                     this.DamageChecksPerSecond = 2f;
                     this.m_IconTexture = (Texture2D)Resources.Load("Icons/8_Weapons");
                     this.HasTrackingMissileCapability = true;
@@ -1259,10 +1259,10 @@ namespace ExpandedGalaxy
                     this.IsMainTurret = true;
                     this.BeamColor = new Color(1f, 1f, 0.05f);
                     this.HitComboCountMax = 1;
-                    this.HitComboMultiplier = 0.6f;
+                    this.HitComboMultiplier = 0.8f;
                 }
 
-                public override void UpdateMaxPowerUsageWatts() => this.CalculatedMaxPowerUsage_Watts = 11800f * this.LevelMultiplier(0.2f);
+                public override void UpdateMaxPowerUsageWatts() => this.CalculatedMaxPowerUsage_Watts = 11800f;
 
                 protected override void CorrectColors()
                 {

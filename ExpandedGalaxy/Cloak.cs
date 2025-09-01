@@ -1,11 +1,21 @@
 ﻿using HarmonyLib;
 using PulsarModLoader;
+using System;
 using UnityEngine;
 
 namespace ExpandedGalaxy
 {
     internal class Cloak
     {
+        [HarmonyPatch(typeof(PLCloakingSystem), MethodType.Constructor, new Type[2] { typeof(ECloakingSystemType), typeof(int) })]
+        internal class CloakNoSysConduit
+        {
+            private static void Postfix(PLCloakingSystem __instance)
+            {
+                __instance.SysInstConduit = -1;
+            }
+        }
+
         [HarmonyPatch(typeof(PLSensorObjectShip), "GetIsCloaked")]
         private class Remove0EMSignature
         {
@@ -86,12 +96,12 @@ namespace ExpandedGalaxy
                 {
                     if (cloakingSystem.SubType == (int)ECloakingSystemType.E_NORMAL)
                     {
-                        __result = "-" + (3f * cloakingSystem.GetPowerPercentInput()).ToString("0.0") + "/" + (3f).ToString("0.0") + "\n" + "+" + subTypeDataParse(cloakingSystem.SubTypeData).ToString("0.0") + "/" + (20f + 2.5f * cloakingSystem.Level).ToString("0.0") + "\n";
+                        __result = "-" + (3f * cloakingSystem.GetPowerPercentInput()).ToString("0.0") + "/" + (3f).ToString("0") + "\n" + "+" + subTypeDataParse(cloakingSystem.SubTypeData).ToString("0.0") + "/" + (20f + 2.5f * cloakingSystem.Level).ToString("0.0") + "%" + "\n";
                         return false;
                     }
                     else
                     {
-                        __result = "-" + (4f * cloakingSystem.GetPowerPercentInput()).ToString("0.0") + "/" + (4f).ToString("0.0") + "\n" + "+" + subTypeDataParse(cloakingSystem.SubTypeData).ToString("0.0") + "/" + (20f + 2.5f * cloakingSystem.Level).ToString("0.0") + "\n";
+                        __result = "-" + (4f * cloakingSystem.GetPowerPercentInput()).ToString("0.0") + "/" + (4f).ToString("0") + "\n" + "+" + subTypeDataParse(cloakingSystem.SubTypeData).ToString("0.0") + "/" + (20f + 2.5f * cloakingSystem.Level).ToString("0.0") + "%" + "\n";
                         return false;
                     }
                 }

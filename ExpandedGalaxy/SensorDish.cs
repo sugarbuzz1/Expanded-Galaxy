@@ -341,6 +341,7 @@ namespace ExpandedGalaxy
         {
             private static void Postfix(PLScientistSensorScreen __instance, UIWidget inButton)
             {
+                bool flag = false;
                 if (SensorDish.screenInfos.ContainsKey(__instance))
                 {
                     if (SensorDish.screenInfos[__instance] == 1)
@@ -357,8 +358,19 @@ namespace ExpandedGalaxy
                                 PLInGameUI.SetTooltipLargeText("Weaken Armor", "Nullify all armor and damage reduction gained from hull plating on target ship for 60 seconds", false, 0.0f);
                                 break;
                         }
+                        return;
+                    }
+                    else
+                    {
+                        flag = true;
                     }
                 }
+                else
+                {
+                    flag = true;
+                }
+                if (flag && inButton.name == "weaknessScanShieldWeakPoint")
+                    PLInGameUI.SetTooltipLargeText("Weaken Shields", "Target ship's shields will take 20% more damage for 60 seconds", false, 0.0f);
             }
         }
 
@@ -536,8 +548,10 @@ namespace ExpandedGalaxy
         [HarmonyPatch(typeof(PLShipInfoBase), "TakeDamage")]
         internal class SensorDishShieldWeaknessCheck
         {
-            private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
             {
+                Label failed = generator.DefineLabel();
+
                 List<CodeInstruction> list = instructions.ToList();
 
                 List<CodeInstruction> targetSequence = new List<CodeInstruction>() {
@@ -550,6 +564,18 @@ namespace ExpandedGalaxy
                 };
                 List<CodeInstruction> patchSequence = new List<CodeInstruction>()
                 {
+                    new CodeInstruction(OpCodes.Ldc_I4_0),
+                };
+
+                List<CodeInstruction> list2 = HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.REPLACE, HarmonyHelpers.CheckMode.NONNULL, false).ToList();
+
+                List<CodeInstruction> targetSequence2 = new List<CodeInstruction>() {
+                    new CodeInstruction(OpCodes.Ldarg_3),
+                    new CodeInstruction(OpCodes.Ldloc_2),
+                    new CodeInstruction(OpCodes.Ldloc_S),
+                };
+                List<CodeInstruction> patchSequence2 = new List<CodeInstruction>()
+                {
                     new CodeInstruction(OpCodes.Ldarg_0),
                     new CodeInstruction(OpCodes.Ldc_I4_2),
                     new CodeInstruction(OpCodes.Ldc_I4, -1),
@@ -558,8 +584,14 @@ namespace ExpandedGalaxy
                         typeof(int),
                         typeof(int)
                     }),
+                    new CodeInstruction(OpCodes.Brfalse_S, failed),
+                    new CodeInstruction(OpCodes.Ldc_R4, 1.2f),
+                    new CodeInstruction(OpCodes.Mul)
                 };
-                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.REPLACE, HarmonyHelpers.CheckMode.NONNULL, false);
+
+                list2[513].labels.Add(failed);
+
+                return HarmonyHelpers.PatchBySequence(list2.AsEnumerable<CodeInstruction>(), targetSequence2, patchSequence2, HarmonyHelpers.PatchMode.AFTER, HarmonyHelpers.CheckMode.NONNULL, true);
             }
         }
 

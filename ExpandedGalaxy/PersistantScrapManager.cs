@@ -175,6 +175,7 @@ namespace ExpandedGalaxy
                                     scrapDatas[(int)objectID].forceComp,
                                     scrapDatas[(int)objectID].compHash
                                     });
+                                    yield return new WaitForSeconds(0.2f);
                                 }
                             }
                         }
