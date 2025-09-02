@@ -531,7 +531,7 @@ namespace ExpandedGalaxy
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
                 return HarmonyHelpers.PatchBySequence(instructions, new CodeInstruction[]
-{
+                {
                 new CodeInstruction(OpCodes.Ldarg_0, null),
                 new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(PLShipInfo), "m_CachedUpgradableComponents")),
                 new CodeInstruction(OpCodes.Callvirt, null)
