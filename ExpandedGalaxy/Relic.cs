@@ -2832,15 +2832,6 @@ namespace ExpandedGalaxy
                         persistantCaravanInfo.OptionalTPDE = CaravanTraderData;
                     if (persistantCaravanInfo.ShipInstance != null && !persistantCaravanInfo.ShipInstance.ShipNameValue.Contains("Wandering Caravan"))
                         persistantCaravanInfo.ShipInstance.ShipNameValue = "Wandering Caravan";
-                    if (CaravanCurrentSector != -1 && PLServer.GetCurrentSector() != null && CaravanCurrentSector == PLServer.GetCurrentSector().ID && PLEncounterManager.Instance.PlayerShip != null && !PLEncounterManager.Instance.PlayerShip.InWarp)
-                    {
-
-                        if (persistantCaravanInfo != null && !persistantCaravanInfo.IsShipDestroyed && persistantCaravanInfo.ShipInstance == null)
-                        {
-                            persistantCaravanInfo.MyCurrentSector = PLServer.GetCurrentSector();
-                            persistantCaravanInfo.CreateShipInstance(PLEncounterManager.Instance.GetCPEI());
-                        }
-                    }
                     bool flag = false;
                     bool flag1 = false;
                     if (CaravanCurrentSector != -1 && PLServer.GetCurrentSector() != null && CaravanCurrentSector != PLServer.GetCurrentSector().ID)
@@ -2863,6 +2854,15 @@ namespace ExpandedGalaxy
                                         persistantCaravanInfo.MyCurrentSector = CaravanPath[CaravanPathIndex + 1];
                                         persistantCaravanInfo.ShldPercent = 1f;
                                         CaravanPathIndex++;
+                                        if (CaravanCurrentSector != -1 && PLServer.GetCurrentSector() != null && CaravanCurrentSector == PLServer.GetCurrentSector().ID && PLEncounterManager.Instance.PlayerShip != null && !PLEncounterManager.Instance.PlayerShip.InWarp)
+                                        {
+
+                                            if (persistantCaravanInfo != null && !persistantCaravanInfo.IsShipDestroyed && persistantCaravanInfo.ShipInstance == null)
+                                            {
+                                                persistantCaravanInfo.MyCurrentSector = PLServer.GetCurrentSector();
+                                                persistantCaravanInfo.CreateShipInstance(PLEncounterManager.Instance.GetCPEI());
+                                            }
+                                        }
                                     }
                                     if (CaravanCurrentSector == CaravanTargetSector)
                                     {
@@ -3055,7 +3055,8 @@ namespace ExpandedGalaxy
             public static List<PLSectorInfo> GetPathToSector_NPC(
                 PLSectorInfo inStartSector,
                 PLSectorInfo inEndSector,
-                float customWarpRange)
+                float customWarpRange,
+                int factionID = 1)
             {
                 bool flag = false;
                 List<PLSectorInfo> OpenList = new List<PLSectorInfo>();
@@ -3106,7 +3107,7 @@ namespace ExpandedGalaxy
                     }
                     foreach (PLSectorInfo neighbor in PLGlobal.Instance.Galaxy.AllSectorInfos.Values)
                     {
-                        if (!(neighbor.MySPI.Faction == 4 || neighbor.MySPI.Faction == 6 || neighbor.MissionSpecificID != -1 || neighbor.VisualIndication == ESectorVisualIndication.COLONIAL_HUB || neighbor.VisualIndication == ESectorVisualIndication.WD_START || neighbor.VisualIndication == ESectorVisualIndication.GWG || neighbor.VisualIndication == ESectorVisualIndication.CYPHER_LAB || neighbor.VisualIndication == ESectorVisualIndication.GREY_HUNTSMAN_HQ || neighbor.VisualIndication == ESectorVisualIndication.HIGHROLLERS_STATION || neighbor.VisualIndication == ESectorVisualIndication.BLACKHOLE || neighbor.VisualIndication == ESectorVisualIndication.MINE_FIELD || neighbor.VisualIndication == ESectorVisualIndication.INTREPID_SECTOR_CMDR || neighbor.VisualIndication == ESectorVisualIndication.ANCIENT_SENTRY || neighbor.VisualIndication == ESectorVisualIndication.ALCHEMIST || neighbor.VisualIndication == ESectorVisualIndication.DEATHSEEKER_COMMANDER || neighbor.VisualIndication == ESectorVisualIndication.SWARM_CMDR || neighbor.VisualIndication == ESectorVisualIndication.SWARM_KEEPER) && neighbor.Category != NodeCategory.NODE_CLOSED && PLStarmap.ShouldShowSectorBG(neighbor) && (double)(new Vector2(plSectorInfo3.Position.x, plSectorInfo3.Position.y) - new Vector2(neighbor.Position.x, neighbor.Position.y)).sqrMagnitude <= (double)customWarpRange * (double)customWarpRange)
+                        if (!(neighbor.MySPI.Faction == 4 || neighbor.MySPI.Faction == 6 || neighbor.MissionSpecificID != -1 || (neighbor.VisualIndication == ESectorVisualIndication.COLONIAL_HUB && factionID != 0) || (neighbor.VisualIndication == ESectorVisualIndication.WD_START && factionID != 2) || neighbor.VisualIndication == ESectorVisualIndication.GWG || neighbor.VisualIndication == ESectorVisualIndication.CYPHER_LAB || neighbor.VisualIndication == ESectorVisualIndication.GREY_HUNTSMAN_HQ || neighbor.VisualIndication == ESectorVisualIndication.HIGHROLLERS_STATION || neighbor.VisualIndication == ESectorVisualIndication.BLACKHOLE || neighbor.VisualIndication == ESectorVisualIndication.MINE_FIELD || neighbor.VisualIndication == ESectorVisualIndication.INTREPID_SECTOR_CMDR || neighbor.VisualIndication == ESectorVisualIndication.ANCIENT_SENTRY || neighbor.VisualIndication == ESectorVisualIndication.ALCHEMIST || neighbor.VisualIndication == ESectorVisualIndication.DEATHSEEKER_COMMANDER || neighbor.VisualIndication == ESectorVisualIndication.SWARM_CMDR || neighbor.VisualIndication == ESectorVisualIndication.SWARM_KEEPER || neighbor.VisualIndication == ESectorVisualIndication.GENERAL_STORE || neighbor.VisualIndication == ESectorVisualIndication.EXOTIC4 || neighbor.VisualIndication == ESectorVisualIndication.EXOTIC5 || neighbor.VisualIndication == ESectorVisualIndication.EXOTIC6 || neighbor.VisualIndication == ESectorVisualIndication.EXOTIC7) && neighbor.Category != NodeCategory.NODE_CLOSED && PLStarmap.ShouldShowSectorBG(neighbor) && (double)(new Vector2(plSectorInfo3.Position.x, plSectorInfo3.Position.y) - new Vector2(neighbor.Position.x, neighbor.Position.y)).sqrMagnitude <= (double)customWarpRange * (double)customWarpRange)
                         {
                             float num3 = traverse.Method("Heuristic", new Type[2]
                             {

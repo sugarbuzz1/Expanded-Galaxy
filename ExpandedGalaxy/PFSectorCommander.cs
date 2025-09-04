@@ -66,8 +66,6 @@ namespace ExpandedGalaxy
             internal static bool bossMusic;
             internal static bool ambientMusic;
 
-            private static Vector3 lastBossLoc;
-
             private static void Postfix(PLPersistantEncounterInstance __instance)
             {
                 if (!(PLEncounterManager.Instance.GetCurrentPersistantEncounterInstance() != null) || PLServer.GetSectorWithID(__instance.GetSectorID()) == null || PLEncounterManager.Instance.PlayerShip == null)

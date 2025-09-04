@@ -32,7 +32,7 @@ namespace ExpandedGalaxy
                         PLServer.Instance.photonView.RPC("StartActiveScan", PhotonTargets.All, (object)__instance.MyScreenHubBase.OptionalShipInfo.ShipID, (object)0);
                     }
                 }
-                if (!((Object)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip != (Object)null) || (double)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MySensorObjectShip.GetDetectionSignal(Vector3.SqrMagnitude(__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.Exterior.transform.position - __instance.MyScreenHubBase.OptionalShipInfo.Exterior.transform.position), __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MyStats.EMSignature, __instance.MyScreenHubBase.OptionalShipInfo.MyStats.EMDetection, (PLShipInfoBase)__instance.MyScreenHubBase.OptionalShipInfo, (PLSensorObject)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MySensorObjectShip) < 18.0 || !((Object)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip != (Object)__instance.MyScreenHubBase.OptionalShipInfo) || (double)Time.time - (double)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.LastRecievedWeaknessTime <= 32.0)
+                if (!((Object)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip != (Object)null) || (double)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MySensorObjectShip.GetDetectionSignal(Vector3.SqrMagnitude(__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.Exterior.transform.position - __instance.MyScreenHubBase.OptionalShipInfo.Exterior.transform.position), __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MyStats.EMSignature, __instance.MyScreenHubBase.OptionalShipInfo.MyStats.EMDetection, (PLShipInfoBase)__instance.MyScreenHubBase.OptionalShipInfo, (PLSensorObject)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MySensorObjectShip) < 18.0 || !((Object)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip != (Object)__instance.MyScreenHubBase.OptionalShipInfo) || ((double)Time.time - (double)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.LastRecievedWeaknessTime <= 32.0 || (Mathf.RoundToInt((float)((double)Time.time - (double)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.LastRecievedWeaknessTime)) % 4 == 0 && DoesWeaknessStillMakeSense(__instance.MyScreenHubBase.OptionalShipInfo, __instance.MyScreenHubBase.OptionalShipInfo.TargetShip, __instance.MyScreenHubBase.OptionalShipInfo.MySensorDish == null ? 0 : __instance.MyScreenHubBase.OptionalShipInfo.MySensorDish.SubType))))
                     return false;
                 if (__instance.MyScreenHubBase.OptionalShipInfo.MySensorDish == null || __instance.MyScreenHubBase.OptionalShipInfo.MySensorDish.SubType == 0)
                 {
@@ -44,7 +44,7 @@ namespace ExpandedGalaxy
                     {
                         __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.photonView.RPC("AddSensorWeakness", PhotonTargets.All, 5, PLServer.Instance.GetEstimatedServerMs(), 0);
                     }
-                    else if (__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MyShieldGenerator != null && __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MyShieldGenerator.MinIntegrityForBubble * 2f <= __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MyShieldGenerator.Current && (double)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MyStats.ShieldsMax != 0.0)
+                    else if (__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MyShieldGenerator != null && __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MyShieldGenerator.MinIntegrityAfterDamageScaled < __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MyShieldGenerator.Current && (double)__instance.MyScreenHubBase.OptionalShipInfo.TargetShip.MyStats.ShieldsMax != 0.0)
                     {
                         __instance.MyScreenHubBase.OptionalShipInfo.TargetShip.photonView.RPC("AddSensorWeakness", PhotonTargets.All, 2, PLServer.Instance.GetEstimatedServerMs(), 0);
                     }
@@ -102,6 +102,72 @@ namespace ExpandedGalaxy
                 }
                 return false;
             }
+        }
+
+        private static bool DoesWeaknessStillMakeSense(PLShipInfoBase inHomeShipInfo, PLShipInfoBase inTargetShipInfo, int subType)
+        {
+            if (subType == 0)
+            {
+                if (SensorDish.IsSensorWeaknessActiveReal(inTargetShipInfo, 3, 0))
+                    return (inHomeShipInfo.MyStats.CyberAttackRating > inTargetShipInfo.MyStats.CyberDefenseRating && HasUseableVirus(inHomeShipInfo));
+                else if (SensorDish.IsSensorWeaknessActiveReal(inTargetShipInfo, 5, 0))
+                    return inTargetShipInfo.MyStats.ReactorTempCurrent / inTargetShipInfo.MyStats.ReactorTempMax > 0.85f;
+                else if (SensorDish.IsSensorWeaknessActiveReal(inTargetShipInfo, 2, 0))
+                {
+                    if (inTargetShipInfo.MyShieldGenerator == null)
+                        return inTargetShipInfo.MyStats.ShieldsCurrent > inTargetShipInfo.MyShieldGenerator.MinIntegrityAfterDamageScaled;
+                    else
+                        return false;
+                }
+                else if (SensorDish.IsSensorWeaknessActiveReal(inTargetShipInfo, 0, 0))
+                {
+                    if (inTargetShipInfo.EngineeringSystem != null)
+                        return (float)inTargetShipInfo.EngineeringSystem.Health > 2f;
+                    else
+                        return false;
+                }
+                else if (SensorDish.IsSensorWeaknessActiveReal(inTargetShipInfo, 0, 1))
+                {
+                    if (inTargetShipInfo.WeaponsSystem != null)
+                        return (float)inTargetShipInfo.WeaponsSystem.Health > 2f;
+                    else
+                        return false;
+                }
+                else if (SensorDish.IsSensorWeaknessActiveReal(inTargetShipInfo, 0, 3))
+                {
+                    if (inTargetShipInfo.ComputerSystem != null)
+                        return (float)inTargetShipInfo.ComputerSystem.Health > 2f;
+                    else
+                        return false;
+                }
+                return false;
+            }
+            else if (subType == 1)
+            {
+                if (SensorDish.IsSensorWeaknessActiveReal(inTargetShipInfo, 0, 0))
+                {
+                    if (inTargetShipInfo.EngineeringSystem != null)
+                        return (float)inTargetShipInfo.EngineeringSystem.Health > 2f;
+                    else
+                        return false;
+                }
+                else if (SensorDish.IsSensorWeaknessActiveReal(inTargetShipInfo, 0, 1))
+                {
+                    if (inTargetShipInfo.WeaponsSystem != null)
+                        return (float)inTargetShipInfo.WeaponsSystem.Health > 2f;
+                    else
+                        return false;
+                }
+                else if (SensorDish.IsSensorWeaknessActiveReal(inTargetShipInfo, 0, 3))
+                {
+                    if (inTargetShipInfo.ComputerSystem != null)
+                        return (float)inTargetShipInfo.ComputerSystem.Health > 2f;
+                    else
+                        return false;
+                }
+                return true;
+            }
+            return true;
         }
 
         private static bool HasUseableVirus(PLShipInfoBase inShipInfo)

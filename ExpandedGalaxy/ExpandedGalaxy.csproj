@@ -93,6 +93,7 @@
     <Compile Include="CaptainChair.cs" />
     <Compile Include="Ammunition.cs" />
     <Compile Include="ChaosEvents.cs" />
+    <Compile Include="Extractor.cs" />
     <Compile Include="NPCData.cs" />
     <Compile Include="CrewAI.cs" />
     <Compile Include="ExGalCommand.cs" />

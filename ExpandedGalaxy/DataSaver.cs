@@ -3,6 +3,7 @@ using HarmonyLib;
 using PulsarModLoader;
 using PulsarModLoader.Content.Components.CaptainsChair;
 using PulsarModLoader.Content.Components.CPU;
+using PulsarModLoader.Content.Components.Extractor;
 using PulsarModLoader.Content.Components.HullPlating;
 using PulsarModLoader.Content.Components.MegaTurret;
 using PulsarModLoader.Content.Components.PolytechModule;
@@ -388,6 +389,10 @@ namespace ExpandedGalaxy
                     break;
                 case ESlotType.E_COMP_MAINTURRET:
                     if (shipComponent.SubType == MegaTurretModManager.Instance.GetMegaTurretIDFromName("WD Standard"))
+                        return true;
+                    break;
+                case ESlotType.E_COMP_SALVAGE_SYSTEM:
+                    if (shipComponent.SubType == ExtractorModManager.Instance.GetExtractorIDFromName("P.T. Extractor Prototype"))
                         return true;
                     break;
             }

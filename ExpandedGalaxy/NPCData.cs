@@ -7,6 +7,7 @@ using System.Reflection;
 using System;
 using System.Linq;
 using PulsarModLoader.Utilities;
+using static UIKeyBinding;
 
 namespace ExpandedGalaxy
 {
@@ -349,7 +350,7 @@ namespace ExpandedGalaxy
                     yesTextA.TextOptions.Add("Here it is. You never saw us and we never saw you.");
                     yesTextA.Actions.Add(new LineActionData() { Type = "1" });
                     yesTextA.Actions.Add(new LineActionData() { Type = "0" });
-                    yesTextA.Actions.Add(new LineActionData() { Type = "32", Parameter = "ExGal_MeetContactFF" });
+                    yesTextA.Actions.Add(new LineActionData() { Type = "3", Parameter = "8000007" });
                     yesTextA.Requirements.Add(new LineRequirementData() { Type = "14", Parameter = "8000005" });
 
                     LineData yesTextB = new LineData();
@@ -390,6 +391,165 @@ namespace ExpandedGalaxy
 
                     __result = data;
                 }
+                else if (inActorName == "ExGal_TreasureFleet_Cruiser")
+                {
+                    ActorTypeData data = new ActorTypeData();
+                    data.Name = inActorName;
+                    data.HostileByDefault = true;
+
+                    LineData opener = new LineData();
+                    opener.TextOptions.Add("[SHIP_NAME] is declining transmissions.");
+                    opener.Actions.Add(new LineActionData() { Type = "1" });
+
+                    data.OpeningLines.Add(opener);
+
+                    __result = data;
+                }
+                else if (inActorName == "ExGal_TreasureFleet_Friend")
+                {
+                    ActorTypeData data = new ActorTypeData();
+                    data.Name = inActorName;
+
+                    LineData opener1 = new LineData();
+                    opener1.TextOptions.Add("You've got the cargo? Take it to the Estate and you'll get paid. Pleasure working with you Gents.");
+                    opener1.Actions.Add(new LineActionData() { Type = "1" });
+                    opener1.Requirements.Add(new LineRequirementData() { Type = "21", Parameter = "ExGal_TreasureFleet_Cargo" });
+
+                    LineData opener = new LineData();
+                    opener.TextOptions.Add("We've engaged the fleet as a distraction. It's up to you to board them and handle the cargo.");
+                    opener.Actions.Add(new LineActionData() { Type = "1" });
+
+                    data.OpeningLines.Add(opener1);
+                    data.OpeningLines.Add(opener);
+
+                    __result = data;
+                }
+                else if (inActorName == "AOG1_NPC_14")
+                {
+                    if (__result.OpeningLines[0].ChildLines.Count >= 2)
+                        return;
+                    LineData jobOpener = new LineData();
+                    jobOpener.TextOptions.Add("Job Offer");
+                    jobOpener.Actions.Add(new LineActionData() { Type = "1" });
+                    jobOpener.Actions.Add(new LineActionData() { Type = "0" });
+                    jobOpener.IsPlayerLine = true;
+                    jobOpener.Requirements.Add(new LineRequirementData() { Type = "12", Parameter = "8000008" });
+                    jobOpener.Requirements.Add(new LineRequirementData() { Type = "16", Parameter = "2" });
+                    jobOpener.Requirements.Add(new LineRequirementData() { Type = "19", Parameter = "1" });
+
+                    LineData jobText = new LineData();
+                    jobText.TextOptions.Add("Looking for a job opportunity? I've got intel on some valueable cargo being moved and I need a crew with an empty cargo hold to intercept it. You won't be alone on the job and you'll be paid well. You in?");
+                    jobText.Actions.Add(new LineActionData() { Type = "1" });
+                    jobText.Actions.Add(new LineActionData() { Type = "0" });
+
+                    jobOpener.ChildLines.Add(jobText);
+
+                    LineData accept = new LineData();
+                    accept.TextOptions.Add("Accept");
+                    accept.Actions.Add(new LineActionData() { Type = "1" });
+                    accept.Actions.Add(new LineActionData() { Type = "0" });
+                    accept.IsPlayerLine = true;
+
+                    LineData acceptText = new LineData();
+                    acceptText.TextOptions.Add("Perfect. The target is a part of a W.D. transport fleet. It will no doubt be well-armed and well defended. The cargo in question is highly radioactive materials used in the manufacturing of nukes. You'll need to move fast, once the fleet reaches the Corporation's Headquarters it's as good as gone. The location of the fleet has been marked on your map. Deliver the goods to Kadew Rufara in the cargo hold at the Estate and you'll get paid. Now get going!");
+                    acceptText.Actions.Add(new LineActionData() { Type = "1" });
+                    acceptText.Actions.Add(new LineActionData() { Type = "0" });
+                    acceptText.Actions.Add(new LineActionData() { Type = "3", Parameter = "8000008" });
+                    acceptText.Actions.Add(new LineActionData() { Type = "3", Parameter = "8000011" });
+
+                    accept.ChildLines.Add(acceptText);
+
+                    LineData decline = new LineData();
+                    decline.TextOptions.Add("Decline");
+                    decline.Actions.Add(new LineActionData() { Type = "1" });
+                    decline.Actions.Add(new LineActionData() { Type = "0" });
+                    decline.IsPlayerLine= true;
+
+                    LineData declineText = new LineData();
+                    declineText.TextOptions.Add("That's a shame. If you find a good crew looking for a job send them my way.");
+                    declineText.Actions.Add(new LineActionData() { Type = "1" });
+                    declineText.Actions.Add(new LineActionData() { Type = "0" });
+
+                    decline.ChildLines.Add(declineText);
+                    jobText.ChildLines.Add(accept);
+                    jobText.ChildLines.Add(decline);
+                    __result.OpeningLines[0].ChildLines.Add(jobOpener);
+
+                }
+                else if (inActorName == "ESTATE_34")
+                {
+                    if (__result.OpeningLines[0].ChildLines.Count >= 2)
+                        return;
+
+                    LineData postMissionBad = new LineData();
+                    postMissionBad.TextOptions.Add("I don't want anything to do with you. Leave.");
+                    postMissionBad.Actions.Add(new LineActionData() { Type = "1" });
+                    postMissionBad.Actions.Add(new LineActionData() { Type = "0" });
+                    postMissionBad.Requirements.Add(new LineRequirementData() { Type = "13", Parameter = "8000011" });
+
+                    LineData deliverOption = new LineData();
+                    deliverOption.TextOptions.Add("Irradiated Cargo");
+                    deliverOption.Actions.Add(new LineActionData() { Type = "1" });
+                    deliverOption.Actions.Add(new LineActionData() { Type = "0" });
+                    deliverOption.IsPlayerLine = true;
+                    deliverOption.Requirements.Add(new LineRequirementData() { Type = "14", Parameter = "8000008" });
+                    deliverOption.Requirements.Add(new LineRequirementData() { Type = "21", Parameter = "ExGal_TreasureFleet_Cargo" });
+
+                    LineData deliverTextBad = new LineData();
+                    deliverTextBad.TextOptions.Add("I'm glad to see the job went without a hitch. Although... the Milano hasn't checked in for a while now. I know you killed them. Take your credits and leave.");
+                    deliverTextBad.Actions.Add(new LineActionData() { Type = "1" });
+                    deliverTextBad.Actions.Add(new LineActionData() { Type = "0" });
+                    deliverTextBad.Actions.Add(new LineActionData() { Type = "5", Parameter = "ExGal_TreasureFleet_Hidden_KilledFriend_Finish" });
+                    deliverTextBad.Actions.Add(new LineActionData() { Type = "5", Parameter = "ExGal_TreasureFleet_Deliver" });
+                    deliverTextBad.Requirements.Add(new LineRequirementData() { Type = "21", Parameter = "ExGal_TreasureFleet_Hidden_KilledFriend" });
+
+                    deliverOption.ChildLines.Add(deliverTextBad);
+
+                    LineData deliverText = new LineData();
+                    deliverText.TextOptions.Add("Good work. I'll have the cargo retrieved from you ship. As for payment I'll give you a choice between 20k credits or this prototype extractor that's been sitting here for ages. I think it's old Polytech technology so I understand if you just take the cash.");
+                    deliverText.Actions.Add(new LineActionData() { Type = "1" });
+                    deliverText.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData rewardOptionCredits = new LineData();
+                    rewardOptionCredits.TextOptions.Add("Credits");
+                    rewardOptionCredits.Actions.Add(new LineActionData() { Type = "1" });
+                    rewardOptionCredits.Actions.Add(new LineActionData() { Type = "0" });
+                    rewardOptionCredits.IsPlayerLine = true;
+
+                    LineData rewardOptionCreditsText = new LineData();
+                    rewardOptionCreditsText.TextOptions.Add("Understandable. Your payment is being wired to you now.");
+                    rewardOptionCreditsText.Actions.Add(new LineActionData() { Type = "1" });
+                    rewardOptionCreditsText.Actions.Add(new LineActionData() { Type = "0" });
+                    rewardOptionCreditsText.Actions.Add(new LineActionData() { Type = "5", Parameter = "ExGal_TreasureFleet_Deliver" });
+                    rewardOptionCreditsText.Actions.Add(new LineActionData() { Type = "3", Parameter = "8000009" });
+                    rewardOptionCreditsText.Actions.Add(new LineActionData() { Type = "9", Parameter = "8000011" });
+
+                    rewardOptionCredits.ChildLines.Add(rewardOptionCreditsText);
+
+                    LineData rewardOptionExtractor = new LineData();
+                    rewardOptionExtractor.TextOptions.Add("Extractor");
+                    rewardOptionExtractor.Actions.Add(new LineActionData() { Type = "1" });
+                    rewardOptionExtractor.Actions.Add(new LineActionData() { Type = "0" });
+                    rewardOptionExtractor.IsPlayerLine = true;
+
+                    LineData rewardOptionExtractorText = new LineData();
+                    rewardOptionExtractorText.TextOptions.Add("It's got a little bit of dust on it, but I know it will serve you well. It should already be in your cargo hold.");
+                    rewardOptionExtractorText.Actions.Add(new LineActionData() { Type = "1" });
+                    rewardOptionExtractorText.Actions.Add(new LineActionData() { Type = "0" });
+                    rewardOptionExtractorText.Actions.Add(new LineActionData() { Type = "5", Parameter = "ExGal_TreasureFleet_Deliver" });
+                    rewardOptionExtractorText.Actions.Add(new LineActionData() { Type = "3", Parameter = "8000010" });
+                    rewardOptionExtractorText.Actions.Add(new LineActionData() { Type = "9", Parameter = "8000011" });
+
+                    rewardOptionExtractor.ChildLines.Add(rewardOptionExtractorText);
+
+                    deliverText.ChildLines.Add(rewardOptionCredits);
+                    deliverText.ChildLines.Add(rewardOptionExtractor);
+                    deliverOption.ChildLines.Add(deliverText);
+
+                    __result.OpeningLines[0].ChildLines.Add(deliverOption);
+                    __result.OpeningLines.Insert(0, postMissionBad);
+
+                }
                 else if (inActorName == "ExGal_Inspection_Comms")
                 {
                     ActorTypeData data = new ActorTypeData();
@@ -400,7 +560,7 @@ namespace ExpandedGalaxy
                     opener.TextOptions.Add("[PLAYERSHIP_NAME]: You have been selected for a cargo inspection. Please redirect your course to the nearest inspection station, and you will be compensated for your time. Noncompliance is considered to be a criminal offense and will be reported to the Outpost 448 Command Center. We apologize for the inconvenience and thank you for your cooperation.");
                     opener.Actions.Add(new LineActionData() { Type = "1" });
                     opener.Actions.Add(new LineActionData() { Type = "0" });
-                    opener.Actions.Add(new LineActionData() { Type = "3", Parameter = "8000009" });
+                    opener.Actions.Add(new LineActionData() { Type = "3", Parameter = "8000013" });
 
                     LineData close = new LineData();
                     close.TextOptions.Add("CLOSE TRANSMISSION");
@@ -582,7 +742,7 @@ namespace ExpandedGalaxy
                     data.HailOnStart = true;
 
                     LineData opener = new LineData();
-                    opener.TextOptions.Add("Colonial Union scout vessels has reported an increase in Deathseeker sightings throughout the galaxy. The Command Center advises all crews to use extreme caution when traversing neutral sectors and to prioritize the use of well-armored hulls.");
+                    opener.TextOptions.Add("Colonial Union scout vessels has reported an increase in Deathseeker sightings throughout the galaxy. The Command Center advises all crews to use extreme caution when traversing neutral sectors and to prioritize the use of high-quality thrusters.");
                     opener.Actions.Add(new LineActionData() { Type = "1" });
                     opener.Actions.Add(new LineActionData() { Type = "0" });
 
@@ -647,104 +807,27 @@ namespace ExpandedGalaxy
             }
         }
 
-        [HarmonyPatch(typeof(PLDialogueActorInstance), "LateExecuteAction")]
-        [HarmonyTranspiler]
-        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator il)
+        [HarmonyPatch(typeof(LineRequirementData), "Passes")]
+        internal class ExtraLineReqDataCases
         {
-            var stateMachineType = AccessTools.Inner(typeof(PLDialogueActorInstance), "<LateExecuteAction>d__");
-            var actionEnumField = AccessTools.Field(stateMachineType, "<>7__wrap2");
-            var authorityField = AccessTools.Field(stateMachineType, "authority");
-            var thisField = AccessTools.Field(stateMachineType, "<>4__this");
-            var shipDialogueProp = AccessTools.PropertyGetter(typeof(PLDialogueActorInstance), "ShipDialogue");
-
-            // Target sequence: action = enumerator.Current
-            var targetSequence = new List<CodeInstruction>
-    {
-        new CodeInstruction(OpCodes.Ldarg_0),
-        new CodeInstruction(OpCodes.Ldflda, actionEnumField),
-        new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(List<LineActionData>.Enumerator), "Current"))
-    };
-
-            // Label for skip
-            var skipLabel = il.DefineLabel();
-
-            // Patch sequence
-            var patchSequence = new List<CodeInstruction>
-    {
-        // duplicate "action" on stack
-        new CodeInstruction(OpCodes.Dup),
-
-        // get action.Type
-        new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(LineActionData), "Type")),
-
-        // push "32"
-        new CodeInstruction(OpCodes.Ldstr, "32"),
-
-        // string.Equals
-        new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(string), "op_Equality", new[] { typeof(string), typeof(string) })),
-
-        // if not equal -> skip
-        new CodeInstruction(OpCodes.Brfalse_S, skipLabel),
-
-        // load this (state machine)
-        new CodeInstruction(OpCodes.Ldarg_0),
-
-        // load authority field
-        new CodeInstruction(OpCodes.Ldfld, authorityField),
-
-        // if authority == false -> skip
-        new CodeInstruction(OpCodes.Brfalse_S, skipLabel),
-
-        // load this (state machine)
-        new CodeInstruction(OpCodes.Ldarg_0),
-
-        // load <>4__this (PLDialogueActorInstance)
-        new CodeInstruction(OpCodes.Ldfld, thisField),
-
-        // call ShipDialogue getter
-        new CodeInstruction(OpCodes.Callvirt, shipDialogueProp),
-
-        // if ShipDialogue == false -> skip
-        new CodeInstruction(OpCodes.Brfalse_S, skipLabel),
-
-        // --- custom logic call ---
-        // stack: [action]
-        new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ActionCaseHandler), nameof(ActionCaseHandler.HandleCase32)))
-        {
-            labels = { skipLabel } // continuation
-        }
-    };
-
-            return HarmonyHelpers.PatchBySequence(
-                instructions,
-                targetSequence,
-                patchSequence,
-                HarmonyHelpers.PatchMode.AFTER,
-                HarmonyHelpers.CheckMode.NONNULL,
-                showDebugOutput: false
-            );
-        }
-
-        public static class ActionCaseHandler {
-            public static void HandleCase32(LineActionData action)
+            private static void Postfix(LineRequirementData __instance, ref PLDialogueActorInstance dai, ref PLPersistantShipInfo optionalPSIContext, ref PLFluffyRankingUI optionalFluffyRankingUI, ref bool __result)
             {
-                if (PLServer.Instance == null || PLEncounterManager.Instance == null || PLEncounterManager.Instance.PlayerShip == null)
-                    return;
-                UnityEngine.Debug.Log($"[Harmony] Case 32 triggered with param {action.Parameter}");
-                bool flag = false;
-                foreach (PLMissionBase missionBase in PLServer.Instance.AllMissions)
+                bool flag = true;
+                int result;
+                if (!int.TryParse(__instance.Parameter, out result))
                 {
-                    foreach (PLMissionObjective objective in missionBase.Objectives)
-                    {
-                        if (objective is PLMissionObjective_PickupComponent && objective.ScriptName == action.Parameter)
-                        {
-                            flag = true;
-                            Traverse traverse = Traverse.Create(objective);
-                            PLEncounterManager.Instance.PlayerShip.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)traverse.Field("CompType").GetValue(), traverse.Field("SubType").GetValue<int>(), 0, 0, 12)));
-                            break;
-                        }
-                    }
-                    if (flag)
+                    result = -1;
+                    flag = false;
+                }
+                if (!((Object)PLServer.Instance != (Object)null))
+                {
+                    __result = true;
+                    return;
+                }
+                switch(__instance.Type)
+                {
+                    case "38":
+                        __result = PLServer.Instance.BiscuitContestIsOver.GetDecrypted() && !PLServer.Instance.PlayerCrew_WonFBContest.GetDecrypted();
                         break;
                 }
             }
