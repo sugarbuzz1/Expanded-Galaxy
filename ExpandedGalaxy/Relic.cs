@@ -2066,10 +2066,10 @@ namespace ExpandedGalaxy
 
             private static bool TeleporterActive(PLSectorInfo sectorInfo)
             {
-                if (sectorInfo.VisualIndication == ESectorVisualIndication.LAVA2 && PLEncounterManager.Instance != null && PLEncounterManager.Instance.PlayerShip != null && !PLEncounterManager.Instance.PlayerShip.InWarp)
+                if (sectorInfo.VisualIndication == ESectorVisualIndication.LAVA2 && PLEncounterManager.Instance != null && PLEncounterManager.Instance.PlayerShip != null && !PLEncounterManager.Instance.PlayerShip.InWarp && PLEncounterManager.Instance.GetCPEI() != null)
                 {
                     bool flag = false;
-                    foreach (PLShipInfoBase plShipInfoBase in UnityEngine.Object.FindObjectsOfType(typeof(PLShipInfoBase)))
+                    foreach (PLShipInfoBase plShipInfoBase in PLEncounterManager.Instance.GetCPEI().MyCreatedShipInfos)
                     {
                         if (plShipInfoBase.ShipTypeID == EShipType.E_WDDRONE2)
                         {
@@ -2082,6 +2082,8 @@ namespace ExpandedGalaxy
                                 }
                             }
                         }
+                        if (flag)
+                            break;
                     }
                     return !flag;
                 }
@@ -2310,12 +2312,11 @@ namespace ExpandedGalaxy
                     if (!startingPlayerShip && !previewStats && __instance.ShipRoot != null)
                     {
                         if (PhotonNetwork.isMasterClient)
-                            ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.RecieveShopComponent", PhotonTargets.Others, new object[1] { __instance.ShipID });
+                            ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.RecieveShopComponent", PhotonTargets.Others, new object[2] { __instance.ShipID, 0 });
                         Shop_Caravan shop = __instance.ShipRoot.AddComponent<Shop_Caravan>();
                         shop.OptionalShip = __instance;
                         shop.MySensorObject = __instance.MySensorObjectShip;
                         __instance.photonView.ObservedComponents.Add((Component)shop);
-                        Traverse traverse = Traverse.Create(__instance);
                     }
                 }
             }
@@ -2324,11 +2325,11 @@ namespace ExpandedGalaxy
             {
                 public override void HandleRPC(object[] arguments, PhotonMessageInfo sender)
                 {
-                    LateAddShopComponent((int)arguments[0]);
+                    LateAddShopComponent((int)arguments[0], (int)arguments[1]);
                 }
             }
 
-            internal static async void LateAddShopComponent(int inShipID)
+            internal static async void LateAddShopComponent(int inShipID, int shopID)
             {
                 PLShipInfoBase shipInfoBase = null;
                 while (true)
@@ -2339,12 +2340,24 @@ namespace ExpandedGalaxy
                     else
                         break;
                 }
-                if (shipInfoBase.ShipRoot.TryGetComponent(typeof(Shop_Caravan), out Component component))
-                    return;
-                Shop_Caravan shop = shipInfoBase.ShipRoot.AddComponent<Shop_Caravan>();
-                shop.OptionalShip = shipInfoBase;
-                shop.MySensorObject = shipInfoBase.MySensorObjectShip;
-                shipInfoBase.photonView.ObservedComponents.Add(shop);
+                if (shopID == 0)
+                {
+                    if (shipInfoBase.ShipRoot.TryGetComponent(typeof(Shop_Caravan), out Component component))
+                        return;
+                    Shop_Caravan shop = shipInfoBase.ShipRoot.AddComponent<Shop_Caravan>();
+                    shop.OptionalShip = shipInfoBase;
+                    shop.MySensorObject = shipInfoBase.MySensorObjectShip;
+                    shipInfoBase.photonView.ObservedComponents.Add(shop);
+                }
+                else if (shopID == 1)
+                {
+                    if (shipInfoBase.ShipRoot.TryGetComponent(typeof(Missions.BadBiscuitPatches.Shop_FBCarrier), out Component component))
+                        return;
+                    Missions.BadBiscuitPatches.Shop_FBCarrier shop = shipInfoBase.ShipRoot.AddComponent<Missions.BadBiscuitPatches.Shop_FBCarrier>();
+                    shop.OptionalShip = shipInfoBase;
+                    shop.MySensorObject = shipInfoBase.MySensorObjectShip;
+                    shipInfoBase.photonView.ObservedComponents.Add(shop);
+                }
             }
 
 

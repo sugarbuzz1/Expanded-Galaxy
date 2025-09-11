@@ -1078,7 +1078,7 @@ namespace ExpandedGalaxy
                     this.Name = "Missile Turret Mk. II";
                     this.Desc = "This iteration of the missile turret has an upgraded targeting system that allows for autonomous missile firing.";
                     this.Level = inLevel;
-                    this.m_Damage = 100f;
+                    this.m_Damage = 0f;
                     this.SetFireDelay();
                     this.SubType = TurretModManager.Instance.GetTurretIDFromName(this.Name);
                     this.m_MarketPrice = (ObscuredInt)12300;
@@ -1138,9 +1138,9 @@ namespace ExpandedGalaxy
 
                 public override void Tick()
                 {
-                    base.Tick();
                     UpdateBaseDamage();
                     SetFireDelay();
+                    base.Tick();
                     if (!this.IsEquipped)
                         return;
                     PLShipInfoBase potentialTarget = null;

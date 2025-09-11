@@ -15,7 +15,7 @@ namespace ExpandedGalaxy
         {
             private static bool Prefix()
             {
-                if (PLServer.Instance != null)
+                if (PLServer.Instance != null && PLServer.Instance.lifetime > 10f)
                     if (Mathf.FloorToInt((float)PLServer.Instance.ChaosLevel) > (int)PLServer.Instance.OldChaosLevel && (double)PLServer.Instance.GetProcessedChaosLevel() <= 6.0)
                     {
                         List<int> activePrevious = DeactivateAllChaosEvents();

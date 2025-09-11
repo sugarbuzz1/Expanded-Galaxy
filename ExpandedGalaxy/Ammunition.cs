@@ -493,5 +493,19 @@ namespace ExpandedGalaxy
                 return 0.05f;
             return 0.1f;
         }
+
+        internal static bool ShouldRefillPlayer(PLAmmoRefill ammoRefill, PLPlayer player)
+        {
+            if (ammoRefill.MyTLI == null || ammoRefill.MyTLI.MyShipInfo == null)
+                return true;
+            if (ammoRefill.MyTLI.MyShipInfo.TeamID == -1)
+                return false;
+            if (player.StartingShip != null && player.MyCurrentTLI != null && player.MyCurrentTLI == ammoRefill.MyTLI)
+            {
+                if (player.StartingShip.ShipID == ammoRefill.MyTLI.MyShipInfo.ShipID)
+                    return true;
+            }
+            return false;
+        }
     }
 }

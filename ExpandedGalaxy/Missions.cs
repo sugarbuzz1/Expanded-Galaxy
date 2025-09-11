@@ -2103,6 +2103,69 @@ namespace ExpandedGalaxy
             }
         }
 
+        internal class BadBiscuitPatches
+        {
+            public class Shop_FBCarrier : PLShop
+            {
+                public bool HasPDEBeenSetup;
+                protected override void Start()
+                {
+                    base.Start();
+                    this.Name = "Unknown.";
+                    this.Desc = "Buy or leave.";
+                    this.ContrabandDealer = true;
+                    if (!PhotonNetwork.isMasterClient)
+                        this.MyPDE = new TraderPersistantDataEntry();
+                }
+
+                public override void CreateSpecials(TraderPersistantDataEntry inPDE)
+                {
+                }
+
+                public override float GetWareBuyPriceScalar() => 1f;
+            }
+
+            [HarmonyPatch(typeof(PLCarrierInfo), "SetupShipStats")]
+            internal class AddShopComponent
+            {
+                private static void Postfix(PLCarrierInfo __instance, bool previewStats, bool startingPlayerShip)
+                {
+                    if (__instance.PersistantShipInfo == null || !(__instance.PersistantShipInfo.Type == EShipType.E_CARRIER && __instance.PersistantShipInfo.SelectedActorID == "ExGal_FBCarrier"))
+                        return;
+                    if (!startingPlayerShip && !previewStats && __instance.ShipRoot != null)
+                    {
+                        if (PhotonNetwork.isMasterClient)
+                            ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.RecieveShopComponent", PhotonTargets.Others, new object[2] { __instance.ShipID, 1 });
+                        Shop_FBCarrier shop = __instance.ShipRoot.AddComponent<Shop_FBCarrier>();
+                        shop.OptionalShip = __instance;
+                        shop.MySensorObject = __instance.MySensorObjectShip;
+                        __instance.photonView.ObservedComponents.Add((Component)shop);
+                    }
+                }
+            }
+
+            [HarmonyPatch(typeof(PLPickupMissionBase), "OnMissionSuccess")]
+            internal class BadBiscuitEnd
+            {
+                private static void Postfix(PLPickupMissionBase __instance, ref PickupMissionData ___pickupMissionData)
+                {
+                    if (___pickupMissionData == null || ___pickupMissionData.MissionID != 8000012)
+                        return;
+                    if (!PhotonNetwork.isMasterClient || PLGlobal.Instance.Galaxy == null)
+                        return;
+                    if (PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(ESectorVisualIndication.FLUFFY_FACTORY_ABANDONED) == null)
+                    {
+                        PulsarModLoader.Utilities.Logger.Info("Couldn't find sector of type FLUFFY_FACTORY_ABANDONED!");
+                        return;
+                    } 
+                    PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(ESectorVisualIndication.FLUFFY_FACTORY_ABANDONED).MissionSpecificID = -1;
+                    PLPersistantShipInfo shipInfo = new PLPersistantShipInfo(EShipType.E_CARRIER, 3, PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(ESectorVisualIndication.FLUFFY_FACTORY_ABANDONED));
+                    shipInfo.SelectedActorID = "ExGal_FBCarrier";
+                    PLServer.Instance.AllPSIs.Add(shipInfo);
+                }
+            }
+        }
+
         public class PLMissionObjective_CompleteAfterJumpCount : PLMissionObjective
         {
             public PLMissionObjective_CompleteAfterJumpCount(int inJumpCount)
