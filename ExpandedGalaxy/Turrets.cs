@@ -615,7 +615,7 @@ namespace ExpandedGalaxy
                 }
                 public virtual void UpdateMaxPowerUsageWatts() => this.CalculatedMaxPowerUsage_Watts = 7800f * this.LevelMultiplier(0.2f);
 
-                protected override void UpdatePowerUsage(PLPlayer currentOperator)
+                /*protected override void UpdatePowerUsage(PLPlayer currentOperator)
                 {
                     if ((double)this.Heat > 0.0)
                     {
@@ -627,7 +627,7 @@ namespace ExpandedGalaxy
                         this.m_RequestPowerUsage_Percent = 0.0f;
                         this.IsPowerActive = false;
                     }
-                }
+                }*/
 
                 protected override float GetDPS() => base.GetDPS() * this.DamageChecksPerSecond;
 

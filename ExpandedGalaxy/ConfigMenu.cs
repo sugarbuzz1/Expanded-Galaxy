@@ -31,7 +31,7 @@ namespace ExpandedGalaxy
             }
             else
             {
-                GUILayout.Label("Slower Comms Missions: " + (Missions.slowMissionPickups ? "True" : "False"));
+                GUILayout.Label("Slower Missions: " + (Missions.slowMissionPickups ? "True" : "False"));
             }
         }
     }

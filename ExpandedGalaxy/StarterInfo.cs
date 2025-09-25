@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using PulsarModLoader.Content.Components.AutoTurret;
 using PulsarModLoader.Content.Components.MegaTurret;
 using PulsarModLoader.Content.Components.Shield;
 using PulsarModLoader.Content.Components.Turret;
@@ -335,6 +336,36 @@ namespace ExpandedGalaxy
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_HULLPLATING, (int)EHullPlatingType.E_HULLPLATING_CCGE, __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_HULLPLATING);
                 __instance.NumberOfFuelCapsules = 15;
             }
+
+            private static Exception Finalizer(Exception __exception, PLOldWarsShip_Sylvassi __instance, bool previewStats, bool startingPlayerShip)
+            {
+                if (previewStats)
+                    return __exception;
+                if (__instance.MyStats.GetSlot(ESlotType.E_COMP_AUTO_TURRET).MaxItems > 0)
+                    return __exception;
+                GameObject gameObject = Object.Instantiate<GameObject>(__instance.RegularTurretPoints[0].gameObject, new Vector3(__instance.RegularTurretPoints[0].transform.position.x - Mathf.Abs(__instance.RegularTurretPoints[0].transform.position.x - __instance.MainTurretPoint.transform.position.x) * 2f, __instance.RegularTurretPoints[0].transform.position.y, __instance.RegularTurretPoints[0].transform.position.z), new Quaternion(__instance.RegularTurretPoints[0].rotation.x, __instance.RegularTurretPoints[0].rotation.y, __instance.RegularTurretPoints[0].rotation.z, __instance.RegularTurretPoints[0].rotation.w));
+                gameObject.transform.SetParent(__instance.Exterior.transform);
+                Transform[] transformArray = new Transform[1]
+                {
+                    gameObject.transform
+                };
+                __instance.AutoTurretPoints = transformArray;
+                __instance.MyStats.SetSlotLimit(ESlotType.E_COMP_AUTO_TURRET, 1);
+                if (!startingPlayerShip)
+                {
+                    PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
+                    float num = Mathf.Clamp01((float)((double)deterministicRand.NextFloat() + (double)(float)PLServer.Instance.ChaosLevel * 0.02));
+                    if (num >= 0.65)
+                    {
+                        __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_AUTO_TURRET, (int)AutoTurretModManager.Instance.GetAutoTurretIDFromName("Auto Laser Turret"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_AUTO_TURRET);
+                    }
+                    else
+                    {
+                        __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_AUTO_TURRET, (int)0, __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_AUTO_TURRET);
+                    }
+                }
+                return __exception
+            }
         }
 
         [HarmonyPatch(typeof(PLFluffyShipInfo), "SetupShipStats")]
@@ -365,6 +396,36 @@ namespace ExpandedGalaxy
                             __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, TurretModManager.Instance.GetTurretIDFromName("Sylvassi Turret"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_TURRET);
                     }
                 }
+            }
+
+            private static Exception Finalizer(Exception __exception, PLFluffyShipInfo __instance, bool previewStats, bool startingPlayerShip)
+            {
+                if (previewStats)
+                    return __exception;
+                if (__instance.MyStats.GetSlot(ESlotType.E_COMP_AUTO_TURRET).MaxItems > 0)
+                    return __exception;
+                GameObject gameObject = Object.Instantiate<GameObject>(__instance.RegularTurretPoints[0].gameObject, new Vector3(__instance.RegularTurretPoints[0].transform.position.x - Mathf.Abs(__instance.RegularTurretPoints[0].transform.position.x - __instance.MainTurretPoint.transform.position.x) * 2f, __instance.RegularTurretPoints[0].transform.position.y, __instance.RegularTurretPoints[0].transform.position.z), new Quaternion(__instance.RegularTurretPoints[0].rotation.x, __instance.RegularTurretPoints[0].rotation.y, __instance.RegularTurretPoints[0].rotation.z, __instance.RegularTurretPoints[0].rotation.w));
+                gameObject.transform.SetParent(__instance.Exterior.transform);
+                Transform[] transformArray = new Transform[1]
+                {
+                    gameObject.transform
+                };
+                __instance.AutoTurretPoints = transformArray;
+                __instance.MyStats.SetSlotLimit(ESlotType.E_COMP_AUTO_TURRET, 1);
+                if (!startingPlayerShip)
+                {
+                    PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
+                    float num = Mathf.Clamp01((float)((double)deterministicRand.NextFloat() + (double)(float)PLServer.Instance.ChaosLevel * 0.02));
+                    if (num >= 0.65)
+                    {
+                        __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_AUTO_TURRET, (int)AutoTurretModManager.Instance.GetAutoTurretIDFromName("Auto Laser Turret"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_AUTO_TURRET);
+                    }
+                    else
+                    {
+                        __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_AUTO_TURRET, (int)0, __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_AUTO_TURRET);
+                    }
+                }
+                return __exception
             }
         }
 

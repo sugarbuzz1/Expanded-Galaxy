@@ -15,8 +15,8 @@ namespace ExpandedGalaxy
         {
             private static bool Prefix()
             {
-                if (PLServer.Instance != null && PLServer.Instance.lifetime > 10f)
-                    if (Mathf.FloorToInt((float)PLServer.Instance.ChaosLevel) > (int)PLServer.Instance.OldChaosLevel && (double)PLServer.Instance.GetProcessedChaosLevel() <= 6.0)
+                if (PLServer.Instance != null && (double)PLServer.Instance.lifetime > 30.0)
+                    if (Mathf.FloorToInt((float)PLServer.Instance.ChaosLevel) > (int)PLServer.Instance.OldChaosLevel)
                     {
                         List<int> activePrevious = DeactivateAllChaosEvents();
                         PLRand rand = new PLRand(Mathf.FloorToInt(PLGlobal.Instance.Galaxy.Seed + PLServer.Instance.ChaosLevel + 1));

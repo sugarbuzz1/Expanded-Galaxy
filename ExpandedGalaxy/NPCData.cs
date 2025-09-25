@@ -552,7 +552,57 @@ namespace ExpandedGalaxy
                 }
                 else if (inActorName == "BURROWNPC_17")
                 {
+                    if (__result.OpeningLines[0].ChildLines.Count >= 2)
+                        return;
 
+                    LineData missionOpener = new LineData;
+                    missionOpener.TextOptions.Add("You're one of the crews that the company put through special training, huh? I've seen it many times before. I'm part of a small guild of disgruntled former delivery crews that all had the company betray them. I could let you in but there is a... small initiation fee.");
+
+                    LineData accept = new LineData();
+                    accept.TextOptions.Add("Accept");
+                    accept.Actions.Add(new LineActionData() { Type = "1" });
+                    accept.Actions.Add(new LineActionData() { Type = "0" });
+                    accept.IsPlayerLine = true;
+
+                    LineData acceptText = new LineData();
+                    acceptText.TextOptions.Add("I've sent you the details. Eliminate the target and then return to me. If you get caught this meeting never happened.");
+                    acceptText.Actions.Add(new LineActionData() { Type = "1" });
+                    acceptText.Actions.Add(new LineActionData() { Type = "0" });
+                    acceptText.Actions.Add(new LineActionData() { Type = "3", Parameter = "8000012" });
+
+                    accept.ChildLines.Add(acceptText);
+
+                    LineData decline = new LineData();
+                    decline.TextOptions.Add("Decline");
+                    decline.Actions.Add(new LineActionData() { Type = "1" });
+                    decline.Actions.Add(new LineActionData() { Type = "0" });
+                    decline.IsPlayerLine = true;
+
+                    LineData declineText = new LineData();
+                    declineText.TextOptions.Add("I guess you're as much as a pushover as the company says you are. I hope you don't mind the bounty hunters the company sends when they find out they failed to kill you.");
+                    declineText.Actions.Add(new LineActionData() { Type = "1" });
+                    declineText.Actions.Add(new LineActionData() { Type = "0" });
+
+                    decline.ChildLines.Add(declineText);
+
+                    missionOpener.ChildLines.Add(accept);
+                    missionOpener.ChildLines.Add(decline);
+                    __result.OpeningLines.Insert(0, missionOpener);
+
+                    LineData missionHandIn = new LineData();
+                    missionHandIn.TextOptions.Add("Target");
+                    missionHandIn.Actions.Add(new LineActionData() { Type = "1" });
+                    missionHandIn.Actions.Add(new LineActionData() { Type = "0" });
+                    missionHandIn.IsPlayerLine = true;
+
+                    LineData missionHandInText = new LineData();
+                    missionHandInText.TextOptions.Add("Ah, yes. I was informed the target was eliminated by another member before you got here. I suppose that means you're in. I've sent you the location of our hideout. It's a decommissioned biscuit factory; I'm sure you've been there before. You'll meet a ship there that has quite the selection of ship components. Welcome to the cause, brothers.");
+                    missionHandInText.Actions.Add(new LineActionData() { Type = "1" });
+                    missionHandInText.Actions.Add(new LineActionData() { Type = "0" });
+                    missionHandInText.Actions.Add(new LineActionData() { Type = "5", Parameter = "ExGal_BadBiscuit_Return" });
+
+                    missionHandIn.ChildLines.Add(missionHandInText);
+                    __result.OpeningLines[1].ChildLines.Add(missionHandIn);
                 }
                 else if (inActorName == "ExGal_FBCarrier")
                 {
