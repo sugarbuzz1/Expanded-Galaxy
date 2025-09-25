@@ -1786,6 +1786,14 @@ namespace ExpandedGalaxy
                 }
             }
 
+            internal class WDLong : PLMegaTurretCU
+            {
+                public WDLong(int inLevel = 0, int inSubTypeData = 1) : base(inLevel, inSubTypeData)
+                {
+
+                }
+            }
+
             [HarmonyPatch(typeof(PLMegaTurret_RapidFire), MethodType.Constructor, new Type[2] { typeof(int), typeof(int) })]
             internal class RapidfirePrice
             {

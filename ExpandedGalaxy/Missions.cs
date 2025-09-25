@@ -1,13 +1,17 @@
 ﻿using CodeStage.AntiCheat.ObscuredTypes;
 using HarmonyLib;
+using PulsarModLoader;
 using PulsarModLoader.Content.Components.AutoTurret;
 using PulsarModLoader.Content.Components.Extractor;
 using PulsarModLoader.Content.Components.Missile;
 using PulsarModLoader.Content.Components.MissionShipComponent;
+using PulsarModLoader.Content.Components.Shield;
 using PulsarModLoader.Content.Components.Turret;
 using PulsarModLoader.Content.Items;
+using PulsarModLoader.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,6 +22,9 @@ namespace ExpandedGalaxy
 {
     internal class Missions
     {
+        internal static bool slowMissionPickups = true;
+        internal static int pickupMissionDelay = 0;
+
         public class JunkCubeStart
         {
             public static PickupMissionData MissionData => Missions.JunkCubeStart.CreateData();
@@ -1542,6 +1549,51 @@ namespace ExpandedGalaxy
 
         internal class WDHuntProjVulcanusPatches
         {
+            [HarmonyPatch(typeof(PLShipInfo), "CreateDefaultItemsForEnemyBotPlayer")]
+            internal class MissionShipCrewSpawn
+            {
+                private static Exception Finalizer(Exception __exception, PLPlayer inPlayer)
+                {
+                    if (!(inPlayer != null) || !(inPlayer.StartingShip != null) || inPlayer.StartingShip.IsRelicHunter || inPlayer.StartingShip.IsBountyHunter)
+                        return __exception;
+                    bool flag = false;
+                    foreach (PLShipComponent component in inPlayer.StartingShip.MyStats.AllComponents)
+                    {
+                        if (component is MissionShipFlagComp)
+                        {
+                            flag = true;
+                            break;
+                        }
+                    }
+                    if (!flag)
+                        return __exception;
+                    inPlayer.MyInventory.Clear();
+                    switch (inPlayer.GetClassID())
+                    {
+                        case 0:
+                            inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 30, 0, 6, 1);
+                            break;
+                        case 1:
+                            inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 9, 0, 6, 1);
+                            break;
+                        case 2:
+                            inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 29, 0, 6, 1);
+                            inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 26, 0, 6, 4);
+                            break;
+                        case 3:
+                            inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 30, 0, 6, 1);
+                            inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 23, 0, 6, 4);
+                            break;
+                        case 4:
+                            inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 28, 0, 6, 1);
+                            break;
+                    }
+                    inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 3, 0, 6, 2);
+                    inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 4, 0, 6, 3);
+                    inPlayer.gameObject.name += "Vulc";
+                    return __exception;
+                }
+            }
 
             [HarmonyPatch(typeof(PLShipInfo), "Update")]
             internal class VulcanusShipUpdate
@@ -1928,20 +1980,29 @@ namespace ExpandedGalaxy
                         {
                             cruiserInfo.MyCurrentSector = fleetPath[1];
                             cruiserInfo.ShldPercent = 1f;
+                            bool flag = fleetPath[1] == PLServer.GetCurrentSector();
+                            if (flag)
+                                PLEncounterManager.Instance.GetCPEI().SpawnEnemyShip(cruiserInfo.Type, cruiserInfo);
                             if (destroyerInfo != null)
                             {
                                 destroyerInfo.MyCurrentSector = fleetPath[1];
                                 destroyerInfo.ShldPercent = 1f;
+                                if (flag)
+                                    PLEncounterManager.Instance.GetCPEI().SpawnEnemyShip(destroyerInfo.Type, destroyerInfo);
                             }
                             if (droneInfo != null)
                             {
                                 droneInfo.MyCurrentSector = fleetPath[1];
                                 droneInfo.ShldPercent = 1f;
+                                if (flag)
+                                    PLEncounterManager.Instance.GetCPEI().SpawnEnemyShip(droneInfo.Type, droneInfo);
                             }
                             if (friendInfo != null)
                             {
                                 friendInfo.MyCurrentSector = fleetPath[1];
-                                friendInfo.ShldPercent = 1f;                                
+                                friendInfo.ShldPercent = 1f;
+                                if (flag)
+                                    PLEncounterManager.Instance.GetCPEI().SpawnEnemyShip(friendInfo.Type, friendInfo);
                             }
                             if (PLServer.Instance.GetActiveMissionWithID(8000008).MyMissionData.Objectives[0].Data.ContainsKey("ExGal_NPC_SectorCurrent"))
                                 PLServer.Instance.GetActiveMissionWithID(8000008).MyMissionData.Objectives[0].Data["ExGal_NPC_SectorCurrent"] = fleetPath[1].ID.ToString();
@@ -2105,6 +2166,7 @@ namespace ExpandedGalaxy
 
         internal class BadBiscuitPatches
         {
+            internal static TraderPersistantDataEntry carrierData = new TraderPersistantDataEntry();
             public class Shop_FBCarrier : PLShop
             {
                 public bool HasPDEBeenSetup;
@@ -2161,6 +2223,20 @@ namespace ExpandedGalaxy
                     PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(ESectorVisualIndication.FLUFFY_FACTORY_ABANDONED).MissionSpecificID = -1;
                     PLPersistantShipInfo shipInfo = new PLPersistantShipInfo(EShipType.E_CARRIER, 3, PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(ESectorVisualIndication.FLUFFY_FACTORY_ABANDONED));
                     shipInfo.SelectedActorID = "ExGal_FBCarrier";
+                    TraderPersistantDataEntry traderPersistantDataEntry = new TraderPersistantDataEntry();
+                    traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_SHLD, (int)EShieldGeneratorType.E_GRIMCUTLASS_SHIELDS, 0, 0, (int)ESlotType.E_COMP_CARGO)));
+                    traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_SHLD, (int)ShieldModManager.Instance.GetShieldIDFromName("Reflector Shield Generator"), 1, 0, (int)ESlotType.E_COMP_CARGO)));
+                    traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_WARP, (int)EWarpDriveType.E_OLDWARS_SUPER_JUMPER, 0, 0, (int)ESlotType.E_COMP_CARGO)));
+                    traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, (int)TurretModManager.Instance.GetTurretIDFromName("Particle Lance"), 0, 0, (int)ESlotType.E_COMP_CARGO)));
+                    traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, (int)TurretModManager.Instance.GetTurretIDFromName("Seeker Turret"), 0, 0, (int)ESlotType.E_COMP_CARGO)));
+                    traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_SALVAGE_SYSTEM, (int)EExtractorType.E_PT_EXTRACTOR, 0, 0, (int)ESlotType.E_COMP_CARGO)));
+                    traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_FB_RECIPE, (int)FBRecipe.E_SPICY, 0, 0, (int)ESlotType.E_COMP_CARGO)));
+                    traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_FB_RECIPE, (int)FBRecipe.E_GARLIC, 0, 0, (int)ESlotType.E_COMP_CARGO)));
+                    traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_FB_RECIPE, (int)FBRecipe.E_LUCKY, 0, 0, (int)ESlotType.E_COMP_CARGO)));
+                    traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_FB_RECIPE, (int)FBRecipe.E_SUGAR, 0, 0, (int)ESlotType.E_COMP_CARGO)));
+                    traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TRACKERMISSILE, (int)ETrackerMissileType.FB_MISSILE, 0, 0, (int)ESlotType.E_COMP_CARGO)));
+                    shipInfo.OptionalTPDE = traderPersistantDataEntry;
+                    carrierData = traderPersistantDataEntry;
                     PLServer.Instance.AllPSIs.Add(shipInfo);
                 }
             }
@@ -2538,49 +2614,43 @@ namespace ExpandedGalaxy
             public override bool CanBeDroppedOnShipDeath => false;
         }
 
-        [HarmonyPatch(typeof(PLShipInfo), "CreateDefaultItemsForEnemyBotPlayer")]
-        internal class MissionShipCrewSpawn
+        [HarmonyPatch(typeof(PLServer), "AttemptToAddPickupMission")]
+        internal class SlowerPickupMissions
         {
-            private static Exception Finalizer(Exception __exception, PLPlayer inPlayer)
+            private static bool Prefix(PLServer __instance)
             {
-                if (!(inPlayer != null) || !(inPlayer.StartingShip != null) || inPlayer.StartingShip.IsRelicHunter || inPlayer.StartingShip.IsBountyHunter)
-                    return __exception;
-                bool flag = false;
-                foreach (PLShipComponent component in inPlayer.StartingShip.MyStats.AllComponents)
+                if (slowMissionPickups)
                 {
-                    if (component is MissionShipFlagComp)
+                    if (pickupMissionDelay == 0)
                     {
-                        flag = true;
-                        break;
+                        pickupMissionDelay = UnityEngine.Random.Range(1, 4);
+                        return true;
+                    }
+                    else
+                    {
+                        bool flag = false;
+                        List<string> blockingMissions = new List<string>();
+                        foreach (PLMissionBase allMission in __instance.AllMissions)
+                        {
+                            if (allMission != null && !allMission.Ended && !allMission.Abandoned && allMission.IsPickupMission && allMission.MyMissionData != null && allMission.MyMissionData is PickupMissionData missionData && missionData.BlocksOtherPickupMissionStarts)
+                            {
+                                flag = true;
+                                blockingMissions.Add(missionData.Name);
+                            }
+                        }
+                        if (!flag)
+                            --pickupMissionDelay;
+                        else
+                        {
+                            StringBuilder stringBuilder = new StringBuilder();
+                            for (int i = 0; i < blockingMissions.Count; i++)
+                                stringBuilder.Append(blockingMissions[i] + ", ");
+                            PulsarModLoader.Utilities.Logger.Info("Found Blocking Missions: " + stringBuilder.ToString());
+                        }
+                        return false;
                     }
                 }
-                if (!flag)
-                    return __exception;
-                inPlayer.MyInventory.Clear();
-                switch (inPlayer.GetClassID())
-                {
-                    case 0:
-                        inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 30, 0, 6, 1);
-                        break;
-                    case 1:
-                        inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 9, 0, 6, 1);
-                        break;
-                    case 2:
-                        inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 29, 0, 6, 1);
-                        inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 26, 0, 6, 4);
-                        break;
-                    case 3:
-                        inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 30, 0, 6, 1);
-                        inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 23, 0, 6, 4);
-                        break;
-                    case 4:
-                        inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 28, 0, 6, 1);
-                        break;
-                }
-                inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 3, 0, 6, 2);
-                inPlayer.MyInventory.UpdateItem(PLServer.Instance.PawnInvItemIDCounter++, 4, 0, 6, 3);
-                inPlayer.gameObject.name += "Vulc";
-                return __exception;
+                return true;
             }
         }
     }

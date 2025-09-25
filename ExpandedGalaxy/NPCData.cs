@@ -550,6 +550,52 @@ namespace ExpandedGalaxy
                     __result.OpeningLines.Insert(0, postMissionBad);
 
                 }
+                else if (inActorName == "BURROWNPC_17")
+                {
+
+                }
+                else if (inActorName == "ExGal_FBCarrier")
+                {
+                    ActorTypeData data = new ActorTypeData();
+                    data.Name = inActorName;
+
+                    LineData lineDataOpener = new LineData();
+                    lineDataOpener.TextOptions.Add("Salutations [PLAYERSHIP_NAME], I see you've found your way just fine.");
+                    lineDataOpener.Actions.Add(new LineActionData() { Type = "1" });
+                    lineDataOpener.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData lineDataShop = new LineData();
+                    lineDataShop.TextOptions.Add("BROWSE EXOTIC GOODS");
+                    lineDataShop.IsPlayerLine = true;
+                    lineDataShop.Actions.Add(new LineActionData() { Type = "1" });
+                    lineDataShop.Actions.Add(new LineActionData { Type = "0" });
+                    lineDataShop.Actions.Add(new LineActionData() { Type = "6" });
+
+                    LineData lineDataShopText = new LineData();
+                    lineDataShopText.TextOptions.Add("Take your time.");
+                    lineDataShopText.Actions.Add(new LineActionData() { Type = "1" });
+                    lineDataShopText.Actions.Add(new LineActionData { Type = "0" });
+
+                    LineData lineDataShop2 = new LineData();
+                    lineDataShop2.TextOptions.Add("BROWSE EXOTIC GOODS");
+                    lineDataShop2.IsPlayerLine = true;
+                    lineDataShop2.Actions.Add(new LineActionData() { Type = "1" });
+                    lineDataShop2.Actions.Add(new LineActionData() { Type = "6" });
+
+                    LineData lineDataShopClose = new LineData();
+                    lineDataShopClose.TextOptions.Add("CLOSE TRANSMISSION");
+                    lineDataShopClose.IsPlayerLine = true;
+                    lineDataShopClose.Actions.Add(new LineActionData() { Type = "1" });
+                    lineDataShopClose.Actions.Add(new LineActionData() { Type = "10" });
+
+                    lineDataShopText.ChildLines.Add(lineDataShop2);
+                    lineDataShopText.ChildLines.Add(lineDataShopClose);
+                    lineDataShop.ChildLines.Add(lineDataShopText);
+                    lineDataOpener.ChildLines.Add(lineDataShop);
+                    data.OpeningLines.Add(lineDataOpener);
+
+                    __result = data;
+                }
                 else if (inActorName == "ExGal_Inspection_Comms")
                 {
                     ActorTypeData data = new ActorTypeData();

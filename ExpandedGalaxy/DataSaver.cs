@@ -79,6 +79,9 @@ namespace ExpandedGalaxy
                     if (VersionID < 4)
                         return;
 
+                    Missions.slowMissionPickups = binaryReader.ReadBoolean();
+                    Missions.pickupMissionDelay = 0;
+
                     PersistantScrapManager.Instance.ClearData();
                     int totalScrapDatas = binaryReader.ReadInt32();
                     for (int i = 0; i < totalScrapDatas; i++)
@@ -108,6 +111,25 @@ namespace ExpandedGalaxy
                         CrewLogManager.Instance.AddLog(logData);
                     }
                     Debug.Log("Loaded All Logs");
+
+                    TraderPersistantDataEntry dataEntry1 = new TraderPersistantDataEntry();
+                    dataEntry.ServerWareIDCounter = binaryReader.ReadInt32();
+                    int wareCount1 = binaryReader.ReadInt32();
+                    for (int i = 0; i < wareCount1; i++)
+                    {
+                        PLWare fromHash = PLWare.CreateFromHash(binaryReader.ReadInt32(), (int)binaryReader.ReadUInt32());
+                        if (fromHash != null)
+                            dataEntry1.ServerAddWare(fromHash);
+                    }
+                    foreach (PLPersistantShipInfo allPSI in PLServer.Instance.AllPSIs)
+                    {
+                        if (allPSI != null && allPSI.SelectedActorID == "ExGal_FBCarrier")
+                        {
+                            allPSI.OptionalTPDE = dataEntry1;
+                            Missions.BadBiscuitPatches.carrierData = dataEntry1;
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -157,6 +179,8 @@ namespace ExpandedGalaxy
                             binaryWriter.Write(hash);
                     }
 
+                    binaryWriter.Write(Missions.slowMissionPickups);
+
                     binaryWriter.Write(PersistantScrapManager.Instance.GetTotalScrapDatas());
                     foreach (ExtraScrapData scrapData in PersistantScrapManager.Instance.GetAllScrapDatas())
                     {
@@ -184,6 +208,24 @@ namespace ExpandedGalaxy
                         binaryWriter.Write(logData.optionalColor.a);
                     }
                     Debug.Log("Saved " + CrewLogManager.Instance.GetLogs().Count.ToString() + " Logs to File");
+
+                    binaryWriter.Write(Missions.BadBiscuitPatches.carrierData.ServerWareIDCounter);
+                    int num1 = 0;
+                    foreach (int key in Missions.BadBiscuitPatches.carrierData.Wares.Keys)
+                    {
+                        if (Missions.BadBiscuitPatches.carrierData.Wares[key] != null)
+                            ++num1;
+                    }
+                    binaryWriter.Write(num1);
+                    foreach (int key1 in Missions.BadBiscuitPatches.carrierData.Wares.Keys)
+                    {
+                        PLWare ware = Missions.BadBiscuitPatches.carrierData.Wares[key1];
+                        if (ware != null)
+                        {
+                            binaryWriter.Write((int)ware.WareType);
+                            binaryWriter.Write(ware.getHash());
+                        }
+                    }
                 }
                 return output.ToArray();
             }
@@ -233,6 +275,7 @@ namespace ExpandedGalaxy
                 Relic.RelicCaravan.CaravanTargetSector = -1;
                 Relic.RelicCaravan.CaravanUpdateTime = 60000;
                 Relic.RelicCaravan.ClearCaravanPath();
+                Missions.pickupMissionDelay = 0;
                 PersistantScrapManager.Instance.ClearData();
                 CrewLogManager.Instance.OnNewGame();
             }
@@ -343,6 +386,7 @@ namespace ExpandedGalaxy
                     stream.SendNext(Relic.MiningDroneQuest.GXData);
                     stream.SendNext(Jetpack.AdvancedJetPack);
                     stream.SendNext(Ammunition.DynamicAmmunition);
+                    stream.SendNext(Missions.slowMissionPickups);
                     stream.SendNext(Relic.RelicCaravan.CaravanCurrentSector);
                     stream.SendNext(Relic.RelicCaravan.CaravanTargetSector);
                 }
@@ -350,11 +394,12 @@ namespace ExpandedGalaxy
                 {
                     PFSectorCommander.bossFlag = (int)stream.ReceiveNext();
                     Relic.MiningDroneQuest.dronesActive = (bool)stream.ReceiveNext();
-                    Relic.MiningDroneQuest.GXData = (int)stream.ReceiveNext();
-                    Relic.RelicCaravan.CaravanCurrentSector = (int)stream.ReceiveNext();
-                    Relic.RelicCaravan.CaravanTargetSector = (int)stream.ReceiveNext();
+                    Relic.MiningDroneQuest.GXData = (int)stream.ReceiveNext();                    
                     Jetpack.AdvancedJetPack = (bool)stream.ReceiveNext();
                     Ammunition.DynamicAmmunition = (bool)stream.ReceiveNext();
+                    Missions.slowMissionPickups = (bool)stream.ReceiveNext();
+                    Relic.RelicCaravan.CaravanCurrentSector = (int)stream.ReceiveNext();
+                    Relic.RelicCaravan.CaravanTargetSector = (int)stream.ReceiveNext();
                 }
             }
         }
