@@ -588,7 +588,7 @@ namespace ExpandedGalaxy
         }
 
         [HarmonyPatch(typeof(PLUIOutsideWorldUI), "Update")]
-        internal class alwaysShowLead
+        internal class AlwaysShowLead
         {
             private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
@@ -625,6 +625,15 @@ namespace ExpandedGalaxy
 
             public override void CreateStartingPoints(int inSeed)
             {
+            }
+        }
+
+        [HarmonyPatch(typeof(PLCaptainScreen), "GetClaimValues")]
+        internal class AllScreenCapture
+        {
+            private static void Postfix(PLCaptainScreen __instance, ref int playerControlledScreensCountOut, ref int countScreensTotalOut, ref int reqScreenCountOut)
+            {
+                reqScreenCountOut = countScreensTotalOut;
             }
         }
     }

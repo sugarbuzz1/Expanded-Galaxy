@@ -555,8 +555,15 @@ namespace ExpandedGalaxy
                     if (__result.OpeningLines[0].ChildLines.Count >= 2)
                         return;
 
-                    LineData missionOpener = new LineData;
+                    LineData missionOpener = new LineData();
                     missionOpener.TextOptions.Add("You're one of the crews that the company put through special training, huh? I've seen it many times before. I'm part of a small guild of disgruntled former delivery crews that all had the company betray them. I could let you in but there is a... small initiation fee.");
+                    missionOpener.Actions.Add(new LineActionData() { Type = "1" });
+                    missionOpener.Actions.Add(new LineActionData() { Type = "0" });
+                    missionOpener.Requirements.Add(new LineRequirementData() { Type = "12", Parameter = "8000012" });
+                    missionOpener.Requirements.Add(new LineRequirementData() { Type = "13", Parameter = "36642" });
+                    missionOpener.Requirements.Add(new LineRequirementData() { Type = "16", Parameter = "2" });
+                    missionOpener.Requirements.Add(new LineRequirementData() { Type = "19", Parameter = "-1" });
+                    missionOpener.Requirements.Add(new LineRequirementData() { Type = "38", Parameter = string.Empty});
 
                     LineData accept = new LineData();
                     accept.TextOptions.Add("Accept");
@@ -594,6 +601,7 @@ namespace ExpandedGalaxy
                     missionHandIn.Actions.Add(new LineActionData() { Type = "1" });
                     missionHandIn.Actions.Add(new LineActionData() { Type = "0" });
                     missionHandIn.IsPlayerLine = true;
+                    missionHandIn.Requirements.Add(new LineRequirementData() { Type = "21", Parameter = "ExGal_BadBiscuit_Kill" });
 
                     LineData missionHandInText = new LineData();
                     missionHandInText.TextOptions.Add("Ah, yes. I was informed the target was eliminated by another member before you got here. I suppose that means you're in. I've sent you the location of our hideout. It's a decommissioned biscuit factory; I'm sure you've been there before. You'll meet a ship there that has quite the selection of ship components. Welcome to the cause, brothers.");
