@@ -79,13 +79,13 @@ namespace ExpandedGalaxy
         {
             public override string Name => "Reflector Shield Generator";
 
-            public override string Description => "A shield generator that reflects 20% of incoming damage back to the dealer. Due to its potential in harming police vessels it has been declared contraband by the Colonial Union.";
+            public override string Description => "A shield generator that reflects all incoming damage back to the dealer. Due to its potential in harming police vessels it has been declared contraband by the Colonial Union.";
 
             public override int MarketPrice => 18645;
 
-            public override float ShieldMax => 800f;
+            public override float ShieldMax => 650f;
 
-            public override float ChargeRateMax => 12f;
+            public override float ChargeRateMax => 9f;
 
             public override float RecoveryRate => 2f;
 
@@ -93,7 +93,7 @@ namespace ExpandedGalaxy
 
             public override float MaxPowerUsage_Watts => 16000f;
 
-            public override int MinIntegrityAfterDamage => 125;
+            public override int MinIntegrityAfterDamage => 90;
 
             public override bool Contraband => true;
         }
@@ -107,9 +107,8 @@ namespace ExpandedGalaxy
                 {
                     if (turret != null && turret.ShipStats != null && turret.ShipStats.Ship != null && turret.ShipStats != __instance)
                     {
-                        turret.ShipStats.Ship.TakeDamage(inDmg * 0.2f, false, dmgType, 1f, -1, __instance.Ship, -1);
+                        turret.ShipStats.Ship.TakeDamage(inDmg, false, dmgType, 1f, -1, __instance.Ship, -1);
                     }
-                    inDmg *= 0.8f;
                 }
                 return true;
             }

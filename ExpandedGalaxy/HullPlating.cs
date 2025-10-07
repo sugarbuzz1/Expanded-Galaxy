@@ -1,6 +1,5 @@
 ﻿using CodeStage.AntiCheat.ObscuredTypes;
 using HarmonyLib;
-using PulsarModLoader;
 using PulsarModLoader.Content.Components.HullPlating;
 using UnityEngine;
 
@@ -135,7 +134,7 @@ namespace ExpandedGalaxy
                 this.SubType = HullPlatingModManager.Instance.GetHullPlatingIDFromName("Bone Plating");
                 this.Level = inLevel;
                 this.Name = "Bone Plating";
-                this.Desc = "Hull plating made from the ever-growing exoskeleton of am infected carrier. It can block anything, but will take some time to regrow...";
+                this.Desc = "Hull plating made from the ever-growing exoskeleton of an infected carrier. It can block anything, but will take some time to regrow...";
                 this.m_MarketPrice = (ObscuredInt)7600;
                 this.Contraband = true;
                 this.SubTypeData = 0;

@@ -1,5 +1,4 @@
-﻿using CodeStage.AntiCheat.ObscuredTypes;
-using HarmonyLib;
+﻿using HarmonyLib;
 using PulsarModLoader;
 using PulsarModLoader.Content.Components.AutoTurret;
 using PulsarModLoader.Content.Components.Extractor;
@@ -7,16 +6,13 @@ using PulsarModLoader.Content.Components.Missile;
 using PulsarModLoader.Content.Components.MissionShipComponent;
 using PulsarModLoader.Content.Components.Shield;
 using PulsarModLoader.Content.Components.Turret;
+using PulsarModLoader.Content.Components.WarpDriveProgram;
 using PulsarModLoader.Content.Items;
-using PulsarModLoader.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using static ExpandedGalaxy.PFSectorCommander;
-using static ExpandedGalaxy.Relic;
 
 namespace ExpandedGalaxy
 {
@@ -2230,6 +2226,7 @@ namespace ExpandedGalaxy
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, (int)TurretModManager.Instance.GetTurretIDFromName("Particle Lance"), 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, (int)TurretModManager.Instance.GetTurretIDFromName("Seeker Turret"), 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_SALVAGE_SYSTEM, (int)EExtractorType.E_PT_EXTRACTOR, 0, 0, (int)ESlotType.E_COMP_CARGO)));
+                    traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_PROGRAM, (int)WarpDriveProgramModManager.Instance.GetWarpDriveProgramIDFromName("Special Training [VIRUS]"), 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_FB_RECIPE, (int)FBRecipe.E_SPICY, 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_FB_RECIPE, (int)FBRecipe.E_GARLIC, 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_FB_RECIPE, (int)FBRecipe.E_LUCKY, 0, 0, (int)ESlotType.E_COMP_CARGO)));

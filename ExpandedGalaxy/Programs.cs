@@ -2,6 +2,7 @@
 using HarmonyLib;
 using PulsarModLoader;
 using PulsarModLoader.Content.Components.Hull;
+using PulsarModLoader.Content.Components.Virus;
 using PulsarModLoader.Content.Components.WarpDriveProgram;
 using System;
 using System.Collections.Generic;
@@ -215,6 +216,45 @@ namespace ExpandedGalaxy
                         PLInput.Instance.EInputActionNameToString[62] = "full_throttle";
                     }
                 }
+            }
+        }
+
+        private class SpecialTrainingMod : WarpDriveProgramMod
+        {
+            public override string Name => "Special Training [VIRUS]";
+
+            public override string Description => "Broadcasts [Special Training] virus to nearby ships on activation.\n\nSpecial Training: Fills the ship with acidic gas for 60 seconds.";
+
+            public override int MarketPrice => 7600;
+
+            public override string ShortName => "SP";
+
+            public override bool IsVirus => true;
+
+            public override int VirusSubtype => (int)VirusModManager.Instance.GetVirusIDFromName("Special Training");
+
+            public override int MaxLevelCharges => 5;
+
+            public override float ActiveTime => 30f;
+
+            public override Texture2D IconTexture => PLGlobal.Instance.VirusBGTexture;
+
+            public override bool Contraband => true;
+        }
+
+        private class SpecialTrainingVirusMod : VirusMod
+        {
+            public override string Name => "Special Training";
+
+            public override string Description => "Fills the ship with acidic gas";
+
+            public override int InfectionTimeLimitMs => 60000;
+
+            public override void FinalLateAddStats(PLShipComponent InComp)
+            {
+                PLShipInfoBase pLShipInfoBase = InComp.ShipStats.Ship;
+                if (pLShipInfoBase != null)
+                    pLShipInfoBase.AcidicAtmoBoostAlpha += 0.15f * Time.deltaTime;
             }
         }
 

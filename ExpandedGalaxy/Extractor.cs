@@ -1,8 +1,5 @@
-﻿
-using HarmonyLib;
+﻿using HarmonyLib;
 using PulsarModLoader.Content.Components.Extractor;
-using static ExpandedGalaxy.Missions;
-using System;
 
 namespace ExpandedGalaxy
 {
