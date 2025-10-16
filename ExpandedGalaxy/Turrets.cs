@@ -920,7 +920,7 @@ namespace ExpandedGalaxy
                 {
                     this.Name = "Mining Laser";
                     this.Desc = "High-Powered laser designed to extract resources from asteroids. It is also effective against ship hulls and missiles.";
-                    this.m_Damage = 45f;
+                    this.m_Damage = 37f;
                     this.SubType = TurretModManager.Instance.GetTurretIDFromName(this.Name);
                     this.m_MarketPrice = (ObscuredInt)11000;
                     this.HeatGeneratedOnFire = 0.35f;
@@ -957,16 +957,17 @@ namespace ExpandedGalaxy
                 {
                     this.Name = "Seeker Turret";
                     this.Desc = "A turret that shoots tracking projectiles that can hit even the most evasive ships.";
-                    this.m_Damage = 25f;
-                    this.FireDelay = 0.4f;
-                    this.MinFireDelay = 0.2f;
+                    this.m_Damage = 20f;
+                    this.FireDelay = 0.7f;
+                    this.MinFireDelay = 0.4f;
                     this.SubType = TurretModManager.Instance.GetTurretIDFromName(this.Name);
                     this.m_MarketPrice = (ObscuredInt)9000;
                     this.ProjSpeed = 600f;
                     this.TurretRange = 6000f;
                     this.CargoVisualPrefabID = 3;
                     this.Level = inLevel;
-                    this.HeatGeneratedOnFire = 0.07f;
+                    this.HeatGeneratedOnFire = 0.17f;
+                    this.m_MaxPowerUsage_Watts = 5500f;
                 }
 
                 public override void Fire(int inProjID, Vector3 dir)
@@ -982,9 +983,9 @@ namespace ExpandedGalaxy
                     PLProjectile component2 = gameObject.GetComponent<PLProjectile>();
                     component1.AccelerationFactor = 0.1f;
                     component1.MissileFlag = true;
-                    component2.MissileFlag = true;
+                    component2.MissileFlag = false;
                     component1.ExplosionPrefab = component2.ExplosionPrefab;
-                    component1.DmgRadius = 10f;
+                    component1.DmgRadius = 0f;
                     gameObject.GetComponent<Rigidbody>().velocity = this.ShipStats.Ship.Exterior.GetComponent<Rigidbody>().velocity + dir * this.m_ProjSpeed;
                     component2.ProjID = inProjID;
                     component1.MaxDamage = this.m_Damage * this.LevelMultiplier(0.15f) * this.ShipStats.TurretDamageFactor;
@@ -1794,10 +1795,10 @@ namespace ExpandedGalaxy
                 }
             }
 
-            [HarmonyPatch(typeof(PLMegaTurret), MethodType.Constructor, new Type[2] { typeof(int), typeof(int) })]
+            [HarmonyPatch(typeof(PLMegaTurret), MethodType.Constructor, new Type[1] { typeof(int)})]
             internal class MegaTurretStats
             {
-                private static void Postfix(PLMegaTurret __instance, int inLevel, int inSubTypeData, ref float ___m_MaxPowerUsage_Watts)
+                private static void Postfix(PLMegaTurret __instance, int inLevel, ref float ___m_MaxPowerUsage_Watts)
                 {
                     ___m_MaxPowerUsage_Watts = 6800f;
                 }
