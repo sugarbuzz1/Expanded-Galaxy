@@ -2,6 +2,7 @@
 using PulsarModLoader;
 using PulsarModLoader.Patches;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -188,8 +189,9 @@ namespace ExpandedGalaxy
             screenObjects.LogInfoKeypadButtons = new List<UITexture>();
             screenObjects.LogInfoKeypadLabels = new List<UILabel>();
             object[] params1;
-            params1 = new object[6]
+            params1 = new object[7]
             {
+                    "CrewLogBtn",
                     PLGlobal.Instance.TriangleIcon,
                     new Vector3(468f, -45f),
                     new Vector2(32f, 32f),
@@ -197,7 +199,7 @@ namespace ExpandedGalaxy
                     traverse.Field("StatusPanel").GetValue<UISprite>().cachedTransform,
                     UIWidget.Pivot.Right
             };
-            screenObjects.CrewLogButton = traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1);
+            screenObjects.CrewLogButton = traverse.Method("CreateButtonEditable", new Type[7] { typeof(string), typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1);
             screenObjects.CrewLogButton.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
             params1 = new object[6]
             {
@@ -220,8 +222,9 @@ namespace ExpandedGalaxy
             };
             screenObjects.LogPanel = traverse.Method("CreatePanel", new Type[6] { typeof(string), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UISprite>(params1);
             screenObjects.LogPanel.gameObject.SetActive(false);
-            params1 = new object[6]
+            params1 = new object[7]
             {
+                    "StatusBtn",
                     PLGlobal.Instance.TriangleIcon,
                     new Vector3(468f, -45f),
                     new Vector2(32f, 32f),
@@ -229,7 +232,7 @@ namespace ExpandedGalaxy
                     screenObjects.LogPanel.cachedTransform,
                     UIWidget.Pivot.Right
             };
-            screenObjects.StatusButton = traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1);
+            screenObjects.StatusButton = traverse.Method("CreateButtonEditable", new Type[7] { typeof(string), typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1);
             screenObjects.StatusButton.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
             params1 = new object[7]
             {
@@ -468,16 +471,17 @@ namespace ExpandedGalaxy
             {
                 for (int j = 0; j < 4; j++)
                 {
-                    params1 = new object[6]
+                    params1 = new object[7]
                     {
+                    "KeypadBtn_" + (i * 4 + j).ToString(),
                     PLGlobal.Instance.WhitePixel,
                     new Vector3(x, y),
                     new Vector2(16f, 16f),
-                    new Color(0.22f, 0.22f, 0.22f, 0.95f),
+                    new Color(0.65f, 0.65f, 0.65f),
                     screenObjects.LogInfoBox.transform,
                     UIWidget.Pivot.TopLeft
                     };
-                    screenObjects.LogInfoKeypadButtons.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                    screenObjects.LogInfoKeypadButtons.Add(traverse.Method("CreateButtonEditable", new Type[7] { typeof(string), typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
                     screenObjects.LogInfoKeypadButtons[screenObjects.LogInfoKeypadButtons.Count - 1].depth += 10000;
                     string labelText = "";
                     switch(i)
@@ -561,6 +565,37 @@ namespace ExpandedGalaxy
                 texture.gameObject.SetActive(!hide);
             foreach (UILabel label in m_screenobjects[captainScreen].LogInfoKeypadLabels)
                 label.gameObject.SetActive(!hide);
+        }
+
+        internal IEnumerator ToggleLogButtons(PLCaptainScreen captainScreen, bool hide = true)
+        {
+            yield return null;
+            if (!m_screenobjects.ContainsKey(captainScreen))
+                yield break;
+            Traverse traverse = Traverse.Create(captainScreen);
+            if (hide)
+            {
+                traverse.Field("AllButtons").GetValue<List<UIWidget>>().Remove(m_screenobjects[captainScreen].StatusButton);
+                traverse.Field("AllButtons").GetValue<List<UIWidget>>().Remove(m_screenobjects[captainScreen].NewLogButton);
+                traverse.Field("AllButtons").GetValue<List<UIWidget>>().Remove(m_screenobjects[captainScreen].NextButton);
+                traverse.Field("AllButtons").GetValue<List<UIWidget>>().Remove(m_screenobjects[captainScreen].BackButton);
+                foreach (UISprite sprite in m_screenobjects[captainScreen].LogButtons)
+                    traverse.Field("AllButtons").GetValue<List<UIWidget>>().Remove(sprite);
+            }
+            else
+            {
+                if (!traverse.Field("AllButtons").GetValue<List<UIWidget>>().Contains(m_screenobjects[captainScreen].StatusButton))
+                    traverse.Field("AllButtons").GetValue<List<UIWidget>>().Add(m_screenobjects[captainScreen].StatusButton);
+                if (!traverse.Field("AllButtons").GetValue<List<UIWidget>>().Contains(m_screenobjects[captainScreen].NewLogButton))
+                    traverse.Field("AllButtons").GetValue<List<UIWidget>>().Add(m_screenobjects[captainScreen].NewLogButton);
+                if (!traverse.Field("AllButtons").GetValue<List<UIWidget>>().Contains(m_screenobjects[captainScreen].NextButton))
+                    traverse.Field("AllButtons").GetValue<List<UIWidget>>().Add(m_screenobjects[captainScreen].NextButton);
+                if (!traverse.Field("AllButtons").GetValue<List<UIWidget>>().Contains(m_screenobjects[captainScreen].BackButton))
+                    traverse.Field("AllButtons").GetValue<List<UIWidget>>().Add(m_screenobjects[captainScreen].BackButton);
+                foreach (UISprite sprite in m_screenobjects[captainScreen].LogButtons)
+                    if (!traverse.Field("AllButtons").GetValue<List<UIWidget>>().Contains(sprite))
+                        traverse.Field("AllButtons").GetValue<List<UIWidget>>().Add(sprite);
+            }
         }
 
         public List<CrewLogData> GetLogs()
@@ -685,164 +720,35 @@ namespace ExpandedGalaxy
             }
         }
 
-        [HarmonyPatch(typeof(PLCaptainScreen), "DoInput")]
-        internal class CaptainScreenInput
-        {
-            private static void Postfix(PLCaptainScreen __instance, Vector2 inMouseLoc, bool inCapturingMouse, PLUIScreen targetScreen, ref UISprite ___StatusPanel, ref UISprite ___EnemyStatusPanel)
-            {
-                Vector2 ui = (Vector2)__instance.screenPointToUI(new Vector3(inMouseLoc.x * 512f, inMouseLoc.y * 512f, 0.0f));
-                Rect uiRectOfWidget = new Rect();
-                UITexture currentButton = null;
-                int keypadPressed = -1;
-                if (!CrewLogManager.Instance.LogActive)
-                {
-                    currentButton = CrewLogManager.Instance.GetObjectsForScreen(__instance).CrewLogButton;
-                    uiRectOfWidget = __instance.GetUIRectOfWidget((UIWidget)currentButton);
-                    uiRectOfWidget.width = 32f;
-                    uiRectOfWidget.height = 32f;
-                    uiRectOfWidget.xMin -= 20f;
-                }
-                else
-                {                    
-                    if (CrewLogManager.Instance.LogInfoBox)
-                    {
-                        for (int i = 0; i < CrewLogManager.Instance.GetObjectsForScreen(__instance).LogInfoKeypadButtons.Count; i++)
-                        {
-                            UITexture texture = CrewLogManager.Instance.GetObjectsForScreen(__instance).LogInfoKeypadButtons[i];
-                            uiRectOfWidget = __instance.GetUIRectOfWidget((UIWidget)texture);
-                            uiRectOfWidget.width = 16f;
-                            uiRectOfWidget.height = 16f;
-                            if (PLUIScreen.PointWithinUIRect(ui, uiRectOfWidget))
-                            {
-                                currentButton = texture;
-                                keypadPressed = i;
-                                break;
-                            }
-                        }
-                    }
-                    if (keypadPressed == -1)
-                    {
-                        currentButton = CrewLogManager.Instance.GetObjectsForScreen(__instance).StatusButton;
-                        uiRectOfWidget = __instance.GetUIRectOfWidget((UIWidget)currentButton);
-                        uiRectOfWidget.width = 32f;
-                        uiRectOfWidget.height = 32f;
-                        uiRectOfWidget.xMin -= 20f;
-                    }
-                }
-                if (inCapturingMouse && PLUIScreen.PointWithinUIRect(ui, uiRectOfWidget))
-                {
-                    Traverse traverse = Traverse.Create(__instance);
-                    currentButton.color = new Color(0.65f, 0.65f, 0.65f);
-                    if (traverse.Field("LastHoverButton").GetValue<UIWidget>() != (UIWidget)currentButton)
-                    {
-                        traverse.Field("LastHoverButton").SetValue((UIWidget)currentButton);
-                        __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_hover");
-                    }
-                    if (__instance.mouseUpFrame)
-                    {
-                        if (keypadPressed > -1)
-                        {
-                            __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_keypad");
-                            string sectorString = CrewLogManager.Instance.GetObjectsForScreen(__instance).LogInfoBoxSectorButton.GetComponentInChildren<UILabel>().text;
-                            if (sectorString.Length < 6 || keypadPressed == 3 || keypadPressed == 11)
-                            {
-                                switch(keypadPressed)
-                                {
-                                    case 0:
-                                        sectorString += "1";
-                                        break;
-                                    case 1:
-                                        sectorString += "4";
-                                        break;
-                                    case 2:
-                                        sectorString += "7";
-                                        break;
-                                    case 3:
-                                        if (sectorString.Length > 1)
-                                            sectorString = sectorString.Substring(0, sectorString.Length - 1);
-                                        else
-                                            sectorString = "-1";
-                                        break;
-                                    case 4:
-                                        sectorString += "2";
-                                        break;
-                                    case 5:
-                                        sectorString += "5";
-                                        break;
-                                    case 6:
-                                        sectorString += "8";
-                                        break;
-                                    case 7:
-                                        sectorString += "0";
-                                        break;
-                                    case 8:
-                                        sectorString += "3";
-                                        break;
-                                    case 9:
-                                        sectorString += "6";
-                                        break;
-                                    case 10:
-                                        sectorString += "9";
-                                        break;
-                                    default:
-                                        if (PLServer.GetCurrentSector() != null)
-                                            sectorString = PLServer.GetCurrentSector().ID.ToString();
-                                        break;                                        
-                                }
-                            }
-                            CrewLogManager.Instance.GetObjectsForScreen(__instance).LogInfoBoxSectorButton.GetComponentInChildren<UILabel>().text = sectorString != "-1" ? sectorString : string.Empty;
-                            if (sectorString == "-1")
-                                CrewLogManager.Instance.GetObjectsForScreen(__instance).LogInfoBoxSectorButton.gameObject.SetActive(false);
-                            else
-                                CrewLogManager.Instance.GetObjectsForScreen(__instance).LogInfoBoxSectorButton.gameObject.SetActive(true);
-                            CrewLogData logData = CrewLogManager.Instance.TempData;
-                            try
-                            {                                
-                                logData.optionalSectorID = int.Parse(sectorString);                                
-                            }
-                            catch
-                            {
-                                logData.optionalSectorID = -1;
-                            }
-                            CrewLogManager.Instance.TempData = logData;
-                        }
-                        else
-                        {
-                            CrewLogManager.Instance.LogActive = !CrewLogManager.Instance.LogActive;
-                            CrewLogManager.Instance.UpdateAllPins();
-                            __instance.mouseUpFrame = false;
-                            ___StatusPanel.gameObject.SetActive(!CrewLogManager.Instance.LogActive);
-                            ___EnemyStatusPanel.gameObject.SetActive(!CrewLogManager.Instance.LogActive);
-                            CrewLogManager.Instance.GetObjectsForScreen(__instance).LogPanel.gameObject.SetActive(CrewLogManager.Instance.LogActive);
-                            __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
-                        }
-                    }
-                }
-                else
-                {
-                    if (!CrewLogManager.Instance.LogActive)
-                        CrewLogManager.Instance.GetObjectsForScreen(__instance).CrewLogButton.color = new Color(0.22f, 0.22f, 0.22f, 0.95f);
-                    else
-                    {
-                        CrewLogManager.Instance.GetObjectsForScreen(__instance).StatusButton.color = new Color(0.22f, 0.22f, 0.22f, 0.95f);
-                        if (CrewLogManager.Instance.LogInfoBox)
-                            for (int i = 0; i < CrewLogManager.Instance.GetObjectsForScreen(__instance).LogInfoKeypadButtons.Count; i++)
-                                if (i != keypadPressed)
-                                    CrewLogManager.Instance.GetObjectsForScreen(__instance).LogInfoKeypadButtons[i].color = new Color(0.22f, 0.22f, 0.22f, 0.95f);
-                    }
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(PLCaptainScreen), "OnButtonClick")]
         internal class CaptainScreenButton
         {
-            private static void Postfix(PLCaptainScreen __instance, UIWidget inButton)
+            private static void Postfix(PLCaptainScreen __instance, UIWidget inButton, ref UISprite ___StatusPanel, ref UISprite ___EnemyStatusPanel)
             {
                 if (!CrewLogManager.Instance.HasScreenObjects(__instance))
                     return;
                 CrewLogScreenObjects screenObjects = CrewLogManager.Instance.GetObjectsForScreen(__instance);
-                if (inButton.name == "NewBtn")
+                if (inButton.name == "CrewLogBtn" && !CrewLogManager.Instance.LogActive)
+                {
+                    CrewLogManager.Instance.LogActive = !CrewLogManager.Instance.LogActive;
+                    CrewLogManager.Instance.UpdateAllPins();
+                    __instance.mouseUpFrame = false;
+                    ___StatusPanel.gameObject.SetActive(!CrewLogManager.Instance.LogActive);
+                    ___EnemyStatusPanel.gameObject.SetActive(!CrewLogManager.Instance.LogActive);
+                    CrewLogManager.Instance.GetObjectsForScreen(__instance).LogPanel.gameObject.SetActive(CrewLogManager.Instance.LogActive);
+                    __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
+                }
+                else if (inButton.name == "StatusBtn" && CrewLogManager.Instance.LogActive && !CrewLogManager.Instance.LogInfoBox)
+                {
+                    CrewLogManager.Instance.LogActive = !CrewLogManager.Instance.LogActive;
+                    CrewLogManager.Instance.UpdateAllPins();
+                    __instance.mouseUpFrame = false;
+                    ___StatusPanel.gameObject.SetActive(!CrewLogManager.Instance.LogActive);
+                    ___EnemyStatusPanel.gameObject.SetActive(!CrewLogManager.Instance.LogActive);
+                    CrewLogManager.Instance.GetObjectsForScreen(__instance).LogPanel.gameObject.SetActive(CrewLogManager.Instance.LogActive);
+                    __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
+                }
+                else if (inButton.name == "NewBtn" && !CrewLogManager.Instance.LogInfoBox)
                 {
                     if ((bool)PLServer.Instance.CrewPurchaseLimitsEnabled)
                     {
@@ -853,7 +759,6 @@ namespace ExpandedGalaxy
                     CrewLogManager.Instance.LogInfoBox = true;
                     CrewLogManager.Instance.LogIndex = int.MinValue;
                     screenObjects.LogInfoPanel.gameObject.SetActive(true);
-                    screenObjects.LogPanel.gameObject.SetActive(false);
                     screenObjects.LogInfoBoxLabel.text = "New Log";
                     screenObjects.LogInfoBoxText.text = "";
                     CrewLogData data = new CrewLogData
@@ -870,14 +775,17 @@ namespace ExpandedGalaxy
                     screenObjects.LogInfoSectorColor.color = data.optionalColor;
                     CrewLogManager.Instance.HideKeyPad(__instance, false);
                     CrewLogManager.Instance.TempData = data;
+                    __instance.StartCoroutine(CrewLogManager.Instance.ToggleLogButtons(__instance));
+                    __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
                 }
                 else if (inButton.name == "LogInfoCloseBtn")
                 {
                     CrewLogManager.Instance.LogIndex = -1;
                     CrewLogManager.Instance.LogInfoBox = false;
                     screenObjects.LogInfoPanel.gameObject.SetActive(false);
-                    screenObjects.LogPanel.gameObject.SetActive(true);
                     CrewLogManager.Instance.HideKeyPad(__instance);
+                    __instance.StartCoroutine(CrewLogManager.Instance.ToggleLogButtons(__instance, false));
+                    __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
                 }
                 else if (inButton.name == "LogInfoCreateBtn")
                 {
@@ -915,8 +823,9 @@ namespace ExpandedGalaxy
                     }
                     CrewLogManager.Instance.LogInfoBox = false;
                     screenObjects.LogInfoPanel.gameObject.SetActive(false);
-                    screenObjects.LogPanel.gameObject.SetActive(true);
                     CrewLogManager.Instance.HideKeyPad(__instance);
+                    __instance.StartCoroutine(CrewLogManager.Instance.ToggleLogButtons(__instance, false));
+                    __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
                 }
                 else if (inButton.name == "LogInfoDelBtn")
                 {
@@ -946,16 +855,16 @@ namespace ExpandedGalaxy
                     CrewLogManager.Instance.LogIndex = -1;
                     CrewLogManager.Instance.LogInfoBox = false;
                     screenObjects.LogInfoPanel.gameObject.SetActive(false);
-                    screenObjects.LogPanel.gameObject.SetActive(true);
                     CrewLogManager.Instance.HideKeyPad(__instance);
+                    __instance.StartCoroutine(CrewLogManager.Instance.ToggleLogButtons(__instance, false));
+                    __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
                 }
-                else if (inButton.name.Contains("LogBtn"))
+                else if (inButton.name.Contains("LogBtn") && !CrewLogManager.Instance.LogInfoBox)
                 {
-                    CrewLogManager.Instance.LogIndex = int.Parse(inButton.name.Remove(0, 6)) - 1;
+                    CrewLogManager.Instance.LogIndex = int.Parse(inButton.name.Remove(0, 6)) - 1 + (10 * CrewLogManager.Instance.ShowLogIndex);
                     CrewLogManager.Instance.TempData = CrewLogManager.Instance.GetLogs()[CrewLogManager.Instance.LogIndex];
                     CrewLogManager.Instance.LogInfoBox = true;
                     screenObjects.LogInfoPanel.gameObject.SetActive(true);
-                    screenObjects.LogPanel.gameObject.SetActive(false);
                     screenObjects.LogInfoBoxLabel.text = "Log #" + (CrewLogManager.Instance.LogIndex + 1).ToString();
                     screenObjects.LogInfoBoxText.text = CrewLogManager.Instance.TempData.Text;
                     screenObjects.LogInfoBoxSectorButton.GetComponentInChildren<UILabel>().text = CrewLogManager.Instance.TempData.optionalSectorID.ToString();
@@ -963,19 +872,97 @@ namespace ExpandedGalaxy
                     screenObjects.LogInfoSectorColor.color = CrewLogManager.Instance.TempData.optionalColor;
                     screenObjects.LogInfoBoxCreate.gameObject.SetActive(false);
                     screenObjects.LogInfoButtonDel.gameObject.SetActive(true);
+                    __instance.StartCoroutine(CrewLogManager.Instance.ToggleLogButtons(__instance));
+                    __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
                 }
                 else if (inButton.name == "LogInfoSectorBtn")
                 {
                     if (CrewLogManager.Instance.TempData.optionalSectorID > -1)
                     {
                         if (PLGlobal.Instance.Galaxy != null && PLGlobal.Instance.Galaxy.AllSectorInfos.ContainsKey(CrewLogManager.Instance.TempData.optionalSectorID))
+                        {
                             PLStarmap.Instance.OpenStarmapToSector(PLGlobal.Instance.Galaxy.AllSectorInfos[CrewLogManager.Instance.TempData.optionalSectorID]);
+                            __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
+                        }
                     }
                 }
-                else if (inButton.name == "NextBtn")
+                else if (inButton.name.Contains("KeypadBtn_") && CrewLogManager.Instance.LogInfoBox)
+                {
+                    int keypadPressed = int.Parse(inButton.name.Remove(0, 10));
+                    __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_keypad");
+                    string sectorString = CrewLogManager.Instance.GetObjectsForScreen(__instance).LogInfoBoxSectorButton.GetComponentInChildren<UILabel>().text;
+                    if (sectorString.Length < 6 || keypadPressed == 3 || keypadPressed == 11)
+                    {
+                        switch (keypadPressed)
+                        {
+                            case 0:
+                                sectorString += "1";
+                                break;
+                            case 1:
+                                sectorString += "4";
+                                break;
+                            case 2:
+                                sectorString += "7";
+                                break;
+                            case 3:
+                                if (sectorString.Length > 1)
+                                    sectorString = sectorString.Substring(0, sectorString.Length - 1);
+                                else
+                                    sectorString = "-1";
+                                break;
+                            case 4:
+                                sectorString += "2";
+                                break;
+                            case 5:
+                                sectorString += "5";
+                                break;
+                            case 6:
+                                sectorString += "8";
+                                break;
+                            case 7:
+                                sectorString += "0";
+                                break;
+                            case 8:
+                                sectorString += "3";
+                                break;
+                            case 9:
+                                sectorString += "6";
+                                break;
+                            case 10:
+                                sectorString += "9";
+                                break;
+                            default:
+                                if (PLServer.GetCurrentSector() != null)
+                                    sectorString = PLServer.GetCurrentSector().ID.ToString();
+                                break;
+                        }
+                    }
+                    CrewLogManager.Instance.GetObjectsForScreen(__instance).LogInfoBoxSectorButton.GetComponentInChildren<UILabel>().text = sectorString != "-1" ? sectorString : string.Empty;
+                    if (sectorString == "-1")
+                        CrewLogManager.Instance.GetObjectsForScreen(__instance).LogInfoBoxSectorButton.gameObject.SetActive(false);
+                    else
+                        CrewLogManager.Instance.GetObjectsForScreen(__instance).LogInfoBoxSectorButton.gameObject.SetActive(true);
+                    CrewLogData logData = CrewLogManager.Instance.TempData;
+                    try
+                    {
+                        logData.optionalSectorID = int.Parse(sectorString);
+                    }
+                    catch
+                    {
+                        logData.optionalSectorID = -1;
+                    }
+                    CrewLogManager.Instance.TempData = logData;
+                }
+                else if (inButton.name == "NextBtn" && !CrewLogManager.Instance.LogInfoBox)
+                {
                     ++CrewLogManager.Instance.ShowLogIndex;
-                else if (inButton.name == "BackBtn")
+                    __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_keypad");
+                }
+                else if (inButton.name == "BackBtn" && !CrewLogManager.Instance.LogInfoBox)
+                {
                     --CrewLogManager.Instance.ShowLogIndex;
+                    __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_keypad");
+                }
             }
         }
 
@@ -998,11 +985,12 @@ namespace ExpandedGalaxy
                 int count = CrewLogManager.Instance.GetLogs().Count;
                 for (int i = 0; i < 10; i++)
                 {
-                    if (i + 10 * CrewLogManager.Instance.ShowLogIndex < count)
+                    int index = i + 10 * CrewLogManager.Instance.ShowLogIndex;
+                    if (index < count)
                     {
-                        screenObjects.LogButtons[i].GetComponentInChildren<UILabel>().text = CrewLogManager.FormatPlaytime(CrewLogManager.Instance.GetLogs()[i].timeStamp);
+                        screenObjects.LogButtons[i].GetComponentInChildren<UILabel>().text = CrewLogManager.FormatPlaytime(CrewLogManager.Instance.GetLogs()[index].timeStamp);
                         screenObjects.LogButtons[i].gameObject.SetActive(true);
-                        screenObjects.LogColors[i].color = CrewLogManager.Instance.GetLogs()[i].optionalColor;
+                        screenObjects.LogColors[i].color = CrewLogManager.Instance.GetLogs()[index].optionalColor;
                         screenObjects.LogColors[i].gameObject.SetActive(true);
 
                     }
