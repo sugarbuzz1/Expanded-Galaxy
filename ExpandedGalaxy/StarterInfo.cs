@@ -337,8 +337,6 @@ namespace ExpandedGalaxy
 
             private static Exception Finalizer(Exception __exception, PLOldWarsShip_Sylvassi __instance, bool previewStats, bool startingPlayerShip)
             {
-                if (previewStats)
-                    return __exception;
                 if (__instance.MyStats.GetSlot(ESlotType.E_COMP_AUTO_TURRET).MaxItems > 0)
                     return __exception;
                 GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(__instance.RegularTurretPoints[0].gameObject, new Vector3(__instance.RegularTurretPoints[0].transform.position.x - Mathf.Abs(__instance.RegularTurretPoints[0].transform.position.x - __instance.MainTurretPoint.transform.position.x) * 2f, __instance.RegularTurretPoints[0].transform.position.y, __instance.RegularTurretPoints[0].transform.position.z), new Quaternion(__instance.RegularTurretPoints[0].rotation.x, __instance.RegularTurretPoints[0].rotation.y, __instance.RegularTurretPoints[0].rotation.z, __instance.RegularTurretPoints[0].rotation.w));
@@ -398,8 +396,6 @@ namespace ExpandedGalaxy
 
             private static Exception Finalizer(Exception __exception, PLFluffyShipInfo __instance, bool previewStats, bool startingPlayerShip)
             {
-                if (previewStats)
-                    return __exception;
                 if (__instance.MyStats.GetSlot(ESlotType.E_COMP_AUTO_TURRET).MaxItems > 0)
                     return __exception;
                 GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(__instance.RegularTurretPoints[0].gameObject, new Vector3(__instance.RegularTurretPoints[0].transform.position.x - Mathf.Abs(__instance.RegularTurretPoints[0].transform.position.x - __instance.MainTurretPoint.transform.position.x) * 2f, __instance.RegularTurretPoints[0].transform.position.y, __instance.RegularTurretPoints[0].transform.position.z), new Quaternion(__instance.RegularTurretPoints[0].rotation.x, __instance.RegularTurretPoints[0].rotation.y, __instance.RegularTurretPoints[0].rotation.z, __instance.RegularTurretPoints[0].rotation.w));

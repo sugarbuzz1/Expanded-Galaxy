@@ -730,6 +730,8 @@ namespace ExpandedGalaxy
                 CrewLogScreenObjects screenObjects = CrewLogManager.Instance.GetObjectsForScreen(__instance);
                 if (inButton.name == "CrewLogBtn" && !CrewLogManager.Instance.LogActive)
                 {
+                    if (__instance.MyScreenHubBase.OptionalShipInfo != null && !__instance.MyScreenHubBase.OptionalShipInfo.GetIsPlayerShip())
+                        return;
                     CrewLogManager.Instance.LogActive = !CrewLogManager.Instance.LogActive;
                     CrewLogManager.Instance.UpdateAllPins();
                     __instance.mouseUpFrame = false;
@@ -969,10 +971,28 @@ namespace ExpandedGalaxy
         [HarmonyPatch(typeof(PLCaptainScreen), "Update")]
         internal class CaptainScreenUpdate
         {
-            private static void Postfix(PLCaptainScreen __instance)
+            private static void Postfix(PLCaptainScreen __instance, ref UISprite ___StatusPanel, ref UISprite ___EnemyStatusPanel)
             {
                 if (__instance.MyRootPanel == null || !__instance.LocalPlayerInSameLocation() || !CrewLogManager.Instance.HasScreenObjects(__instance))
                     return;
+                if (__instance.MyScreenHubBase.OptionalShipInfo != null)
+                {
+                    if (!__instance.MyScreenHubBase.OptionalShipInfo.GetIsPlayerShip())
+                        if (CrewLogManager.Instance.GetObjectsForScreen(__instance).LogPanel.gameObject.activeSelf)
+                        {
+                            CrewLogManager.Instance.GetObjectsForScreen(__instance).LogPanel.gameObject.SetActive(false);
+                            ___StatusPanel.gameObject.SetActive(true);
+                            ___EnemyStatusPanel.gameObject.SetActive(true);
+                        }
+                    else
+                        {
+                            if (CrewLogManager.Instance.GetObjectsForScreen(__instance).LogPanel.gameObject.activeSelf != CrewLogManager.Instance.LogActive)
+                            {
+                                CrewLogManager.Instance.GetObjectsForScreen(__instance).LogPanel.gameObject.SetActive(CrewLogManager.Instance.LogActive);
+                                ___StatusPanel.gameObject.SetActive(!CrewLogManager.Instance.LogActive);
+                                ___EnemyStatusPanel.gameObject.SetActive(!CrewLogManager.Instance.LogActive);
+                            }
+                        }
                 if (!CrewLogManager.Instance.LogActive)
                     return;
                 CrewLogScreenObjects screenObjects = CrewLogManager.Instance.GetObjectsForScreen(__instance);

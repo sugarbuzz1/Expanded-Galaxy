@@ -1229,6 +1229,16 @@ namespace ExpandedGalaxy
                         __instance.m_Damage = 50f;
                 }
             }
+
+            [HarmonyPatch(typeof(PLDefenderTurret), "UpdateMaxPowerUsageWatts")]
+            internal class DefenderPowerFix
+            {
+                private static bool Prefix(PLDefenderTurret __instance)
+                {
+                    __instance.CalculatedMaxPowerUsage_Watts = 7600f;
+                    return false;
+                }
+            }
         }
 
         internal class MainTurrets
