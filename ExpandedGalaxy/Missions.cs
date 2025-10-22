@@ -2,6 +2,7 @@
 using PulsarModLoader;
 using PulsarModLoader.Content.Components.AutoTurret;
 using PulsarModLoader.Content.Components.Extractor;
+using PulsarModLoader.Content.Components.MegaTurret;
 using PulsarModLoader.Content.Components.Missile;
 using PulsarModLoader.Content.Components.MissionShipComponent;
 using PulsarModLoader.Content.Components.Shield;
@@ -2225,6 +2226,7 @@ namespace ExpandedGalaxy
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_WARP, (int)EWarpDriveType.E_OLDWARS_SUPER_JUMPER, 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, (int)TurretModManager.Instance.GetTurretIDFromName("Particle Lance"), 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, (int)TurretModManager.Instance.GetTurretIDFromName("Seeker Turret"), 0, 0, (int)ESlotType.E_COMP_CARGO)));
+                    traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_MAINTURRET, (int)MegaTurretModManager.Instance.GetMegaTurretIDFromName("WD Long"), 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_SALVAGE_SYSTEM, (int)EExtractorType.E_PT_EXTRACTOR, 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_PROGRAM, (int)WarpDriveProgramModManager.Instance.GetWarpDriveProgramIDFromName("Special Training [VIRUS]"), 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_FB_RECIPE, (int)FBRecipe.E_SPICY, 0, 0, (int)ESlotType.E_COMP_CARGO)));
@@ -2232,6 +2234,10 @@ namespace ExpandedGalaxy
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_FB_RECIPE, (int)FBRecipe.E_LUCKY, 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_FB_RECIPE, (int)FBRecipe.E_SUGAR, 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TRACKERMISSILE, (int)ETrackerMissileType.FB_MISSILE, 0, 0, (int)ESlotType.E_COMP_CARGO)));
+                    traderPersistantDataEntry.ServerAddWare(Relic.RelicCaravan.GetSpecialOffer());
+                    traderPersistantDataEntry.ServerAddWare(Relic.RelicCaravan.GetSpecialOffer());
+                    for (int i = 0; i < 5; i++)
+                        traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateRandom());
                     shipInfo.OptionalTPDE = traderPersistantDataEntry;
                     carrierData = traderPersistantDataEntry;
                     PLServer.Instance.AllPSIs.Add(shipInfo);

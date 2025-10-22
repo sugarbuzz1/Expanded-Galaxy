@@ -223,11 +223,11 @@ namespace ExpandedGalaxy
         {
             public override string Name => "Special Training [VIRUS]";
 
-            public override string Description => "Broadcasts [Special Training] virus to nearby ships on activation.\n\nSpecial Training: Fills the ship with acidic gas for 60 seconds.";
+            public override string Description => "Broadcasts [Special Training] virus to nearby ships on activation.\n\nSpecial Training: Slowly fills ship with acidic gas for 30 seconds.";
 
             public override int MarketPrice => 7600;
 
-            public override string ShortName => "SP";
+            public override string ShortName => "ST";
 
             public override bool IsVirus => true;
 
@@ -246,15 +246,18 @@ namespace ExpandedGalaxy
         {
             public override string Name => "Special Training";
 
-            public override string Description => "Fills the ship with acidic gas";
+            public override string Description => "Slowly fills ship with acidic gas";
 
-            public override int InfectionTimeLimitMs => 60000;
+            public override int InfectionTimeLimitMs => 30000;
 
             public override void FinalLateAddStats(PLShipComponent InComp)
             {
                 PLShipInfoBase pLShipInfoBase = InComp.ShipStats.Ship;
                 if (pLShipInfoBase != null)
-                    pLShipInfoBase.AcidicAtmoBoostAlpha += 0.15f * Time.deltaTime;
+                {
+                    pLShipInfoBase.AcidicAtmoBoostAlpha += 0.02f * Time.deltaTime;
+                    pLShipInfoBase.AuxConfig &= (byte)(uint) ~(1 << 2);
+                }
             }
         }
 

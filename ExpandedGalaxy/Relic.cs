@@ -2992,7 +2992,7 @@ namespace ExpandedGalaxy
                 }
             }
 
-            private static PLShipComponent GetSpecialOffer()
+            internal static PLShipComponent GetSpecialOffer()
             {
                 PLShipComponent component;
                 int level = Mathf.RoundToInt(Mathf.Pow((float)UnityEngine.Random.Range(0f, 1f), 4f) * 2.7f);
