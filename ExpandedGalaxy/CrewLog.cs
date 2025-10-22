@@ -51,8 +51,6 @@ namespace ExpandedGalaxy
         private static CrewLogManager m_instance;
         private Dictionary<PLCaptainScreen, CrewLogScreenObjects> m_screenobjects;
         private List<CrewLogData> m_logs;
-        private bool m_logactive;
-        private bool m_loginfoboxactive;
         private int showlogindex;
         private int logindex;
         private CrewLogData tempData;
@@ -72,8 +70,6 @@ namespace ExpandedGalaxy
         {
             m_screenobjects = new Dictionary<PLCaptainScreen, CrewLogScreenObjects>();
             m_logs = new List<CrewLogData>();
-            m_logactive = false;
-            m_loginfoboxactive = false;
             logindex = -1;
             showlogindex = 0;
             tempData = new CrewLogData()
@@ -84,18 +80,6 @@ namespace ExpandedGalaxy
                 optionalSectorID = -1
             };
             m_mappins = new Dictionary<int, GameObject>();
-        }
-
-        public bool LogActive
-        {
-            get { return m_logactive; }
-            set { m_logactive = value; }
-        }
-
-        public bool LogInfoBox
-        {
-            get { return m_loginfoboxactive; }
-            set { m_loginfoboxactive = value; }
         }
 
         public int LogIndex
@@ -120,8 +104,6 @@ namespace ExpandedGalaxy
         {
             m_screenobjects.Clear();
             m_logs.Clear();
-            m_logactive = false;
-            m_loginfoboxactive = false;
             logindex = -1;
             showlogindex = 0;
             tempData = new CrewLogData()
@@ -139,8 +121,6 @@ namespace ExpandedGalaxy
         public void ClearLogs()
         {
             m_logs.Clear();
-            m_logactive = false;
-            m_loginfoboxactive = false;
             logindex = -1;
             foreach (GameObject image in m_mappins.Values)
                 UnityEngine.Object.Destroy(image);
@@ -728,37 +708,34 @@ namespace ExpandedGalaxy
                 if (!CrewLogManager.Instance.HasScreenObjects(__instance))
                     return;
                 CrewLogScreenObjects screenObjects = CrewLogManager.Instance.GetObjectsForScreen(__instance);
-                if (inButton.name == "CrewLogBtn" && !CrewLogManager.Instance.LogActive)
+                if (inButton.name == "CrewLogBtn" && !screenObjects.LogPanel.gameObject.activeSelf)
                 {
                     if (__instance.MyScreenHubBase.OptionalShipInfo != null && !__instance.MyScreenHubBase.OptionalShipInfo.GetIsPlayerShip())
                         return;
-                    CrewLogManager.Instance.LogActive = !CrewLogManager.Instance.LogActive;
+                    screenObjects.LogPanel.gameObject.SetActive(true);
                     CrewLogManager.Instance.UpdateAllPins();
                     __instance.mouseUpFrame = false;
-                    ___StatusPanel.gameObject.SetActive(!CrewLogManager.Instance.LogActive);
-                    ___EnemyStatusPanel.gameObject.SetActive(!CrewLogManager.Instance.LogActive);
-                    CrewLogManager.Instance.GetObjectsForScreen(__instance).LogPanel.gameObject.SetActive(CrewLogManager.Instance.LogActive);
+                    ___StatusPanel.gameObject.SetActive(false);
+                    ___EnemyStatusPanel.gameObject.SetActive(false);
                     __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
                 }
-                else if (inButton.name == "StatusBtn" && CrewLogManager.Instance.LogActive && !CrewLogManager.Instance.LogInfoBox)
+                else if (inButton.name == "StatusBtn" && screenObjects.LogPanel.gameObject.activeSelf && !screenObjects.LogInfoPanel.gameObject.activeSelf)
                 {
-                    CrewLogManager.Instance.LogActive = !CrewLogManager.Instance.LogActive;
+                    screenObjects.LogPanel.gameObject.SetActive(false);
                     CrewLogManager.Instance.UpdateAllPins();
                     __instance.mouseUpFrame = false;
-                    ___StatusPanel.gameObject.SetActive(!CrewLogManager.Instance.LogActive);
-                    ___EnemyStatusPanel.gameObject.SetActive(!CrewLogManager.Instance.LogActive);
-                    CrewLogManager.Instance.GetObjectsForScreen(__instance).LogPanel.gameObject.SetActive(CrewLogManager.Instance.LogActive);
+                    ___StatusPanel.gameObject.SetActive(true);
+                    ___EnemyStatusPanel.gameObject.SetActive(true);
                     __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
                 }
-                else if (inButton.name == "NewBtn" && !CrewLogManager.Instance.LogInfoBox)
+                else if (inButton.name == "NewBtn" && !screenObjects.LogInfoPanel.gameObject.activeSelf)
                 {
                     if ((bool)PLServer.Instance.CrewPurchaseLimitsEnabled)
                     {
                         if (PLNetworkManager.Instance.LocalPlayer != null && PLNetworkManager.Instance.LocalPlayer.GetClassID() != 0)
-                            PLTabMenu.Instance.TimedErrorMsg = "You don't have permission to add logs at this time!";
+                            PLTabMenu.Instance.TimedErrorMsg = "You do not have permission to add logs at this time!";
                         return;
                     }
-                    CrewLogManager.Instance.LogInfoBox = true;
                     CrewLogManager.Instance.LogIndex = int.MinValue;
                     screenObjects.LogInfoPanel.gameObject.SetActive(true);
                     screenObjects.LogInfoBoxLabel.text = "New Log";
@@ -783,7 +760,6 @@ namespace ExpandedGalaxy
                 else if (inButton.name == "LogInfoCloseBtn")
                 {
                     CrewLogManager.Instance.LogIndex = -1;
-                    CrewLogManager.Instance.LogInfoBox = false;
                     screenObjects.LogInfoPanel.gameObject.SetActive(false);
                     CrewLogManager.Instance.HideKeyPad(__instance);
                     __instance.StartCoroutine(CrewLogManager.Instance.ToggleLogButtons(__instance, false));
@@ -823,7 +799,6 @@ namespace ExpandedGalaxy
                             CrewLogManager.Instance.TempData.optionalColor.a
                         });
                     }
-                    CrewLogManager.Instance.LogInfoBox = false;
                     screenObjects.LogInfoPanel.gameObject.SetActive(false);
                     CrewLogManager.Instance.HideKeyPad(__instance);
                     __instance.StartCoroutine(CrewLogManager.Instance.ToggleLogButtons(__instance, false));
@@ -855,17 +830,15 @@ namespace ExpandedGalaxy
                         ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendLog", PhotonTargets.Others, sendArgumentList.ToArray());
                     }
                     CrewLogManager.Instance.LogIndex = -1;
-                    CrewLogManager.Instance.LogInfoBox = false;
                     screenObjects.LogInfoPanel.gameObject.SetActive(false);
                     CrewLogManager.Instance.HideKeyPad(__instance);
                     __instance.StartCoroutine(CrewLogManager.Instance.ToggleLogButtons(__instance, false));
                     __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
                 }
-                else if (inButton.name.Contains("LogBtn") && !CrewLogManager.Instance.LogInfoBox)
+                else if (inButton.name.Contains("LogBtn") && !screenObjects.LogInfoPanel.gameObject.activeSelf)
                 {
                     CrewLogManager.Instance.LogIndex = int.Parse(inButton.name.Remove(0, 6)) - 1 + (10 * CrewLogManager.Instance.ShowLogIndex);
                     CrewLogManager.Instance.TempData = CrewLogManager.Instance.GetLogs()[CrewLogManager.Instance.LogIndex];
-                    CrewLogManager.Instance.LogInfoBox = true;
                     screenObjects.LogInfoPanel.gameObject.SetActive(true);
                     screenObjects.LogInfoBoxLabel.text = "Log #" + (CrewLogManager.Instance.LogIndex + 1).ToString();
                     screenObjects.LogInfoBoxText.text = CrewLogManager.Instance.TempData.Text;
@@ -888,7 +861,7 @@ namespace ExpandedGalaxy
                         }
                     }
                 }
-                else if (inButton.name.Contains("KeypadBtn_") && CrewLogManager.Instance.LogInfoBox)
+                else if (inButton.name.Contains("KeypadBtn_") && screenObjects.LogInfoPanel.gameObject.activeSelf)
                 {
                     int keypadPressed = int.Parse(inButton.name.Remove(0, 10));
                     __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_keypad");
@@ -955,12 +928,12 @@ namespace ExpandedGalaxy
                     }
                     CrewLogManager.Instance.TempData = logData;
                 }
-                else if (inButton.name == "NextBtn" && !CrewLogManager.Instance.LogInfoBox)
+                else if (inButton.name == "NextBtn" && !screenObjects.LogInfoPanel.gameObject.activeSelf)
                 {
                     ++CrewLogManager.Instance.ShowLogIndex;
                     __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_keypad");
                 }
-                else if (inButton.name == "BackBtn" && !CrewLogManager.Instance.LogInfoBox)
+                else if (inButton.name == "BackBtn" && !screenObjects.LogInfoPanel.gameObject.activeSelf)
                 {
                     --CrewLogManager.Instance.ShowLogIndex;
                     __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_keypad");
@@ -978,22 +951,18 @@ namespace ExpandedGalaxy
                 if (__instance.MyScreenHubBase.OptionalShipInfo != null)
                 {
                     if (!__instance.MyScreenHubBase.OptionalShipInfo.GetIsPlayerShip())
+                    {
+                        if (CrewLogManager.Instance.GetObjectsForScreen(__instance).LogInfoPanel.gameObject.activeSelf)
+                            CrewLogManager.Instance.GetObjectsForScreen(__instance).LogInfoPanel.gameObject.SetActive(false);
                         if (CrewLogManager.Instance.GetObjectsForScreen(__instance).LogPanel.gameObject.activeSelf)
                         {
                             CrewLogManager.Instance.GetObjectsForScreen(__instance).LogPanel.gameObject.SetActive(false);
                             ___StatusPanel.gameObject.SetActive(true);
                             ___EnemyStatusPanel.gameObject.SetActive(true);
                         }
-                    else
-                        {
-                            if (CrewLogManager.Instance.GetObjectsForScreen(__instance).LogPanel.gameObject.activeSelf != CrewLogManager.Instance.LogActive)
-                            {
-                                CrewLogManager.Instance.GetObjectsForScreen(__instance).LogPanel.gameObject.SetActive(CrewLogManager.Instance.LogActive);
-                                ___StatusPanel.gameObject.SetActive(!CrewLogManager.Instance.LogActive);
-                                ___EnemyStatusPanel.gameObject.SetActive(!CrewLogManager.Instance.LogActive);
-                            }
-                        }
-                if (!CrewLogManager.Instance.LogActive)
+                    }
+                }
+                if (!CrewLogManager.Instance.GetObjectsForScreen(__instance).LogPanel.gameObject.activeSelf)
                     return;
                 CrewLogScreenObjects screenObjects = CrewLogManager.Instance.GetObjectsForScreen(__instance);
                 if (PLServer.GetCurrentSector() != null)
@@ -1034,7 +1003,7 @@ namespace ExpandedGalaxy
                     screenObjects.BackButton.gameObject.SetActive(true);
                 else
                     screenObjects.BackButton.gameObject.SetActive(false);
-                if (CrewLogManager.Instance.LogInfoBox)
+                if (CrewLogManager.Instance.GetObjectsForScreen(__instance).LogInfoPanel.gameObject.activeSelf)
                 {
                     if (CrewLogManager.Instance.TempData.optionalSectorID != -1)
                         screenObjects.LogInfoBoxSectorButton.gameObject.SetActive(true);

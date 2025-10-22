@@ -2564,7 +2564,7 @@ namespace ExpandedGalaxy
                             __result = new PLMegaTurret_RapidFire();
                             break;
                         case 1:
-                            __result = new MainTurrets.RipperTurrret();
+                            __result = new MainTurrets.PhysicalTurret();
                             break;
                         default:
                             __result = new PLMegaTurret();

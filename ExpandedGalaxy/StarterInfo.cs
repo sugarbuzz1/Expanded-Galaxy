@@ -339,14 +339,18 @@ namespace ExpandedGalaxy
             {
                 if (__instance.MyStats.GetSlot(ESlotType.E_COMP_AUTO_TURRET).MaxItems > 0)
                     return __exception;
-                GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(__instance.RegularTurretPoints[0].gameObject, new Vector3(__instance.RegularTurretPoints[0].transform.position.x - Mathf.Abs(__instance.RegularTurretPoints[0].transform.position.x - __instance.MainTurretPoint.transform.position.x) * 2f, __instance.RegularTurretPoints[0].transform.position.y, __instance.RegularTurretPoints[0].transform.position.z), new Quaternion(__instance.RegularTurretPoints[0].rotation.x, __instance.RegularTurretPoints[0].rotation.y, __instance.RegularTurretPoints[0].rotation.z, __instance.RegularTurretPoints[0].rotation.w));
+                __instance.MyStats.SetSlotLimit(ESlotType.E_COMP_AUTO_TURRET, 1);
+                if (previewStats)
+                    return __exception;
+                GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(__instance.RegularTurretPoints[0].gameObject);
                 gameObject.transform.SetParent(__instance.Exterior.transform);
+                gameObject.transform.localPosition = new Vector3(__instance.RegularTurretPoints[0].localPosition.x * -1, __instance.RegularTurretPoints[0].localPosition.y, __instance.RegularTurretPoints[0].localPosition.z);
+                gameObject.transform.localRotation = __instance.RegularTurretPoints[0].localRotation;
                 Transform[] transformArray = new Transform[1]
                 {
                     gameObject.transform
                 };
                 __instance.AutoTurretPoints = transformArray;
-                __instance.MyStats.SetSlotLimit(ESlotType.E_COMP_AUTO_TURRET, 1);
                 if (!startingPlayerShip)
                 {
                     PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
@@ -398,14 +402,18 @@ namespace ExpandedGalaxy
             {
                 if (__instance.MyStats.GetSlot(ESlotType.E_COMP_AUTO_TURRET).MaxItems > 0)
                     return __exception;
-                GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(__instance.RegularTurretPoints[0].gameObject, new Vector3(__instance.RegularTurretPoints[0].transform.position.x - Mathf.Abs(__instance.RegularTurretPoints[0].transform.position.x - __instance.MainTurretPoint.transform.position.x) * 2f, __instance.RegularTurretPoints[0].transform.position.y, __instance.RegularTurretPoints[0].transform.position.z), new Quaternion(__instance.RegularTurretPoints[0].rotation.x, __instance.RegularTurretPoints[0].rotation.y, __instance.RegularTurretPoints[0].rotation.z, __instance.RegularTurretPoints[0].rotation.w));
+                __instance.MyStats.SetSlotLimit(ESlotType.E_COMP_AUTO_TURRET, 1);
+                if (previewStats)
+                    return __exception;
+                GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(__instance.RegularTurretPoints[0].gameObject);
                 gameObject.transform.SetParent(__instance.Exterior.transform);
+                gameObject.transform.localPosition = new Vector3(__instance.RegularTurretPoints[0].localPosition.x * -1, __instance.RegularTurretPoints[0].localPosition.y, __instance.RegularTurretPoints[0].localPosition.z);
+                gameObject.transform.localRotation = __instance.RegularTurretPoints[0].localRotation;
                 Transform[] transformArray = new Transform[1]
                 {
                     gameObject.transform
                 };
-                __instance.AutoTurretPoints = transformArray;
-                __instance.MyStats.SetSlotLimit(ESlotType.E_COMP_AUTO_TURRET, 1);
+                __instance.AutoTurretPoints = transformArray;                
                 if (!startingPlayerShip)
                 {
                     PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
