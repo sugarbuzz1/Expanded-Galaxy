@@ -4,8 +4,11 @@ using PulsarModLoader;
 using PulsarModLoader.Content.Components.Hull;
 using PulsarModLoader.Content.Components.Virus;
 using PulsarModLoader.Content.Components.WarpDriveProgram;
+using PulsarModLoader.Patches;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
 using UnityEngine;
 
 namespace ExpandedGalaxy
@@ -54,6 +57,8 @@ namespace ExpandedGalaxy
             public override float ActiveTime => 60f;
 
             public override int MaxLevelCharges => 3;
+
+            public override bool Experimental => true;
         }
 
         [HarmonyPatch(typeof(PLShipInfoBase), "TakeDamage")]
@@ -256,7 +261,7 @@ namespace ExpandedGalaxy
                 if (pLShipInfoBase != null)
                 {
                     pLShipInfoBase.AcidicAtmoBoostAlpha += 0.02f * Time.deltaTime;
-                    pLShipInfoBase.AuxConfig &= (byte)(uint) ~(1 << 2);
+                    pLShipInfoBase.AuxConfig &= (byte) 251U;
                 }
             }
         }
@@ -319,9 +324,17 @@ namespace ExpandedGalaxy
 
                 }
                 else if (inType == EWarpDriveProgramType.BLOCK_LONG_RANGE_COMMS)
+                {
                     ___m_MarketPrice = (ObscuredInt)9000;
+                    __instance.Contraband = true;
+                }
                 else if (inType == EWarpDriveProgramType.RAND_LARGE)
+                {
                     __instance.VirusType = EVirusType.RAND_LARGE;
+                    __instance.Experimental = true;
+                }
+                else if (inType == EWarpDriveProgramType.RAND_SMALL)
+                    __instance.Experimental = true;
             }
         }
 
@@ -564,6 +577,56 @@ namespace ExpandedGalaxy
                 if (!__instance.ShipStats.Ship.GetIsPlayerShip())
                     chargeToFull = true;
                 return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(PLScientistComputerScreen), "Update")]
+        internal class ProgramFGColor
+        {
+            internal static Color GetFGColorForProgram(PLWarpDriveProgram program)
+            {
+                if (program.Experimental)
+                    return new Color(0.7f, 0.7f, 0.1f, 1f);
+                else if (program.Contraband)
+                    return new Color(0.8f, 0f, 0f, 1f);
+                else if (Relic.getIsRelic(program))
+                    return Relic.getRelicColor();
+                return new Color(0.65f, 0.65f, 0.65f, 1f);
+            }
+            private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+            {
+                List<CodeInstruction> list = instructions.ToList();
+                LocalBuilder index1 = null;
+                List<Label> label = new List<Label>();
+
+                for (int i = 0; i < list.Count; i++)
+                {
+                    CodeInstruction codeInstruction = list[i];
+                    if (codeInstruction.opcode == OpCodes.Ldloc_S && codeInstruction.operand is LocalBuilder lb1 && lb1.LocalIndex == 40)
+                    {
+                        index1 = lb1;
+                        if (codeInstruction.labels.Count > 0 && i > 1200)
+                            label.AddRange(codeInstruction.labels);
+                    }
+                    if (index1 != null && label.Count > 0)
+                        break;
+                }
+
+                List<CodeInstruction> targetSequence = new List<CodeInstruction>() {
+                    new CodeInstruction(OpCodes.Ldloc_S, index1),
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(PLUIScreen), "UI_White")),
+                };
+                List<CodeInstruction> patchSequence = new List<CodeInstruction>()
+                {
+                    new CodeInstruction(OpCodes.Ldloc_S, (byte)40),
+                    new CodeInstruction(OpCodes.Ldloc_S, (byte)43),
+                    new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ProgramFGColor), "GetFGColorForProgram", new Type[1] {typeof(PLWarpDriveProgram)})),
+                };
+
+                List<CodeInstruction> list2 = HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.REPLACE, HarmonyHelpers.CheckMode.NONNULL, true).ToList<CodeInstruction>();
+                patchSequence[0].labels.AddRange(label);
+                return HarmonyHelpers.PatchBySequence(list2.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.REPLACE, HarmonyHelpers.CheckMode.NONNULL, true);
             }
         }
     }

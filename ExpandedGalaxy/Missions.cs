@@ -2449,6 +2449,8 @@ namespace ExpandedGalaxy
             public override void Tick()
             {
                 base.Tick();
+                if (!PhotonNetwork.isMasterClient)
+                    return;
                 if (!this.IsEquipped && this.ShipStats != null)
                 {
                     this.Equip();
@@ -2474,6 +2476,17 @@ namespace ExpandedGalaxy
                             if (pLShipInfoBase.MyStats.GetShipComponent<PLShipComponent>(ESlotType.E_COMP_REAC_COOLING) != null)
                                 pLShipInfoBase.MyStats.RemoveShipComponent(pLShipInfoBase.MyStats.GetShipComponent<PLShipComponent>(ESlotType.E_COMP_REAC_COOLING));
                             PLServer.Instance.photonView.RPC("ClaimShip", PhotonTargets.All, pLShipInfoBase.ShipID);
+                            foreach (PLPlayer allPlayer in PLServer.Instance.AllPlayers)
+                            {
+                                if (allPlayer != null)
+                                {
+                                    if (allPlayer.MyCurrentTLI != null && allPlayer.MyCurrentTLI.MyShipInfo != null && allPlayer.MyCurrentTLI.MyShipInfo.ShipID == this.ShipStats.Ship.ShipID)
+                                    {
+                                        allPlayer.SetSubHubAndTTIID(pLShipInfoBase.MyTLI.SubHubID, 0);
+                                        allPlayer.CurrentlyInLiarsDiceGame = (PLLiarsDiceGame)null;
+                                    }
+                                }
+                            }
                             PhotonNetwork.Destroy(this.ShipStats.Ship.ShipRoot);
                         }
                     }
