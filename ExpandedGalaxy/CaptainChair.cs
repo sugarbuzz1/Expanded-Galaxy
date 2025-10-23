@@ -63,7 +63,7 @@ namespace ExpandedGalaxy
                 base.Tick(InComp);
                 if (InComp.SubTypeData == 0)
                 {
-                    if (InComp.IsEquipped && PLNetworkManager.Instance.LocalPlayer.IsSittingInCaptainsChair() && PLInput.Instance.GetButtonUp(PLInputBase.EInputActionName.pilot_ability))
+                    if (InComp.IsEquipped && PLNetworkManager.Instance.LocalPlayer.IsSittingInCaptainsChair() && (bool)AccessTools.Method(typeof(PLInput), "GetButtonUp", new Type[1] { typeof(string) }).Invoke(PLInput.Instance, new object[1] { (object)"ExpandedGalaxy.Ability" }))
                     {
                         ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ControlDrone", PhotonTargets.MasterClient, new object[1]
                         {
@@ -116,7 +116,7 @@ namespace ExpandedGalaxy
                             });
                         }
                     }
-                    if (InComp.IsEquipped && PLNetworkManager.Instance.LocalPlayer.IsSittingInCaptainsChair() && PLInput.Instance.GetButtonUp(PLInputBase.EInputActionName.pilot_ability))
+                    if (InComp.IsEquipped && PLNetworkManager.Instance.LocalPlayer.IsSittingInCaptainsChair() && (bool)AccessTools.Method(typeof(PLInput), "GetButtonUp", new Type[1] { typeof(string) }).Invoke(PLInput.Instance, new object[1] { (object)"ExpandedGalaxy.Ability" }))
                     {
                         ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ControlDrone", PhotonTargets.MasterClient, new object[1]
                         {

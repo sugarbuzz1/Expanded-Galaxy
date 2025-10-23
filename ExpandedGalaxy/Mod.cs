@@ -1,10 +1,11 @@
 ﻿using HarmonyLib;
 using PulsarModLoader;
+using PulsarModLoader.Keybinds;
 using System.Collections.Generic;
 
 namespace ExpandedGalaxy
 {
-    public class Mod : PulsarMod
+    public class Mod : PulsarMod, IKeybind
     {
         public Mod() : base()
         {
@@ -41,5 +42,7 @@ namespace ExpandedGalaxy
             traverse.Field("CachedTalentInfos").SetValue(new Dictionary<int, TalentInfo>());
             base.Unload();
         }
+
+        void RegisterBinds(KeybindManager manager) => manager.NewBind("[ExGal] Ability", "ExpandedGalaxy.Ability", "Basics", "v");
     }
 }

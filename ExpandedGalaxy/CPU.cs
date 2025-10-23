@@ -102,7 +102,7 @@ namespace ExpandedGalaxy
                 {
                     plcpu.CalculatedMaxPowerUsage_Watts = (40000f + 4000f * plcpu.Level);
                 }
-                if (PLNetworkManager.Instance.MyLocalPawn != null && PLNetworkManager.Instance.MyLocalPawn.CurrentShip != null && PLNetworkManager.Instance.MyLocalPawn.CurrentShip == plcpu.ShipStats.Ship && (PLNetworkManager.Instance.LocalPlayer.GetClassID() == 0 || PLNetworkManager.Instance.LocalPlayer.GetClassID() == 2) && PLInput.Instance.GetButtonUp(PLInputBase.EInputActionName.pilot_ability) && !PLNetworkManager.Instance.LocalPlayer.IsSittingInCaptainsChair() && PLCameraSystem.Instance.CurrentCameraMode != null && PLCameraSystem.Instance.CurrentCameraMode.GetModeString() == "LocalPawn")
+                if (PLNetworkManager.Instance.MyLocalPawn != null && PLNetworkManager.Instance.MyLocalPawn.CurrentShip != null && PLNetworkManager.Instance.MyLocalPawn.CurrentShip == plcpu.ShipStats.Ship && (PLNetworkManager.Instance.LocalPlayer.GetClassID() == 0 || PLNetworkManager.Instance.LocalPlayer.GetClassID() == 2) && (bool)AccessTools.Method(typeof(PLInput), "GetButtonUp", new Type[1] { typeof(string) }).Invoke(PLInput.Instance, new object[1] { (object)"ExpandedGalaxy.Ability" }) && !PLNetworkManager.Instance.LocalPlayer.IsSittingInCaptainsChair() && PLCameraSystem.Instance.CurrentCameraMode != null && PLCameraSystem.Instance.CurrentCameraMode.GetModeString() == "LocalPawn")
                 {
                     ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSylvassiCPU", PhotonTargets.All, new object[1]
                     {

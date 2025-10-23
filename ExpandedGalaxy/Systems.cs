@@ -73,9 +73,9 @@ namespace ExpandedGalaxy
                                 {
                                     PLCaptainsChair chair = ship.MyStats.GetShipComponent<PLCaptainsChair>(ESlotType.E_COMP_CAPTAINS_CHAIR);
                                     if (chair.SubTypeData == 0)
-                                        setBottomInfoText("<color=yellow>[" + PLInput.Instance.GetPrimaryKeyStringForAction(PLInputBase.EInputActionName.pilot_ability) + "] Launch Drone</color>");
+                                        setBottomInfoText("<color=yellow>[" + PLInput.Instance.GetPrimaryKeyStringForAction("ExpandedGalaxy.Ability") + "] Launch Drone</color>");
                                     else if (chair.SubTypeData > 0)
-                                        setBottomInfoText("<color=yellow>[" + PLInput.Instance.GetPrimaryKeyStringForAction(PLInputBase.EInputActionName.pilot_ability) + "] Control Drone</color>");
+                                        setBottomInfoText("<color=yellow>[" + PLInput.Instance.GetPrimaryKeyStringForAction("ExpandedGalaxy.Ability") + "] Control Drone</color>");
                                 }
                             }
                             else
@@ -95,11 +95,11 @@ namespace ExpandedGalaxy
                                             return;
                                         if (plcpu.SubTypeData == 0)
                                         {
-                                            setBottomInfoText("<color=yellow>[" + PLInput.Instance.GetPrimaryKeyStringForAction(PLInputBase.EInputActionName.pilot_ability) + "] Enable Shield Charger</color>");
+                                            setBottomInfoText("<color=yellow>[" + PLInput.Instance.GetPrimaryKeyStringForAction("ExpandedGalaxy.Ability") + "] Enable Shield Charger</color>");
                                         }
                                         else
                                         {
-                                            setBottomInfoText("<color=yellow>[" + PLInput.Instance.GetPrimaryKeyStringForAction(PLInputBase.EInputActionName.pilot_ability) + "] Disable Shield Charger</color>");
+                                            setBottomInfoText("<color=yellow>[" + PLInput.Instance.GetPrimaryKeyStringForAction("ExpandedGalaxy.Ability") + "] Disable Shield Charger</color>");
                                         }
                                     }
                                 }
