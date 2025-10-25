@@ -524,7 +524,7 @@ namespace ExpandedGalaxy
                     new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Ammunition), "ShouldRefillPlayer", new Type[2] {typeof(PLAmmoRefill), typeof(PLPlayer)})),
                 };
 
-                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.REPLACE, HarmonyHelpers.CheckMode.NONNULL, true);
+                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.REPLACE, HarmonyHelpers.CheckMode.NONNULL, false);
             }
         }
     }
