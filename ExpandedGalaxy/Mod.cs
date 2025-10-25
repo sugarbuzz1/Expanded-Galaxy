@@ -43,6 +43,6 @@ namespace ExpandedGalaxy
             base.Unload();
         }
 
-        void RegisterBinds(KeybindManager manager) => manager.NewBind("[ExGal] Ability", "ExpandedGalaxy.Ability", "Basics", "v");
+        public void RegisterBinds(KeybindManager manager) => manager.NewBind("[ExGal] Ability", "ExpandedGalaxy.Ability", "Basics", "v");
     }
 }

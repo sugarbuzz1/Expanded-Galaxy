@@ -313,9 +313,15 @@ namespace ExpandedGalaxy
                 else if (inType == EWarpDriveProgramType.SITTING_DUCK_VIRUS_PROGRAM)
                     __instance.Desc = "Broadcasts [Sitting Duck] virus to nearby ships on activation. Incurs a slight Cyber-Atk penalty when infecting.\n\nSitting Duck: Disables ship thrusters for 60 seconds";
                 else if (inType == EWarpDriveProgramType.GENTLEMENS_WELCOME)
+                {
                     __instance.Desc = "Broadcasts [Gentlemen's Welcome] virus to nearby ships on activation. Incurs a moderate Cyber-Atk penalty when infecting.\n\nGentleman's Welcome: Disables quantum shields for 3 minutes";
+                    __instance.Contraband = true;
+                }
                 else if (inType == EWarpDriveProgramType.SHUTDOWN_DEFENSES)
+                {
                     __instance.Desc = "Broadcasts [Shutdown Defenses] virus to nearby ships on activation. Incurs a slight Cyber-Atk penalty when infecting.\n\nShutdown Defenses: Disables defensive systems for 20 seconds";
+                    __instance.Contraband = true;
+                }
                 else if (inType == EWarpDriveProgramType.DETECTOR)
                 {
                     __instance.Desc = "Reveals all ships in the sector for 30 seconds.";
@@ -334,6 +340,10 @@ namespace ExpandedGalaxy
                     __instance.Experimental = true;
                 }
                 else if (inType == EWarpDriveProgramType.RAND_SMALL)
+                    __instance.Experimental = true;
+                else if (inType == EWarpDriveProgramType.SIPHEN)
+                    __instance.Contraband = true;
+                else if (inType == EWarpDriveProgramType.SHOCK_THE_SYSTEM)
                     __instance.Experimental = true;
             }
         }

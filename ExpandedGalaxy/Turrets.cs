@@ -99,6 +99,13 @@ namespace ExpandedGalaxy
             public override PLShipComponent PLMegaTurret => new MainTurrets.PhysicalTurret();
         }
 
+        private class WDLongMod : MegaTurretMod
+        {
+            public override string Name => "WD Long Range";
+
+            public override PLShipComponent PLMegaTurret => new MainTurrets.WDLong();
+        }
+
         private class AutoLaserMod : AutoTurretMod
         {
             public override string Name => "Auto Laser Turret";
@@ -136,7 +143,7 @@ namespace ExpandedGalaxy
                     this.TurretRange = 9000f;
                     this.Level = inLevel;
                     this.CanHitMissiles = false;
-                    this.m_MaxPowerUsage_Watts = 7000f;
+                    this.m_MaxPowerUsage_Watts = 7000f * this.LevelMultiplier(0.1f); ;
                 }
 
                 protected virtual void CorrectColors()
@@ -150,11 +157,12 @@ namespace ExpandedGalaxy
                     this.ColorCorrected = true;
                 }
 
-                protected override string GetDamageTypeString() => "PHYSICAL";
+                protected override string GetDamageTypeString() => "PHYSICAL (BEAM)";
 
                 public override void Tick()
                 {
                     base.Tick();
+                    this.CalculatedMaxPowerUsage_Watts = 7000f * this.LevelMultiplier(0.1f);
                     if (this.IsEquipped && !this.ColorCorrected)
                         this.CorrectColors();
                     if (!((UnityEngine.Object)this.TurretInstance != (UnityEngine.Object)null))
@@ -162,7 +170,6 @@ namespace ExpandedGalaxy
                         return;
                     }
 
-                    this.CalculatedMaxPowerUsage_Watts = 7000f * this.LevelMultiplier(0.1f);
                     if ((UnityEngine.Object)this.beamPS == (UnityEngine.Object)null || (UnityEngine.Object)this.beamPS2 == (UnityEngine.Object)null)
                     {
                         this.beamPS = this.TurretInstance.BeamObject.GetComponent<ParticleSystem>();
@@ -1799,9 +1806,60 @@ namespace ExpandedGalaxy
 
             internal class WDLong : PLMegaTurretCU
             {
+                private bool ColorCorrected;
                 public WDLong(int inLevel = 0, int inSubTypeData = 1) : base(inLevel, inSubTypeData)
                 {
+                    this.Name = "WD Long Range";
+                    this.Desc = "The Corporation's own long-range was made to outclass its C.U. counterpart. This model was stolen in development and has not yet been fitted with missile capabilities.";
+                    this.m_Damage = 900f;
+                    this.SubType = MegaTurretModManager.Instance.GetMegaTurretIDFromName(this.Name);
+                    this.m_MarketPrice = (ObscuredInt)20000;
+                    this.FireDelay = 20f;
+                    this.m_MaxPowerUsage_Watts = 11600f;
+                    this.TurretRange = 16000f;
+                    this.BeamColor = new Color(1.5f, 0.45f, 0f);
+                    this.m_KickbackForceMultiplier = 1.2f;
+                    this.HasTrackingMissileCapability = false;
+                    this.HasPulseLaser = false;
+                    this.CanHitMissiles = false;
+                    this.Experimental = true;
+                    this.ColorCorrected = false;
+                }
 
+                protected virtual void CorrectColors()
+                {
+                    if (!(this.TurretInstance != null))
+                        return;
+                    foreach (Light light in this.TurretInstance.GetComponentsInChildren<Light>(true))
+                    {
+                        if (light.gameObject != null && light.gameObject.name != "TurretLight")
+                        {
+                            Color color = this.BeamColor;
+                            color.a = light.color.a;
+                            light.color = color;
+                        }
+                    }
+                    foreach (ParticleSystem particleSystem in this.TurretInstance.GetComponentsInChildren<ParticleSystem>(true))
+                    {
+                        Color color = this.BeamColor;
+                        color.a = particleSystem.startColor.a;
+                        particleSystem.startColor = color;
+                    }
+                    this.ColorCorrected = true;
+                }
+
+                public override void Unequip()
+                {
+                    this.ColorCorrected = false;
+                    base.Unequip();
+                }
+
+                public override void Tick()
+                {
+                    base.Tick();
+                    this.m_MaxPowerUsage_Watts = 11600f * this.LevelMultiplier(0.2f);
+                    if (this.IsEquipped && !this.ColorCorrected)
+                        this.CorrectColors();
                 }
             }
 
@@ -2574,6 +2632,34 @@ namespace ExpandedGalaxy
                     return false;
                 }
                 return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(PLShop_Exotic2), "CreateInitialWares")]
+        internal class Shop_Exotic2Turrets
+        {
+            private static void Postfix(PLShop_Exotic2 __instance, TraderPersistantDataEntry inPDE)
+            {
+                if (inPDE == null)
+                    return;
+                PLShipComponent componentFromHash = PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, (int)TurretModManager.Instance.GetTurretIDFromName("Seeker Turret"), 0, 0, 12));
+                componentFromHash.NetID = inPDE.ServerWareIDCounter;
+                inPDE.Wares.Add(inPDE.ServerWareIDCounter, (PLWare)componentFromHash);
+                ++inPDE.ServerWareIDCounter;
+            }
+        }
+
+        [HarmonyPatch(typeof(PLShop_Exotic3), "CreateInitialWares")]
+        internal class Shop_Exotic3Turrets
+        {
+            private static void Postfix(PLShop_Exotic3 __instance, TraderPersistantDataEntry inPDE)
+            {
+                if (inPDE == null)
+                    return;
+                PLShipComponent componentFromHash = PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, (int)TurretModManager.Instance.GetTurretIDFromName("Missile Turret Mk. II"), 0, 0, 12));
+                componentFromHash.NetID = inPDE.ServerWareIDCounter;
+                inPDE.Wares.Add(inPDE.ServerWareIDCounter, (PLWare)componentFromHash);
+                ++inPDE.ServerWareIDCounter;
             }
         }
     }

@@ -21,7 +21,7 @@ namespace ExpandedGalaxy
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLMegaTurret>(ESlotType.E_COMP_MAINTURRET));
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                 {
                     __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_MAINTURRET, MegaTurretModManager.Instance.GetMegaTurretIDFromName("WD Standard"), 0, 0, 12)), visualSlot: ESlotType.E_COMP_MAINTURRET);
                 }
@@ -59,7 +59,7 @@ namespace ExpandedGalaxy
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLMegaTurret>(ESlotType.E_COMP_MAINTURRET));
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                 {
                     __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_MAINTURRET, MegaTurretModManager.Instance.GetMegaTurretIDFromName("WD Standard"), 0, 0, 12)), visualSlot: ESlotType.E_COMP_MAINTURRET);
                 }
@@ -96,7 +96,7 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
@@ -127,7 +127,7 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
@@ -158,7 +158,7 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
@@ -189,7 +189,7 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                 {
                     __instance.MyStats.AddShipComponent(PLWarpDriveProgram.CreateWarpDriveProgramFromHash((int)EWarpDriveProgramType.QUANTUM_TUNNEL, 0, 0), visualSlot: ESlotType.E_COMP_PROGRAM);
                     return;
@@ -236,7 +236,7 @@ namespace ExpandedGalaxy
                 if (netID != -1)
                     __instance.MyStats.RemoveShipComponentByNetID(netID);
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_PROGRAM, (int)EWarpDriveProgramType.DETECTOR, 0, 0, (int)ESlotType.E_COMP_PROGRAM)));
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
@@ -288,7 +288,7 @@ namespace ExpandedGalaxy
                 if (netID != -1)
                     __instance.MyStats.RemoveShipComponentByNetID(netID);
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_PROGRAM, (int)EWarpDriveProgramType.DETECTOR, 0, 0, (int)ESlotType.E_COMP_PROGRAM)));
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
@@ -327,7 +327,7 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
@@ -377,7 +377,7 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
@@ -400,7 +400,7 @@ namespace ExpandedGalaxy
 
             private static Exception Finalizer(Exception __exception, PLFluffyShipInfo __instance, bool previewStats, bool startingPlayerShip)
             {
-                if (__instance.MyStats.GetSlot(ESlotType.E_COMP_AUTO_TURRET).MaxItems > 0)
+                if (__instance.MyStats.GetSlot(ESlotType.E_COMP_AUTO_TURRET).MaxItems > 0 || (__instance is PLFluffyShipInfo2))
                     return __exception;
                 __instance.MyStats.SetSlotLimit(ESlotType.E_COMP_AUTO_TURRET, 1);
                 if (previewStats)
@@ -440,6 +440,8 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
+                if (previewStats)
+                    return;
                 __instance.Vents[1].Health = (ObscuredFloat)0f;
                 __instance.Vents[1].IsDead = (ObscuredBool)true;
                 if (startingPlayerShip)
@@ -460,7 +462,7 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
@@ -478,7 +480,7 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));

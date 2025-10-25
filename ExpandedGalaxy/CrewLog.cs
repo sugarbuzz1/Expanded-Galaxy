@@ -41,6 +41,7 @@ namespace ExpandedGalaxy
         public UISprite LogInfoButtonDel;
         public UISprite LogInfoBoxSectorButton;
         public UITexture LogInfoSectorColor;
+        public UISprite LogInfoBoxWrite;
         public List<UITexture> LogInfoKeypadButtons;
         public List<UILabel> LogInfoKeypadLabels;
 
@@ -445,6 +446,19 @@ namespace ExpandedGalaxy
                     };
             screenObjects.LogInfoSectorColor = traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1);
             screenObjects.LogInfoSectorColor.depth += 10000;
+            params1 = new object[7]
+                    {
+                    "LogInfoWriteBtn",
+                    ">_",
+                    new Vector3(44f, 28f),
+                    new Vector2(52f, 48f),
+                    new Color(0.65f, 0.65f, 0.65f),
+                    screenObjects.LogInfoBox.transform,
+                    UIWidget.Pivot.TopLeft,
+                    };
+            screenObjects.LogInfoBoxWrite = traverse.Method("CreateButton", new Type[7] { typeof(string), typeof(string), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UISprite>(params1);
+            screenObjects.LogInfoBoxWrite.depth += 10000;
+            screenObjects.LogInfoBoxWrite.GetComponentInChildren<UILabel>().depth += 10000;
             x = 44f;
             y = 100f;
             for (int i = 0; i < 3; i++)
@@ -545,6 +559,7 @@ namespace ExpandedGalaxy
                 texture.gameObject.SetActive(!hide);
             foreach (UILabel label in m_screenobjects[captainScreen].LogInfoKeypadLabels)
                 label.gameObject.SetActive(!hide);
+            m_screenobjects[captainScreen].LogInfoBoxWrite.gameObject.SetActive(!hide);
         }
 
         internal IEnumerator ToggleLogButtons(PLCaptainScreen captainScreen, bool hide = true)
@@ -859,6 +874,15 @@ namespace ExpandedGalaxy
                             PLStarmap.Instance.OpenStarmapToSector(PLGlobal.Instance.Galaxy.AllSectorInfos[CrewLogManager.Instance.TempData.optionalSectorID]);
                             __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
                         }
+                    }
+                }
+                else if (inButton.name == "LogInfoWriteBtn")
+                {
+                    __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
+                    if (PLNetworkManager.Instance != null)
+                    {
+                        PLNetworkManager.Instance.IsTyping = true;
+                        PLNetworkManager.Instance.CurrentChatText = "/exgal log ";
                     }
                 }
                 else if (inButton.name.Contains("KeypadBtn_") && screenObjects.LogInfoPanel.gameObject.activeSelf)

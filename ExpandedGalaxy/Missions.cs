@@ -1868,6 +1868,7 @@ namespace ExpandedGalaxy
                                 if (pLPersistantShipInfo.Type == EShipType.E_WDCRUISER && pLPersistantShipInfo.SelectedActorID == "ExGal_TreasureFleet_Cruiser")
                                 {
                                     PLServer.Instance.GetActiveMissionWithID(8000008).MyMissionData.Objectives[0].Data["ExGal_NPC_SectorCurrent"] = pLPersistantShipInfo.MyCurrentSector.ID.ToString();
+                                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendNPCSector", PhotonTargets.Others, new object[3] { 8000008, 0, pLPersistantShipInfo.MyCurrentSector.ID });
                                     break;
                                 }
                             }
@@ -1916,8 +1917,11 @@ namespace ExpandedGalaxy
                         }
                         if (cruiserInfo.IsShipDestroyed)
                         {
-                            if (PLServer.Instance.GetActiveMissionWithID(8000008).MyMissionData.Objectives[0].Data.ContainsKey("ExGal_NPC_SectorCurrent"))
+                            if (PLServer.Instance.GetActiveMissionWithID(8000008).MyMissionData.Objectives[0].Data.ContainsKey("ExGal_NPC_SectorCurrent") && PLServer.Instance.GetActiveMissionWithID(8000008).MyMissionData.Objectives[0].Data["ExGal_NPC_SectorCurrent"] != "-1")
+                            {
                                 PLServer.Instance.GetActiveMissionWithID(8000008).MyMissionData.Objectives[0].Data["ExGal_NPC_SectorCurrent"] = "-1";
+                                ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendNPCSector", PhotonTargets.Others, new object[3] { 8000008, 0, -1 });
+                            }
                             if (destroyerInfo != null)
                                 PLServer.Instance.AllPSIs.Remove(destroyerInfo);
                             if (droneInfo != null)
@@ -2002,9 +2006,28 @@ namespace ExpandedGalaxy
                                     PLEncounterManager.Instance.GetCPEI().SpawnEnemyShip(friendInfo.Type, friendInfo);
                             }
                             if (PLServer.Instance.GetActiveMissionWithID(8000008).MyMissionData.Objectives[0].Data.ContainsKey("ExGal_NPC_SectorCurrent"))
+                            {
                                 PLServer.Instance.GetActiveMissionWithID(8000008).MyMissionData.Objectives[0].Data["ExGal_NPC_SectorCurrent"] = fleetPath[1].ID.ToString();
+                                ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendNPCSector", PhotonTargets.Others, new object[3] { 8000008, 0, fleetPath[1].ID });
+                            }
                         }
                     }
+                }
+            }
+
+            internal class ServerSendNPCSector : ModMessage
+            {
+                public override void HandleRPC(object[] arguments, PhotonMessageInfo sender)
+                {
+                    int missionID = (int)arguments[0];
+                    int objectiveIndex = (int)arguments[1];
+                    int sectorID = (int)arguments[2];
+
+                    if (PLServer.Instance == null || !PLServer.Instance.HasActiveMissionWithID(missionID))
+                        return;
+                    if (PLServer.Instance.GetActiveMissionWithID(missionID).MyMissionData == null || PLServer.Instance.GetActiveMissionWithID(missionID).MyMissionData.Objectives.Count < objectiveIndex)
+                        return;
+                    PLServer.Instance.GetActiveMissionWithID(missionID).MyMissionData.Objectives[objectiveIndex].Data["ExGal_NPC_SectorCurrent"] = sectorID.ToString();
                 }
             }
 
@@ -2226,7 +2249,7 @@ namespace ExpandedGalaxy
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_WARP, (int)EWarpDriveType.E_OLDWARS_SUPER_JUMPER, 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, (int)TurretModManager.Instance.GetTurretIDFromName("Particle Lance"), 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, (int)TurretModManager.Instance.GetTurretIDFromName("Seeker Turret"), 0, 0, (int)ESlotType.E_COMP_CARGO)));
-                    traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_MAINTURRET, (int)MegaTurretModManager.Instance.GetMegaTurretIDFromName("WD Long"), 0, 0, (int)ESlotType.E_COMP_CARGO)));
+                    traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_MAINTURRET, (int)MegaTurretModManager.Instance.GetMegaTurretIDFromName("WD Long Range"), 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_SALVAGE_SYSTEM, (int)EExtractorType.E_PT_EXTRACTOR, 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_PROGRAM, (int)WarpDriveProgramModManager.Instance.GetWarpDriveProgramIDFromName("Special Training [VIRUS]"), 0, 0, (int)ESlotType.E_COMP_CARGO)));
                     traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_FB_RECIPE, (int)FBRecipe.E_SPICY, 0, 0, (int)ESlotType.E_COMP_CARGO)));

@@ -594,6 +594,7 @@ namespace ExpandedGalaxy
                     missionHandIn.Actions.Add(new LineActionData() { Type = "0" });
                     missionHandIn.IsPlayerLine = true;
                     missionHandIn.Requirements.Add(new LineRequirementData() { Type = "21", Parameter = "ExGal_BadBiscuit_Kill" });
+                    missionHandIn.Requirements.Add(new LineRequirementData() { Type = "14", Parameter = "8000012" });
 
                     LineData missionHandInText = new LineData();
                     missionHandInText.TextOptions.Add("Ah, yes. I was informed the target was eliminated by another member before you got here. I suppose that means you're in. I've sent you the location of our hideout. It's a decommissioned biscuit factory; I'm sure you've been there before. You'll meet a ship there that has quite the selection of ship components. Welcome to the cause, brothers.");

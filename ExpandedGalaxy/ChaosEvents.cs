@@ -262,9 +262,9 @@ namespace ExpandedGalaxy
         {
             private static bool Prefix(PLServer __instance)
             {
-                if (!__instance.IsChaosEventActive(EChaosEvent.E_CALM) || __instance.HasActiveMissionWithID(8000009) || PLEncounterManager.Instance == null || PLEncounterManager.Instance.PlayerShip == null)
+                if (!__instance.IsChaosEventActive(EChaosEvent.E_CALM) || __instance.HasActiveMissionWithID(8000013) || PLEncounterManager.Instance == null || PLEncounterManager.Instance.PlayerShip == null)
                     return true;
-                PickupMissionData pickupMission = (PickupMissionData)PLCampaignIO.Instance.GetMissionOfTypeID(8000009);
+                PickupMissionData pickupMission = (PickupMissionData)PLCampaignIO.Instance.GetMissionOfTypeID(8000013);
                 if (pickupMission == null || !__instance.DoesRequirementListPass(pickupMission.StartingRequirements))
                     return true;
                 bool flag = false;
@@ -417,7 +417,7 @@ namespace ExpandedGalaxy
                 List<CodeInstruction> targetSequence = new List<CodeInstruction>()
                 {
                     new CodeInstruction(OpCodes.Ldc_I4_0),
-                    new CodeInstruction(OpCodes.Ldc_I4_S, 40),
+                    new CodeInstruction(OpCodes.Ldc_I4_S),
                     new CodeInstruction(OpCodes.Call),
                     new CodeInstruction(OpCodes.Brtrue_S),
                     new CodeInstruction(OpCodes.Ldarg_0),
@@ -433,22 +433,21 @@ namespace ExpandedGalaxy
                     new CodeInstruction(OpCodes.Ldfld),
                     new CodeInstruction(OpCodes.Callvirt),
                     new CodeInstruction(OpCodes.Callvirt),
-                    new CodeInstruction(OpCodes.Ldarg_0),
-                    new CodeInstruction(OpCodes.Call),
-                    new CodeInstruction(OpCodes.Stfld),
                     new CodeInstruction(OpCodes.Ldarg_0),
                     new CodeInstruction(OpCodes.Call),
                     new CodeInstruction(OpCodes.Stfld),
                 };
                 List<CodeInstruction> patchSequence = new List<CodeInstruction>()
                 {
-                    new CodeInstruction(OpCodes.Ldfld), // CurrentShip
-                    new CodeInstruction(OpCodes.Ldfld), // CurrentInvestigationTarget
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(PLCombatTarget), "CurrentShip")),
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(PLCUInvestigatorDrone), "currentInvestigationTarget")),
                     new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ScanComponentsFromScreen), "ScanFromScreen", new System.Type[2] {typeof(PLShipInfo), typeof(Transform)})),
-                    new CodeInstruction(OpCodes.Stloc_S) // flag3
+                    new CodeInstruction(OpCodes.Stloc_S, (byte)13)
                 };
 
-                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.AFTER, HarmonyHelpers.CheckMode.NONNULL, false);
+                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.AFTER, HarmonyHelpers.CheckMode.NONNULL, true);
             }
         }
 

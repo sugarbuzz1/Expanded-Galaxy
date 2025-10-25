@@ -59,8 +59,6 @@ namespace ExpandedGalaxy
                     for (int i = 0; i < ammoBoxCount; i++)
                         data.Add(binaryReader.ReadSingle());
 
-                    DelayedLoadData(data);
-
                     if (VersionID < 3)
                         return;
 
@@ -113,7 +111,7 @@ namespace ExpandedGalaxy
                     Debug.Log("Loaded All Logs");
 
                     TraderPersistantDataEntry dataEntry1 = new TraderPersistantDataEntry();
-                    dataEntry.ServerWareIDCounter = binaryReader.ReadInt32();
+                    dataEntry1.ServerWareIDCounter = binaryReader.ReadInt32();
                     int wareCount1 = binaryReader.ReadInt32();
                     for (int i = 0; i < wareCount1; i++)
                     {
@@ -121,15 +119,10 @@ namespace ExpandedGalaxy
                         if (fromHash != null)
                             dataEntry1.ServerAddWare(fromHash);
                     }
-                    foreach (PLPersistantShipInfo allPSI in PLServer.Instance.AllPSIs)
-                    {
-                        if (allPSI != null && allPSI.SelectedActorID == "ExGal_FBCarrier")
-                        {
-                            allPSI.OptionalTPDE = dataEntry1;
-                            Missions.BadBiscuitPatches.carrierData = dataEntry1;
-                            break;
-                        }
-                    }
+                    Debug.Log("[ExGal] Created Carrier Shop with [" + dataEntry1.ServerWareIDCounter.ToString() + "] items");
+                    data.Add(dataEntry1);
+                    
+                    DelayedLoadData(data);
                 }
             }
         }
@@ -237,9 +230,15 @@ namespace ExpandedGalaxy
             while (true)
             {
                 if (PLServer.Instance == null)
-                    return;
-                if (PLEncounterManager.Instance.PlayerShip == null)
+                {
                     await Task.Delay(1000);
+                    continue;
+                }
+                if (PLEncounterManager.Instance.PlayerShip == null)
+                {
+                    await Task.Delay(1000);
+                    continue;
+                }
                 else
                     break;
             }
@@ -255,6 +254,18 @@ namespace ExpandedGalaxy
             for (int i = 0; i < PLEncounterManager.Instance.PlayerShip.MyAmmoRefills.Length; i++)
                 PLEncounterManager.Instance.PlayerShip.MyAmmoRefills[i].SupplyAmount = ammoBoxSupply[i];
             index += ammoBoxCount;
+
+            TraderPersistantDataEntry dataEntry = (TraderPersistantDataEntry)data[index];
+            foreach (PLPersistantShipInfo allPSI in PLServer.Instance.AllPSIs)
+            {
+                if (allPSI != null && allPSI.SelectedActorID == "ExGal_FBCarrier")
+                {
+                    allPSI.OptionalTPDE = dataEntry;
+                    Missions.BadBiscuitPatches.carrierData = dataEntry;
+                    Debug.Log("[ExGal] Loaded Carrier Shop");
+                    break;
+                }
+            }
         }
     }
 
