@@ -2838,7 +2838,11 @@ namespace ExpandedGalaxy
                         }
                     }
                     if (persistantCaravanInfo == null || persistantCaravanInfo.IsShipDestroyed)
+                    {
+                        CaravanCurrentSector = -1;
+                        CaravanTargetSector = -1;
                         return;
+                    }
                     if (persistantCaravanInfo.OptionalTPDE != null)
                         CaravanTraderData = persistantCaravanInfo.OptionalTPDE;
                     if (persistantCaravanInfo.OptionalTPDE == null && CaravanTraderData != null)
@@ -2869,15 +2873,6 @@ namespace ExpandedGalaxy
                                             persistantCaravanInfo.MyCurrentSector = CaravanPath[CaravanPathIndex + 1];
                                             persistantCaravanInfo.ShldPercent = 1f;
                                             CaravanPathIndex++;
-                                            if (CaravanCurrentSector != -1 && PLServer.GetCurrentSector() != null && CaravanCurrentSector == PLServer.GetCurrentSector().ID && PLEncounterManager.Instance.PlayerShip != null && !PLEncounterManager.Instance.PlayerShip.InWarp)
-                                            {
-
-                                                if (persistantCaravanInfo != null && !persistantCaravanInfo.IsShipDestroyed && persistantCaravanInfo.ShipInstance == null)
-                                                {
-                                                    persistantCaravanInfo.MyCurrentSector = PLServer.GetCurrentSector();
-                                                    persistantCaravanInfo.CreateShipInstance(PLEncounterManager.Instance.GetCPEI());
-                                                }
-                                            }
                                         }
                                         if (CaravanCurrentSector == CaravanTargetSector)
                                         {

@@ -496,16 +496,36 @@ namespace ExpandedGalaxy
 
         internal static bool ShouldRefillPlayer(PLAmmoRefill ammoRefill, PLPlayer player)
         {
-            if (ammoRefill.MyTLI == null || ammoRefill.MyTLI.MyShipInfo == null)
-                return true;
-            if (ammoRefill.MyTLI.MyShipInfo.TeamID == -1)
+            if (player == null)
                 return false;
-            if (player.StartingShip != null && player.MyCurrentTLI != null && player.MyCurrentTLI == ammoRefill.MyTLI)
-            {
-                if (player.StartingShip.ShipID == ammoRefill.MyTLI.MyShipInfo.ShipID)
-                    return true;
-            }
+            if (ammoRefill.MyTLI != null && ammoRefill.MyTLI.MyShipInfo != null && (ammoRefill.MyTLI.MyShipInfo.TeamID == -1 || ammoRefill.MyTLI.MyShipInfo.TeamID == player.TeamID))
+                return true;
+            if (ammoRefill is PLAmmoRefill_Arena)
+                return true;
             return false;
+        }
+
+        [HarmonyPatch(typeof(PLAmmoRefill), "Update")]
+        internal class StabilizerInertiaTurret
+        {
+            private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                List<CodeInstruction> list = instructions.ToList();
+
+                List<CodeInstruction> targetSequence = new List<CodeInstruction>() {
+                    new CodeInstruction(OpCodes.Ldloc_2),
+                    new CodeInstruction(OpCodes.Ldnull),
+                    new CodeInstruction(OpCodes.Call),
+                };
+                List<CodeInstruction> patchSequence = new List<CodeInstruction>()
+                {
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new CodeInstruction(OpCodes.Ldloc_2),
+                    new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Ammunition), "ShouldRefillPlayer", new Type[2] {typeof(PLAmmoRefill), typeof(PLPlayer)})),
+                };
+
+                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.REPLACE, HarmonyHelpers.CheckMode.NONNULL, true);
+            }
         }
     }
 }

@@ -260,7 +260,7 @@ namespace ExpandedGalaxy
                 PLShipInfoBase pLShipInfoBase = InComp.ShipStats.Ship;
                 if (pLShipInfoBase != null)
                 {
-                    pLShipInfoBase.AcidicAtmoBoostAlpha += 0.02f * Time.deltaTime;
+                    pLShipInfoBase.AcidicAtmoBoostAlpha += 0.2f * Time.deltaTime;
                     pLShipInfoBase.AuxConfig &= (byte) 251U;
                 }
             }
