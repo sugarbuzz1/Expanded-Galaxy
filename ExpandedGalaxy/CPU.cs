@@ -1,8 +1,11 @@
 ﻿using HarmonyLib;
 using PulsarModLoader;
 using PulsarModLoader.Content.Components.CPU;
+using PulsarModLoader.Patches;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
 using UnityEngine;
 
 namespace ExpandedGalaxy
@@ -99,7 +102,7 @@ namespace ExpandedGalaxy
                 {
                     plcpu.CalculatedMaxPowerUsage_Watts = (40000f + 4000f * plcpu.Level);
                 }
-                if (PLNetworkManager.Instance.MyLocalPawn != null && PLNetworkManager.Instance.MyLocalPawn.CurrentShip != null && PLNetworkManager.Instance.MyLocalPawn.CurrentShip == plcpu.ShipStats.Ship && (PLNetworkManager.Instance.LocalPlayer.GetClassID() == 0 || PLNetworkManager.Instance.LocalPlayer.GetClassID() == 2) && PLInput.Instance.GetButtonUp(PLInputBase.EInputActionName.pilot_ability) && !PLNetworkManager.Instance.LocalPlayer.IsSittingInCaptainsChair() && PLCameraSystem.Instance.CurrentCameraMode != null && PLCameraSystem.Instance.CurrentCameraMode.GetModeString() == "LocalPawn")
+                if (PLNetworkManager.Instance.MyLocalPawn != null && PLNetworkManager.Instance.MyLocalPawn.CurrentShip != null && PLNetworkManager.Instance.MyLocalPawn.CurrentShip == plcpu.ShipStats.Ship && (PLNetworkManager.Instance.LocalPlayer.GetClassID() == 0 || PLNetworkManager.Instance.LocalPlayer.GetClassID() == 2) && (bool)AccessTools.Method(typeof(PLInput), "GetButtonUp", new Type[1] { typeof(string) }).Invoke(PLInput.Instance, new object[1] { (object)"ExpandedGalaxy.Ability" }) && !PLNetworkManager.Instance.LocalPlayer.IsSittingInCaptainsChair() && PLCameraSystem.Instance.CurrentCameraMode != null && PLCameraSystem.Instance.CurrentCameraMode.GetModeString() == "LocalPawn")
                 {
                     ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSylvassiCPU", PhotonTargets.All, new object[1]
                     {
@@ -292,12 +295,128 @@ namespace ExpandedGalaxy
         }
 
         [HarmonyPatch(typeof(PLCPU), MethodType.Constructor, new Type[2] { typeof(ECPUClass), typeof(int) })]
-        internal class SCPBuff
+        internal class CPUConstructorPatch
         {
             private static void Postfix(PLCPU __instance, ECPUClass inClass, int inLevel, ref float ___m_Speed)
             {
                 if (inClass == ECPUClass.E_CPUTYPE_SHIELD_COPROCESSOR)
                     ___m_Speed = 10f;
+                
+                switch(inClass)
+                {
+                    case ECPUClass.IMPROVED_DEFENSES:
+                        __instance.SysInstConduit = 2;
+                        break;
+                    case ECPUClass.CYBERWARFARE_MODULE:
+                        __instance.SysInstConduit = 3;
+                        break;
+                    case ECPUClass.E_CPUTYPE_JUMP_PROCESSOR:
+                    case ECPUClass.COMBO:
+                        __instance.SysInstConduit = 4;
+                        break;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(PLCPU), "Tick")]
+        internal class CPUTickPatch
+        {
+            private static void Postfix(PLCPU __instance)
+            {
+                if (__instance.SubType == (int)ECPUClass.E_CPUTYPE_SHIELD_COPROCESSOR)
+                {
+                    __instance.IsPowerActive = true;
+                }
+                if (__instance.SysInstConduit != -1 && __instance.IsPowerActive)
+                {
+                    if (__instance.ShipStats != null && __instance.ShipStats.Ship.ComputerSystem != null)
+                        __instance.RequestPowerUsage_Percent = __instance.ShipStats.Ship.ComputerSystem.GetHealthRatio();
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(PLCPU), "AddStats")]
+        internal class CPUAddStatsPatch
+        {
+            private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                List<CodeInstruction> list = instructions.ToList();
+
+                List<CodeInstruction> targetSequence = new List<CodeInstruction>() {
+                    new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(PLCPU), "get_Speed")),
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new CodeInstruction(OpCodes.Ldc_R4),
+                    new CodeInstruction(OpCodes.Ldc_R4),
+                    new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(PLShipComponent), "LevelMultiplier")),
+                    new CodeInstruction(OpCodes.Mul),
+                };
+                List<CodeInstruction> patchSequence = new List<CodeInstruction>()
+                {
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(PLPoweredShipComponent), "GetPowerPercentInput")),
+                    new CodeInstruction(OpCodes.Mul),
+                };
+
+                List<CodeInstruction> list2 = HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.AFTER, HarmonyHelpers.CheckMode.NONNULL, false).ToList<CodeInstruction>();
+
+                List<CodeInstruction> targetSequence2 = new List<CodeInstruction>() {
+                    new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(typeof(PLShipStats), "get_CyberAttackRating")),
+                    new CodeInstruction(OpCodes.Ldc_R4),
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new CodeInstruction(OpCodes.Ldc_R4),
+                    new CodeInstruction(OpCodes.Ldc_R4),
+                    new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(PLShipComponent), "LevelMultiplier")),
+                    new CodeInstruction(OpCodes.Mul),
+                };
+                List<CodeInstruction> patchSequence2 = new List<CodeInstruction>()
+                {
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(PLPoweredShipComponent), "GetPowerPercentInput")),
+                    new CodeInstruction(OpCodes.Mul),
+                };
+
+                return HarmonyHelpers.PatchBySequence(list2.AsEnumerable<CodeInstruction>(), targetSequence2, patchSequence2, HarmonyHelpers.PatchMode.AFTER, HarmonyHelpers.CheckMode.NONNULL, false);
+            }
+        }
+
+        [HarmonyPatch(typeof(PLCPU), "FinalLateAddStats")]
+        internal class CPUFinalLateAddStatsPatch
+        {
+            private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                List<CodeInstruction> list = instructions.ToList();
+
+                List<CodeInstruction> targetSequence = new List<CodeInstruction>() {
+                    new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(typeof(PLShipStats), "ShieldsChargeRateMax")),
+                    new CodeInstruction(OpCodes.Ldc_R4, 2f),
+                };
+                List<CodeInstruction> patchSequence = new List<CodeInstruction>()
+                {
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new CodeInstruction(OpCodes.Ldc_R4, 0.25f),
+                    new CodeInstruction(OpCodes.Ldc_R4, 1f),
+                    new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(PLShipComponent), "LevelMultiplier")),
+                    new CodeInstruction(OpCodes.Mul),
+                };
+                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.AFTER, HarmonyHelpers.CheckMode.NONNULL, false);
+            }
+        }
+
+        [HarmonyPatch(typeof(PLShipInfo), "CreateShipInstUIs")]
+        internal class JumpSysInstText
+        {
+            private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                List<CodeInstruction> list = instructions.ToList();
+
+                List<CodeInstruction> targetSequence = new List<CodeInstruction>() {
+                    new CodeInstruction(OpCodes.Ldstr, "Cloaking System")
+                };
+                List<CodeInstruction> patchSequence = new List<CodeInstruction>()
+                {
+                    new CodeInstruction(OpCodes.Ldstr, "Jump Processors")
+                };
+                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.REPLACE, HarmonyHelpers.CheckMode.NONNULL, false);
             }
         }
     }

@@ -1,6 +1,4 @@
 ﻿using HarmonyLib;
-using PulsarModLoader.Utilities;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace ExpandedGalaxy
@@ -208,10 +206,16 @@ namespace ExpandedGalaxy
         public static PLDistressSignal CreateDistressSignal(int Subtype, int level)
         {
 
-            if (Subtype > 3)
+            if (Subtype == 4)
             {
                 return new MiningDroneSignal(4, level);
             }
+            else if (Subtype == 5)
+                return new Missions.MissionShipFlagComp(5, level);
+            else if (Subtype == 6)
+                return new Missions.MissionAddOneCPUSlotComp(6, level);
+            else if (Subtype == 7)
+                return new Missions.MissionNoExtractorFlag(7, level);
             return new PLDistressSignal((EDistressSignalType)Subtype, level);
         }
 

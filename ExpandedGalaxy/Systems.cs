@@ -73,9 +73,9 @@ namespace ExpandedGalaxy
                                 {
                                     PLCaptainsChair chair = ship.MyStats.GetShipComponent<PLCaptainsChair>(ESlotType.E_COMP_CAPTAINS_CHAIR);
                                     if (chair.SubTypeData == 0)
-                                        setBottomInfoText("<color=yellow>[" + PLInput.Instance.GetPrimaryKeyStringForAction(PLInputBase.EInputActionName.pilot_ability) + "] Launch Drone</color>");
+                                        setBottomInfoText("<color=yellow>[" + PLInput.Instance.GetPrimaryKeyStringForAction("ExpandedGalaxy.Ability") + "] Launch Drone</color>");
                                     else if (chair.SubTypeData > 0)
-                                        setBottomInfoText("<color=yellow>[" + PLInput.Instance.GetPrimaryKeyStringForAction(PLInputBase.EInputActionName.pilot_ability) + "] Control Drone</color>");
+                                        setBottomInfoText("<color=yellow>[" + PLInput.Instance.GetPrimaryKeyStringForAction("ExpandedGalaxy.Ability") + "] Control Drone</color>");
                                 }
                             }
                             else
@@ -95,11 +95,11 @@ namespace ExpandedGalaxy
                                             return;
                                         if (plcpu.SubTypeData == 0)
                                         {
-                                            setBottomInfoText("<color=yellow>[" + PLInput.Instance.GetPrimaryKeyStringForAction(PLInputBase.EInputActionName.pilot_ability) + "] Enable Shield Charger</color>");
+                                            setBottomInfoText("<color=yellow>[" + PLInput.Instance.GetPrimaryKeyStringForAction("ExpandedGalaxy.Ability") + "] Enable Shield Charger</color>");
                                         }
                                         else
                                         {
-                                            setBottomInfoText("<color=yellow>[" + PLInput.Instance.GetPrimaryKeyStringForAction(PLInputBase.EInputActionName.pilot_ability) + "] Disable Shield Charger</color>");
+                                            setBottomInfoText("<color=yellow>[" + PLInput.Instance.GetPrimaryKeyStringForAction("ExpandedGalaxy.Ability") + "] Disable Shield Charger</color>");
                                         }
                                     }
                                 }
@@ -194,7 +194,7 @@ namespace ExpandedGalaxy
                     new CodeInstruction(OpCodes.Brtrue, failed2)
                 };
 
-                return HarmonyHelpers.PatchBySequence(list2.AsEnumerable<CodeInstruction>(), targetSequence2, patchSequence2, HarmonyHelpers.PatchMode.AFTER, HarmonyHelpers.CheckMode.NONNULL, true);
+                return HarmonyHelpers.PatchBySequence(list2.AsEnumerable<CodeInstruction>(), targetSequence2, patchSequence2, HarmonyHelpers.PatchMode.AFTER, HarmonyHelpers.CheckMode.NONNULL, false);
             }
         }
 
@@ -545,6 +545,18 @@ namespace ExpandedGalaxy
             }
         }
 
+        [HarmonyPatch(typeof(PLShipControl), "FixedUpdate")]
+        internal class ThrottleBoostMax
+        {
+            private static void Postfix(PLShipControl __instance)
+            {
+                if (__instance.ShipInfo != null && __instance.ShipInfo.EngineeringSystem != null)
+                {
+                    __instance.Boost = Mathf.Clamp(__instance.Boost, 0f, __instance.ShipInfo.EngineeringSystem.GetHealthRatio());
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(PLTurret), "ShouldAIFire")]
         internal class AIFireBase
         {
@@ -586,7 +598,7 @@ namespace ExpandedGalaxy
         }
 
         [HarmonyPatch(typeof(PLUIOutsideWorldUI), "Update")]
-        internal class alwaysShowLead
+        internal class AlwaysShowLead
         {
             private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
@@ -623,6 +635,15 @@ namespace ExpandedGalaxy
 
             public override void CreateStartingPoints(int inSeed)
             {
+            }
+        }
+
+        [HarmonyPatch(typeof(PLCaptainScreen), "GetClaimValues")]
+        internal class AllScreenCapture
+        {
+            private static void Postfix(PLCaptainScreen __instance, ref int playerControlledScreensCountOut, ref int countScreensTotalOut, ref int reqScreenCountOut)
+            {
+                reqScreenCountOut = countScreensTotalOut;
             }
         }
     }

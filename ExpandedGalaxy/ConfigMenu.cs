@@ -25,6 +25,14 @@ namespace ExpandedGalaxy
             {
                 GUILayout.Label("Dynamic Ammunition: " + (Ammunition.DynamicAmmunition ? "True" : "False"));
             }
+            if (PhotonNetwork.isMasterClient || PLNetworkManager.Instance.CurrentGame == null)
+            {
+                Missions.slowMissionPickups = GUILayout.Toggle(Missions.slowMissionPickups, "Slower Comms Missions");
+            }
+            else
+            {
+                GUILayout.Label("Slower Missions: " + (Missions.slowMissionPickups ? "True" : "False"));
+            }
         }
     }
 }

@@ -1,17 +1,18 @@
 ﻿using HarmonyLib;
 using PulsarModLoader;
+using PulsarModLoader.Keybinds;
 using System.Collections.Generic;
 
 namespace ExpandedGalaxy
 {
-    public class Mod : PulsarMod
+    public class Mod : PulsarMod, IKeybind
     {
         public Mod() : base()
         {
             PLGlobal.Instance.AuxSystemNames[4] = PLLocalize.Localize("Turret Autofire");
             PLGlobal.Instance.Galaxy.FactionColors[6] = Relic.getRelicColor();
         }
-        public override string Version => "1.0.6";
+        public override string Version => "1.1.0";
 
         public override string Author => "sugarbuzz1";
 
@@ -41,5 +42,7 @@ namespace ExpandedGalaxy
             traverse.Field("CachedTalentInfos").SetValue(new Dictionary<int, TalentInfo>());
             base.Unload();
         }
+
+        public void RegisterBinds(KeybindManager manager) => manager.NewBind("[ExGal] Ability", "ExpandedGalaxy.Ability", "Basics", "v");
     }
 }

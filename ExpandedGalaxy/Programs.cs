@@ -2,9 +2,13 @@
 using HarmonyLib;
 using PulsarModLoader;
 using PulsarModLoader.Content.Components.Hull;
+using PulsarModLoader.Content.Components.Virus;
 using PulsarModLoader.Content.Components.WarpDriveProgram;
+using PulsarModLoader.Patches;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
 using UnityEngine;
 
 namespace ExpandedGalaxy
@@ -53,6 +57,8 @@ namespace ExpandedGalaxy
             public override float ActiveTime => 60f;
 
             public override int MaxLevelCharges => 3;
+
+            public override bool Experimental => true;
         }
 
         [HarmonyPatch(typeof(PLShipInfoBase), "TakeDamage")]
@@ -218,6 +224,48 @@ namespace ExpandedGalaxy
             }
         }
 
+        private class SpecialTrainingMod : WarpDriveProgramMod
+        {
+            public override string Name => "Special Training [VIRUS]";
+
+            public override string Description => "Broadcasts [Special Training] virus to nearby ships on activation.\n\nSpecial Training: Slowly fills ship with acidic gas for 30 seconds.";
+
+            public override int MarketPrice => 7600;
+
+            public override string ShortName => "ST";
+
+            public override bool IsVirus => true;
+
+            public override int VirusSubtype => (int)VirusModManager.Instance.GetVirusIDFromName("Special Training");
+
+            public override int MaxLevelCharges => 5;
+
+            public override float ActiveTime => 30f;
+
+            public override Texture2D IconTexture => PLGlobal.Instance.VirusBGTexture;
+
+            public override bool Contraband => true;
+        }
+
+        private class SpecialTrainingVirusMod : VirusMod
+        {
+            public override string Name => "Special Training";
+
+            public override string Description => "Slowly fills ship with acidic gas";
+
+            public override int InfectionTimeLimitMs => 30000;
+
+            public override void FinalLateAddStats(PLShipComponent InComp)
+            {
+                PLShipInfoBase pLShipInfoBase = InComp.ShipStats.Ship;
+                if (pLShipInfoBase != null)
+                {
+                    pLShipInfoBase.AcidicAtmoBoostAlpha += 0.2f * Time.deltaTime;
+                    pLShipInfoBase.AuxConfig &= (byte) 251U;
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(PLWarpDriveProgram), "Tick")]
         internal class ShieldBoostNumbers
         {
@@ -265,9 +313,15 @@ namespace ExpandedGalaxy
                 else if (inType == EWarpDriveProgramType.SITTING_DUCK_VIRUS_PROGRAM)
                     __instance.Desc = "Broadcasts [Sitting Duck] virus to nearby ships on activation. Incurs a slight Cyber-Atk penalty when infecting.\n\nSitting Duck: Disables ship thrusters for 60 seconds";
                 else if (inType == EWarpDriveProgramType.GENTLEMENS_WELCOME)
+                {
                     __instance.Desc = "Broadcasts [Gentlemen's Welcome] virus to nearby ships on activation. Incurs a moderate Cyber-Atk penalty when infecting.\n\nGentleman's Welcome: Disables quantum shields for 3 minutes";
+                    __instance.Contraband = true;
+                }
                 else if (inType == EWarpDriveProgramType.SHUTDOWN_DEFENSES)
+                {
                     __instance.Desc = "Broadcasts [Shutdown Defenses] virus to nearby ships on activation. Incurs a slight Cyber-Atk penalty when infecting.\n\nShutdown Defenses: Disables defensive systems for 20 seconds";
+                    __instance.Contraband = true;
+                }
                 else if (inType == EWarpDriveProgramType.DETECTOR)
                 {
                     __instance.Desc = "Reveals all ships in the sector for 30 seconds.";
@@ -276,9 +330,21 @@ namespace ExpandedGalaxy
 
                 }
                 else if (inType == EWarpDriveProgramType.BLOCK_LONG_RANGE_COMMS)
+                {
                     ___m_MarketPrice = (ObscuredInt)9000;
+                    __instance.Contraband = true;
+                }
                 else if (inType == EWarpDriveProgramType.RAND_LARGE)
+                {
                     __instance.VirusType = EVirusType.RAND_LARGE;
+                    __instance.Experimental = true;
+                }
+                else if (inType == EWarpDriveProgramType.RAND_SMALL)
+                    __instance.Experimental = true;
+                else if (inType == EWarpDriveProgramType.SIPHEN)
+                    __instance.Contraband = true;
+                else if (inType == EWarpDriveProgramType.SHOCK_THE_SYSTEM)
+                    __instance.Experimental = true;
             }
         }
 
@@ -511,6 +577,67 @@ namespace ExpandedGalaxy
                         return true;
             }
             return false;
+        }
+
+        [HarmonyPatch(typeof(PLWarpDrive), "ChargePrograms")]
+        internal class EnemyFullChargePrograms
+        {
+            private static bool Prefix(PLWarpDrive __instance, ref bool chargeToFull, int overrideChargeCount)
+            {
+                if (!__instance.ShipStats.Ship.GetIsPlayerShip())
+                    chargeToFull = true;
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(PLScientistComputerScreen), "Update")]
+        internal class ProgramFGColor
+        {
+            internal static Color GetFGColorForProgram(PLWarpDriveProgram program)
+            {
+                if (program.Experimental)
+                    return new Color(0.7f, 0.7f, 0.1f, 1f);
+                else if (program.Contraband)
+                    return new Color(0.8f, 0f, 0f, 1f);
+                else if (Relic.getIsRelic(program))
+                    return Relic.getRelicColor();
+                return new Color(0.65f, 0.65f, 0.65f, 1f);
+            }
+            private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+            {
+                List<CodeInstruction> list = instructions.ToList();
+                LocalBuilder index1 = null;
+                List<Label> label = new List<Label>();
+
+                for (int i = 0; i < list.Count; i++)
+                {
+                    CodeInstruction codeInstruction = list[i];
+                    if (codeInstruction.opcode == OpCodes.Ldloc_S && codeInstruction.operand is LocalBuilder lb1 && lb1.LocalIndex == 40)
+                    {
+                        index1 = lb1;
+                        if (codeInstruction.labels.Count > 0 && i > 1200)
+                            label.AddRange(codeInstruction.labels);
+                    }
+                    if (index1 != null && label.Count > 0)
+                        break;
+                }
+
+                List<CodeInstruction> targetSequence = new List<CodeInstruction>() {
+                    new CodeInstruction(OpCodes.Ldloc_S, index1),
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(PLUIScreen), "UI_White")),
+                };
+                List<CodeInstruction> patchSequence = new List<CodeInstruction>()
+                {
+                    new CodeInstruction(OpCodes.Ldloc_S, (byte)40),
+                    new CodeInstruction(OpCodes.Ldloc_S, (byte)43),
+                    new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ProgramFGColor), "GetFGColorForProgram", new Type[1] {typeof(PLWarpDriveProgram)})),
+                };
+
+                List<CodeInstruction> list2 = HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.REPLACE, HarmonyHelpers.CheckMode.NONNULL, true).ToList<CodeInstruction>();
+                patchSequence[0].labels.AddRange(label);
+                return HarmonyHelpers.PatchBySequence(list2.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.REPLACE, HarmonyHelpers.CheckMode.NONNULL, false);
+            }
         }
     }
 }

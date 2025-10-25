@@ -2066,10 +2066,10 @@ namespace ExpandedGalaxy
 
             private static bool TeleporterActive(PLSectorInfo sectorInfo)
             {
-                if (sectorInfo.VisualIndication == ESectorVisualIndication.LAVA2 && PLEncounterManager.Instance != null && PLEncounterManager.Instance.PlayerShip != null && !PLEncounterManager.Instance.PlayerShip.InWarp)
+                if (sectorInfo.VisualIndication == ESectorVisualIndication.LAVA2 && PLEncounterManager.Instance != null && PLEncounterManager.Instance.PlayerShip != null && !PLEncounterManager.Instance.PlayerShip.InWarp && PLEncounterManager.Instance.GetCPEI() != null)
                 {
                     bool flag = false;
-                    foreach (PLShipInfoBase plShipInfoBase in UnityEngine.Object.FindObjectsOfType(typeof(PLShipInfoBase)))
+                    foreach (PLShipInfoBase plShipInfoBase in PLEncounterManager.Instance.GetCPEI().MyCreatedShipInfos)
                     {
                         if (plShipInfoBase.ShipTypeID == EShipType.E_WDDRONE2)
                         {
@@ -2082,6 +2082,8 @@ namespace ExpandedGalaxy
                                 }
                             }
                         }
+                        if (flag)
+                            break;
                     }
                     return !flag;
                 }
@@ -2310,12 +2312,11 @@ namespace ExpandedGalaxy
                     if (!startingPlayerShip && !previewStats && __instance.ShipRoot != null)
                     {
                         if (PhotonNetwork.isMasterClient)
-                            ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.RecieveShopComponent", PhotonTargets.Others, new object[1] { __instance.ShipID });
+                            ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.RecieveShopComponent", PhotonTargets.Others, new object[2] { __instance.ShipID, 0 });
                         Shop_Caravan shop = __instance.ShipRoot.AddComponent<Shop_Caravan>();
                         shop.OptionalShip = __instance;
                         shop.MySensorObject = __instance.MySensorObjectShip;
                         __instance.photonView.ObservedComponents.Add((Component)shop);
-                        Traverse traverse = Traverse.Create(__instance);
                     }
                 }
             }
@@ -2324,11 +2325,11 @@ namespace ExpandedGalaxy
             {
                 public override void HandleRPC(object[] arguments, PhotonMessageInfo sender)
                 {
-                    LateAddShopComponent((int)arguments[0]);
+                    LateAddShopComponent((int)arguments[0], (int)arguments[1]);
                 }
             }
 
-            internal static async void LateAddShopComponent(int inShipID)
+            internal static async void LateAddShopComponent(int inShipID, int shopID)
             {
                 PLShipInfoBase shipInfoBase = null;
                 while (true)
@@ -2339,12 +2340,24 @@ namespace ExpandedGalaxy
                     else
                         break;
                 }
-                if (shipInfoBase.ShipRoot.TryGetComponent(typeof(Shop_Caravan), out Component component))
-                    return;
-                Shop_Caravan shop = shipInfoBase.ShipRoot.AddComponent<Shop_Caravan>();
-                shop.OptionalShip = shipInfoBase;
-                shop.MySensorObject = shipInfoBase.MySensorObjectShip;
-                shipInfoBase.photonView.ObservedComponents.Add(shop);
+                if (shopID == 0)
+                {
+                    if (shipInfoBase.ShipRoot.TryGetComponent(typeof(Shop_Caravan), out Component component))
+                        return;
+                    Shop_Caravan shop = shipInfoBase.ShipRoot.AddComponent<Shop_Caravan>();
+                    shop.OptionalShip = shipInfoBase;
+                    shop.MySensorObject = shipInfoBase.MySensorObjectShip;
+                    shipInfoBase.photonView.ObservedComponents.Add(shop);
+                }
+                else if (shopID == 1)
+                {
+                    if (shipInfoBase.ShipRoot.TryGetComponent(typeof(Missions.BadBiscuitPatches.Shop_FBCarrier), out Component component))
+                        return;
+                    Missions.BadBiscuitPatches.Shop_FBCarrier shop = shipInfoBase.ShipRoot.AddComponent<Missions.BadBiscuitPatches.Shop_FBCarrier>();
+                    shop.OptionalShip = shipInfoBase;
+                    shop.MySensorObject = shipInfoBase.MySensorObjectShip;
+                    shipInfoBase.photonView.ObservedComponents.Add(shop);
+                }
             }
 
 
@@ -2825,129 +2838,126 @@ namespace ExpandedGalaxy
                         }
                     }
                     if (persistantCaravanInfo == null || persistantCaravanInfo.IsShipDestroyed)
+                    {
+                        CaravanCurrentSector = -1;
+                        CaravanTargetSector = -1;
                         return;
+                    }
                     if (persistantCaravanInfo.OptionalTPDE != null)
                         CaravanTraderData = persistantCaravanInfo.OptionalTPDE;
                     if (persistantCaravanInfo.OptionalTPDE == null && CaravanTraderData != null)
                         persistantCaravanInfo.OptionalTPDE = CaravanTraderData;
                     if (persistantCaravanInfo.ShipInstance != null && !persistantCaravanInfo.ShipInstance.ShipNameValue.Contains("Wandering Caravan"))
                         persistantCaravanInfo.ShipInstance.ShipNameValue = "Wandering Caravan";
-                    if (CaravanCurrentSector != -1 && PLServer.GetCurrentSector() != null && CaravanCurrentSector == PLServer.GetCurrentSector().ID && PLEncounterManager.Instance.PlayerShip != null && !PLEncounterManager.Instance.PlayerShip.InWarp)
-                    {
-
-                        if (persistantCaravanInfo != null && !persistantCaravanInfo.IsShipDestroyed && persistantCaravanInfo.ShipInstance == null)
-                        {
-                            persistantCaravanInfo.MyCurrentSector = PLServer.GetCurrentSector();
-                            persistantCaravanInfo.CreateShipInstance(PLEncounterManager.Instance.GetCPEI());
-                        }
-                    }
                     bool flag = false;
                     bool flag1 = false;
-                    if (CaravanCurrentSector != -1 && PLServer.GetCurrentSector() != null && CaravanCurrentSector != PLServer.GetCurrentSector().ID)
+                    if (CaravanCurrentSector != -1 && PLServer.GetCurrentSector() != null)
                     {
-                        if (PLServer.Instance.GetEstimatedServerMs() - CaravanUpdateTime > 0)
+                        if (PLServer.GetCurrentSector().ID != CaravanCurrentSector)
                         {
-                            CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 120000;
-                            if (CaravanTargetSector != -1)
+                            if (PLServer.Instance.GetEstimatedServerMs() - CaravanUpdateTime > 0)
                             {
-                                if (CaravanPath.Count > 1 && CaravanPath.Count > CaravanPathIndex + 1)
+                                CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 120000;
+                                if (CaravanTargetSector != -1)
                                 {
-                                    if (CaravanPath[CaravanPathIndex + 1].MySPI.Faction == 4 || CaravanPath[CaravanPathIndex + 1].DistressSignalActive)
+                                    if (CaravanPath.Count > 1 && CaravanPath.Count > CaravanPathIndex + 1)
                                     {
-                                        flag = true;
-                                        flag1 = true;
-                                    }
-                                    else
-                                    {
-                                        CaravanCurrentSector = CaravanPath[CaravanPathIndex + 1].ID;
-                                        persistantCaravanInfo.MyCurrentSector = CaravanPath[CaravanPathIndex + 1];
-                                        persistantCaravanInfo.ShldPercent = 1f;
-                                        CaravanPathIndex++;
-                                    }
-                                    if (CaravanCurrentSector == CaravanTargetSector)
-                                    {
-                                        persistantCaravanInfo.HullPercent = 1f;
-                                        if (persistantCaravanInfo.OptionalTPDE != null)
+                                        if (CaravanPath[CaravanPathIndex + 1].MySPI.Faction == 4 || CaravanPath[CaravanPathIndex + 1].DistressSignalActive)
                                         {
-                                            foreach (int wareID in persistantCaravanInfo.OptionalTPDE.Wares.Keys)
-                                                if (persistantCaravanInfo.OptionalTPDE.Wares[wareID] == null)
-                                                    persistantCaravanInfo.OptionalTPDE.Wares.Remove(wareID);
-                                            while (persistantCaravanInfo.OptionalTPDE.Wares.Count < 30)
-                                                persistantCaravanInfo.OptionalTPDE.ServerAddWare(PLShipComponent.CreateRandom());
-                                            while (persistantCaravanInfo.OptionalTPDE.Wares.Count > 30)
-                                                persistantCaravanInfo.OptionalTPDE.Wares.Remove(UnityEngine.Random.Range(0, persistantCaravanInfo.OptionalTPDE.Wares.Count));
-                                            List<int> wareKeys = new List<int>();
-                                            foreach (int wareID in persistantCaravanInfo.OptionalTPDE.Wares.Keys)
+                                            flag = true;
+                                            flag1 = true;
+                                        }
+                                        else
+                                        {
+                                            CaravanCurrentSector = CaravanPath[CaravanPathIndex + 1].ID;
+                                            persistantCaravanInfo.MyCurrentSector = CaravanPath[CaravanPathIndex + 1];
+                                            persistantCaravanInfo.ShldPercent = 1f;
+                                            CaravanPathIndex++;
+                                        }
+                                        if (CaravanCurrentSector == CaravanTargetSector)
+                                        {
+                                            persistantCaravanInfo.HullPercent = 1f;
+                                            if (persistantCaravanInfo.OptionalTPDE != null)
                                             {
-                                                if (UnityEngine.Random.Range(0f, 1000f) > 750f)
-                                                    wareKeys.Add(wareID);
-                                            }
-                                            int num = 0;
-                                            while (wareKeys.Count > 0)
-                                            {
-                                                int currentKey = wareKeys[UnityEngine.Random.Range(0, wareKeys.Count)];
-                                                if (num == 0)
+                                                foreach (int wareID in persistantCaravanInfo.OptionalTPDE.Wares.Keys)
+                                                    if (persistantCaravanInfo.OptionalTPDE.Wares[wareID] == null)
+                                                        persistantCaravanInfo.OptionalTPDE.Wares.Remove(wareID);
+                                                while (persistantCaravanInfo.OptionalTPDE.Wares.Count < 30)
+                                                    persistantCaravanInfo.OptionalTPDE.ServerAddWare(PLShipComponent.CreateRandom());
+                                                while (persistantCaravanInfo.OptionalTPDE.Wares.Count > 30)
+                                                    persistantCaravanInfo.OptionalTPDE.Wares.Remove(UnityEngine.Random.Range(0, persistantCaravanInfo.OptionalTPDE.Wares.Count));
+                                                List<int> wareKeys = new List<int>();
+                                                foreach (int wareID in persistantCaravanInfo.OptionalTPDE.Wares.Keys)
                                                 {
-                                                    persistantCaravanInfo.OptionalTPDE.Wares.Remove(currentKey);
-                                                    persistantCaravanInfo.OptionalTPDE.ServerAddWare(GetSpecialOffer());
-                                                    ++num;
-                                                    wareKeys.Remove(currentKey);
+                                                    if (UnityEngine.Random.Range(0f, 1000f) > 750f)
+                                                        wareKeys.Add(wareID);
                                                 }
-                                                else if (num == 1)
+                                                int num = 0;
+                                                while (wareKeys.Count > 0)
                                                 {
-                                                    if (UnityEngine.Random.Range(0f, 1000f) > 900f)
+                                                    int currentKey = wareKeys[UnityEngine.Random.Range(0, wareKeys.Count)];
+                                                    if (num == 0)
                                                     {
                                                         persistantCaravanInfo.OptionalTPDE.Wares.Remove(currentKey);
                                                         persistantCaravanInfo.OptionalTPDE.ServerAddWare(GetSpecialOffer());
                                                         ++num;
+                                                        wareKeys.Remove(currentKey);
+                                                    }
+                                                    else if (num == 1)
+                                                    {
+                                                        if (UnityEngine.Random.Range(0f, 1000f) > 900f)
+                                                        {
+                                                            persistantCaravanInfo.OptionalTPDE.Wares.Remove(currentKey);
+                                                            persistantCaravanInfo.OptionalTPDE.ServerAddWare(GetSpecialOffer());
+                                                            ++num;
+                                                        }
+                                                        else
+                                                        {
+                                                            persistantCaravanInfo.OptionalTPDE.Wares.Remove(currentKey);
+                                                            persistantCaravanInfo.OptionalTPDE.ServerAddWare(PLShipComponent.CreateRandom());
+                                                        }
+                                                        wareKeys.Remove(currentKey);
                                                     }
                                                     else
                                                     {
                                                         persistantCaravanInfo.OptionalTPDE.Wares.Remove(currentKey);
                                                         persistantCaravanInfo.OptionalTPDE.ServerAddWare(PLShipComponent.CreateRandom());
+                                                        wareKeys.Remove(currentKey);
                                                     }
-                                                    wareKeys.Remove(currentKey);
                                                 }
-                                                else
+                                                if (PLServer.DoesPEIOfTypeExist_AndBeenVisited(ESectorVisualIndication.ANCIENT_SENTRY) && CaravanSpecialsData % 10 != 1)
                                                 {
-                                                    persistantCaravanInfo.OptionalTPDE.Wares.Remove(currentKey);
-                                                    persistantCaravanInfo.OptionalTPDE.ServerAddWare(PLShipComponent.CreateRandom());
-                                                    wareKeys.Remove(currentKey);
+                                                    PLPersistantShipInfo psiWithShipType1 = PLServer.GetPSIWithShipType(EShipType.E_CORRUPTED_DRONE);
+                                                    if (psiWithShipType1 == null || psiWithShipType1.IsShipDestroyed)
+                                                    {
+                                                        persistantCaravanInfo.OptionalTPDE.ServerAddWare(new Turrets.AutoTurrets.AncientAutoLaser());
+                                                        persistantCaravanInfo.OptionalTPDE.ServerAddWare(new Turrets.AutoTurrets.AncientAutoLaser());
+                                                        CaravanSpecialsData = (CaravanSpecialsData / 10) + 1;
+                                                    }
                                                 }
-                                            }
-                                            if (PLServer.DoesPEIOfTypeExist_AndBeenVisited(ESectorVisualIndication.ANCIENT_SENTRY) && CaravanSpecialsData % 10 != 1)
-                                            {
-                                                PLPersistantShipInfo psiWithShipType1 = PLServer.GetPSIWithShipType(EShipType.E_CORRUPTED_DRONE);
-                                                if (psiWithShipType1 == null || psiWithShipType1.IsShipDestroyed)
-                                                {
-                                                    persistantCaravanInfo.OptionalTPDE.ServerAddWare(new Turrets.AutoTurrets.AncientAutoLaser());
-                                                    persistantCaravanInfo.OptionalTPDE.ServerAddWare(new Turrets.AutoTurrets.AncientAutoLaser());
-                                                    CaravanSpecialsData = (CaravanSpecialsData / 10) + 1;
-                                                }
-                                            }
 
+                                            }
+                                            flag = true;
+                                            flag1 = true;
+                                            CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 120000;
                                         }
+                                    }
+                                    else
+                                    {
                                         flag = true;
-                                        flag1 = true;
-                                        CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 120000;
                                     }
                                 }
                                 else
                                 {
                                     flag = true;
+                                    flag1 = true;
                                 }
-                            }
-                            else
-                            {
-                                flag = true;
-                                flag1 = true;
-                            }
-                            if (flag)
-                            {
-                                int targetID = CaravanTargetSector;
-                                if (flag1)
+                                if (flag)
                                 {
-                                    List<ESectorVisualIndication> potentialTargets = new List<ESectorVisualIndication>()
+                                    int targetID = CaravanTargetSector;
+                                    if (flag1)
+                                    {
+                                        List<ESectorVisualIndication> potentialTargets = new List<ESectorVisualIndication>()
                             {
                                 ESectorVisualIndication.CORNELIA_HUB,
                                 ESectorVisualIndication.DESERT_HUB,
@@ -2955,31 +2965,37 @@ namespace ExpandedGalaxy
                                 ESectorVisualIndication.GENTLEMEN_START,
                                 ESectorVisualIndication.THE_HARBOR
                             };
+                                        if (CaravanTargetSector != -1)
+                                            potentialTargets.Remove(PLServer.GetSectorWithID(CaravanTargetSector).VisualIndication);
+                                        else
+                                            potentialTargets.Remove(ESectorVisualIndication.AOG_HUB);
+                                        if (potentialTargets.Contains(PLServer.GetSectorWithID(CaravanCurrentSector).VisualIndication))
+                                            potentialTargets.Remove(PLServer.GetSectorWithID(CaravanCurrentSector).VisualIndication);
+                                        ESectorVisualIndication target = potentialTargets[UnityEngine.Random.Range(0, potentialTargets.Count)];
+                                        if (PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(target) != null)
+                                            targetID = PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(target).ID;
+                                        else
+                                            targetID = -1;
+                                    }
+                                    CaravanTargetSector = targetID;
+                                    CaravanPath.Clear();
                                     if (CaravanTargetSector != -1)
-                                        potentialTargets.Remove(PLServer.GetSectorWithID(CaravanTargetSector).VisualIndication);
-                                    else
-                                        potentialTargets.Remove(ESectorVisualIndication.AOG_HUB);
-                                    if (potentialTargets.Contains(PLServer.GetSectorWithID(CaravanCurrentSector).VisualIndication))
-                                        potentialTargets.Remove(PLServer.GetSectorWithID(CaravanCurrentSector).VisualIndication);
-                                    ESectorVisualIndication target = potentialTargets[UnityEngine.Random.Range(0, potentialTargets.Count)];
-                                    if (PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(target) != null)
-                                        targetID = PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(target).ID;
-                                    else
-                                        targetID = -1;
+                                        CaravanPath = GetPathToSector_NPC(PLServer.GetSectorWithID(CaravanCurrentSector), PLServer.GetSectorWithID(CaravanTargetSector), 0.12f);
+                                    CaravanPathIndex = 0;
+                                    CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 240000;
                                 }
-                                CaravanTargetSector = targetID;
-                                CaravanPath.Clear();
-                                if (CaravanTargetSector != -1)
-                                    CaravanPath = GetPathToSector_NPC(PLServer.GetSectorWithID(CaravanCurrentSector), PLServer.GetSectorWithID(CaravanTargetSector), 0.12f);
-                                CaravanPathIndex = 0;
-                                CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 240000;
                             }
+                        }
+                        else
+                        {
+                            if (PLEncounterManager.Instance != null && PLEncounterManager.Instance.GetCPEI() != null && (double)PLEncounterManager.Instance.GetCPEI().GetTimePlayerInEncounterAfterWarp() > 1.0 && persistantCaravanInfo.ShipInstance == null)
+                                persistantCaravanInfo.CreateShipInstance(PLEncounterManager.Instance.GetCPEI());
                         }
                     }
                 }
             }
 
-            private static PLShipComponent GetSpecialOffer()
+            internal static PLShipComponent GetSpecialOffer()
             {
                 PLShipComponent component;
                 int level = Mathf.RoundToInt(Mathf.Pow((float)UnityEngine.Random.Range(0f, 1f), 4f) * 2.7f);
@@ -3006,7 +3022,7 @@ namespace ExpandedGalaxy
                         component = PLMegaTurret.CreateMainTurretFromHash(1, level, 1);
                         break;
                     case 3:
-                        component = PLMegaTurret.CreateMainTurretFromHash(3, level, 1);
+                        component = new Turrets.MainTurrets.RipperTurrret();
                         break;
                     case 4:
                         component = PLShieldGenerator.CreateShieldGeneratorFromHash((int)EShieldGeneratorType.E_XC7_SHIELDS, level, 0);
@@ -3055,7 +3071,8 @@ namespace ExpandedGalaxy
             public static List<PLSectorInfo> GetPathToSector_NPC(
                 PLSectorInfo inStartSector,
                 PLSectorInfo inEndSector,
-                float customWarpRange)
+                float customWarpRange,
+                int factionID = 1)
             {
                 bool flag = false;
                 List<PLSectorInfo> OpenList = new List<PLSectorInfo>();
@@ -3106,7 +3123,7 @@ namespace ExpandedGalaxy
                     }
                     foreach (PLSectorInfo neighbor in PLGlobal.Instance.Galaxy.AllSectorInfos.Values)
                     {
-                        if (!(neighbor.MySPI.Faction == 4 || neighbor.MySPI.Faction == 6 || neighbor.MissionSpecificID != -1 || neighbor.VisualIndication == ESectorVisualIndication.COLONIAL_HUB || neighbor.VisualIndication == ESectorVisualIndication.WD_START || neighbor.VisualIndication == ESectorVisualIndication.GWG || neighbor.VisualIndication == ESectorVisualIndication.CYPHER_LAB || neighbor.VisualIndication == ESectorVisualIndication.GREY_HUNTSMAN_HQ || neighbor.VisualIndication == ESectorVisualIndication.HIGHROLLERS_STATION || neighbor.VisualIndication == ESectorVisualIndication.BLACKHOLE || neighbor.VisualIndication == ESectorVisualIndication.MINE_FIELD || neighbor.VisualIndication == ESectorVisualIndication.INTREPID_SECTOR_CMDR || neighbor.VisualIndication == ESectorVisualIndication.ANCIENT_SENTRY || neighbor.VisualIndication == ESectorVisualIndication.ALCHEMIST || neighbor.VisualIndication == ESectorVisualIndication.DEATHSEEKER_COMMANDER || neighbor.VisualIndication == ESectorVisualIndication.SWARM_CMDR || neighbor.VisualIndication == ESectorVisualIndication.SWARM_KEEPER) && neighbor.Category != NodeCategory.NODE_CLOSED && PLStarmap.ShouldShowSectorBG(neighbor) && (double)(new Vector2(plSectorInfo3.Position.x, plSectorInfo3.Position.y) - new Vector2(neighbor.Position.x, neighbor.Position.y)).sqrMagnitude <= (double)customWarpRange * (double)customWarpRange)
+                        if (!(neighbor.MySPI.Faction == 4 || neighbor.MySPI.Faction == 6 || neighbor.MissionSpecificID != -1 || (neighbor.VisualIndication == ESectorVisualIndication.COLONIAL_HUB && factionID != 0) || (neighbor.VisualIndication == ESectorVisualIndication.WD_START && factionID != 2) || neighbor.VisualIndication == ESectorVisualIndication.GWG || neighbor.VisualIndication == ESectorVisualIndication.CYPHER_LAB || neighbor.VisualIndication == ESectorVisualIndication.GREY_HUNTSMAN_HQ || neighbor.VisualIndication == ESectorVisualIndication.HIGHROLLERS_STATION || neighbor.VisualIndication == ESectorVisualIndication.BLACKHOLE || neighbor.VisualIndication == ESectorVisualIndication.MINE_FIELD || neighbor.VisualIndication == ESectorVisualIndication.INTREPID_SECTOR_CMDR || neighbor.VisualIndication == ESectorVisualIndication.ANCIENT_SENTRY || neighbor.VisualIndication == ESectorVisualIndication.ALCHEMIST || neighbor.VisualIndication == ESectorVisualIndication.DEATHSEEKER_COMMANDER || neighbor.VisualIndication == ESectorVisualIndication.SWARM_CMDR || neighbor.VisualIndication == ESectorVisualIndication.SWARM_KEEPER || neighbor.VisualIndication == ESectorVisualIndication.GENERAL_STORE || neighbor.VisualIndication == ESectorVisualIndication.EXOTIC4 || neighbor.VisualIndication == ESectorVisualIndication.EXOTIC5 || neighbor.VisualIndication == ESectorVisualIndication.EXOTIC6 || neighbor.VisualIndication == ESectorVisualIndication.EXOTIC7) && neighbor.Category != NodeCategory.NODE_CLOSED && PLStarmap.ShouldShowSectorBG(neighbor) && (double)(new Vector2(plSectorInfo3.Position.x, plSectorInfo3.Position.y) - new Vector2(neighbor.Position.x, neighbor.Position.y)).sqrMagnitude <= (double)customWarpRange * (double)customWarpRange)
                         {
                             float num3 = traverse.Method("Heuristic", new Type[2]
                             {

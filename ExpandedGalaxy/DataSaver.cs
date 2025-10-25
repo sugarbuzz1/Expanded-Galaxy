@@ -1,7 +1,9 @@
 ﻿using CodeStage.AntiCheat.ObscuredTypes;
 using HarmonyLib;
 using PulsarModLoader;
+using PulsarModLoader.Content.Components.CaptainsChair;
 using PulsarModLoader.Content.Components.CPU;
+using PulsarModLoader.Content.Components.Extractor;
 using PulsarModLoader.Content.Components.HullPlating;
 using PulsarModLoader.Content.Components.MegaTurret;
 using PulsarModLoader.Content.Components.PolytechModule;
@@ -17,7 +19,7 @@ namespace ExpandedGalaxy
 {
     internal class DataSaver : PMLSaveData
     {
-        public override uint VersionID => 2;
+        public override uint VersionID => 4;
 
         public override string Identifier() => "sugarbuzz1.ExpandedGalaxy";
 
@@ -57,8 +59,6 @@ namespace ExpandedGalaxy
                     for (int i = 0; i < ammoBoxCount; i++)
                         data.Add(binaryReader.ReadSingle());
 
-                    DelayedLoadData(data);
-
                     if (VersionID < 3)
                         return;
 
@@ -73,6 +73,56 @@ namespace ExpandedGalaxy
                             hashes.Add(binaryReader.ReadInt32());
                         Relic.PickupQueue.Add(sectorID, hashes);
                     }
+
+                    if (VersionID < 4)
+                        return;
+
+                    Missions.slowMissionPickups = binaryReader.ReadBoolean();
+                    Missions.pickupMissionDelay = 0;
+
+                    PersistantScrapManager.Instance.ClearData();
+                    int totalScrapDatas = binaryReader.ReadInt32();
+                    for (int i = 0; i < totalScrapDatas; i++)
+                    {
+                        ExtraScrapData scrapData = new ExtraScrapData();
+                        scrapData.ID = binaryReader.ReadInt32();
+                        scrapData.sectorID = binaryReader.ReadInt32();
+                        scrapData.compHash = binaryReader.ReadInt32();
+                        scrapData.forceComp = binaryReader.ReadBoolean();
+                        Vector3 vector3 = new Vector3(binaryReader.ReadSingle(), binaryReader.ReadSingle(), binaryReader.ReadSingle());
+                        scrapData.location = vector3;
+                        Quaternion quaternion = new Quaternion(binaryReader.ReadSingle(), binaryReader.ReadSingle(), binaryReader.ReadSingle(), binaryReader.ReadSingle());
+                        scrapData.rotation = quaternion;
+                        PersistantScrapManager.Instance.LoadScrap(scrapData);
+                    }
+                    CrewLogManager.Instance.OnNewGame();
+                    int totalLogs = binaryReader.ReadInt32();
+                    Debug.Log("Loading " + totalLogs.ToString() + " Logs...");
+                    for (int i = 0; i < totalLogs; i++)
+                    {
+                        CrewLogData logData = new CrewLogData();
+                        logData.timeStamp = binaryReader.ReadSingle();
+                        logData.Text = binaryReader.ReadString();
+                        logData.optionalSectorID = binaryReader.ReadInt32();
+                        Color color = new Color(binaryReader.ReadSingle(), binaryReader.ReadSingle(), binaryReader.ReadSingle(), binaryReader.ReadSingle());
+                        logData.optionalColor = color;
+                        CrewLogManager.Instance.AddLog(logData);
+                    }
+                    Debug.Log("Loaded All Logs");
+
+                    TraderPersistantDataEntry dataEntry1 = new TraderPersistantDataEntry();
+                    dataEntry1.ServerWareIDCounter = binaryReader.ReadInt32();
+                    int wareCount1 = binaryReader.ReadInt32();
+                    for (int i = 0; i < wareCount1; i++)
+                    {
+                        PLWare fromHash = PLWare.CreateFromHash(binaryReader.ReadInt32(), (int)binaryReader.ReadUInt32());
+                        if (fromHash != null)
+                            dataEntry1.ServerAddWare(fromHash);
+                    }
+                    Debug.Log("[ExGal] Created Carrier Shop with [" + dataEntry1.ServerWareIDCounter.ToString() + "] items");
+                    data.Add(dataEntry1);
+                    
+                    DelayedLoadData(data);
                 }
             }
         }
@@ -121,6 +171,54 @@ namespace ExpandedGalaxy
                         foreach (int hash in Relic.PickupQueue[sectorID])
                             binaryWriter.Write(hash);
                     }
+
+                    binaryWriter.Write(Missions.slowMissionPickups);
+
+                    binaryWriter.Write(PersistantScrapManager.Instance.GetTotalScrapDatas());
+                    foreach (ExtraScrapData scrapData in PersistantScrapManager.Instance.GetAllScrapDatas())
+                    {
+                        binaryWriter.Write(scrapData.ID);
+                        binaryWriter.Write(scrapData.sectorID);
+                        binaryWriter.Write(scrapData.compHash);
+                        binaryWriter.Write(scrapData.forceComp);
+                        binaryWriter.Write(scrapData.location.x);
+                        binaryWriter.Write(scrapData.location.y);
+                        binaryWriter.Write(scrapData.location.z);
+                        binaryWriter.Write(scrapData.rotation.x);
+                        binaryWriter.Write(scrapData.rotation.y);
+                        binaryWriter.Write(scrapData.rotation.z);
+                        binaryWriter.Write(scrapData.rotation.w);
+                    }
+                    binaryWriter.Write(CrewLogManager.Instance.GetLogs().Count);
+                    foreach (CrewLogData logData in CrewLogManager.Instance.GetLogs())
+                    {
+                        binaryWriter.Write(logData.timeStamp);
+                        binaryWriter.Write(logData.Text);
+                        binaryWriter.Write(logData.optionalSectorID);
+                        binaryWriter.Write(logData.optionalColor.r);
+                        binaryWriter.Write(logData.optionalColor.g);
+                        binaryWriter.Write(logData.optionalColor.b);
+                        binaryWriter.Write(logData.optionalColor.a);
+                    }
+                    Debug.Log("Saved " + CrewLogManager.Instance.GetLogs().Count.ToString() + " Logs to File");
+
+                    binaryWriter.Write(Missions.BadBiscuitPatches.carrierData.ServerWareIDCounter);
+                    int num1 = 0;
+                    foreach (int key in Missions.BadBiscuitPatches.carrierData.Wares.Keys)
+                    {
+                        if (Missions.BadBiscuitPatches.carrierData.Wares[key] != null)
+                            ++num1;
+                    }
+                    binaryWriter.Write(num1);
+                    foreach (int key1 in Missions.BadBiscuitPatches.carrierData.Wares.Keys)
+                    {
+                        PLWare ware = Missions.BadBiscuitPatches.carrierData.Wares[key1];
+                        if (ware != null)
+                        {
+                            binaryWriter.Write((int)ware.WareType);
+                            binaryWriter.Write(ware.getHash());
+                        }
+                    }
                 }
                 return output.ToArray();
             }
@@ -132,9 +230,15 @@ namespace ExpandedGalaxy
             while (true)
             {
                 if (PLServer.Instance == null)
-                    return;
-                if (PLEncounterManager.Instance.PlayerShip == null)
+                {
                     await Task.Delay(1000);
+                    continue;
+                }
+                if (PLEncounterManager.Instance.PlayerShip == null)
+                {
+                    await Task.Delay(1000);
+                    continue;
+                }
                 else
                     break;
             }
@@ -150,6 +254,18 @@ namespace ExpandedGalaxy
             for (int i = 0; i < PLEncounterManager.Instance.PlayerShip.MyAmmoRefills.Length; i++)
                 PLEncounterManager.Instance.PlayerShip.MyAmmoRefills[i].SupplyAmount = ammoBoxSupply[i];
             index += ammoBoxCount;
+
+            TraderPersistantDataEntry dataEntry = (TraderPersistantDataEntry)data[index];
+            foreach (PLPersistantShipInfo allPSI in PLServer.Instance.AllPSIs)
+            {
+                if (allPSI != null && allPSI.SelectedActorID == "ExGal_FBCarrier")
+                {
+                    allPSI.OptionalTPDE = dataEntry;
+                    Missions.BadBiscuitPatches.carrierData = dataEntry;
+                    Debug.Log("[ExGal] Loaded Carrier Shop");
+                    break;
+                }
+            }
         }
     }
 
@@ -170,6 +286,9 @@ namespace ExpandedGalaxy
                 Relic.RelicCaravan.CaravanTargetSector = -1;
                 Relic.RelicCaravan.CaravanUpdateTime = 60000;
                 Relic.RelicCaravan.ClearCaravanPath();
+                Missions.pickupMissionDelay = 0;
+                PersistantScrapManager.Instance.ClearData();
+                CrewLogManager.Instance.OnNewGame();
             }
         }
 
@@ -276,20 +395,22 @@ namespace ExpandedGalaxy
                     stream.SendNext(PFSectorCommander.bossFlag);
                     stream.SendNext(Relic.MiningDroneQuest.dronesActive);
                     stream.SendNext(Relic.MiningDroneQuest.GXData);
-                    stream.SendNext(Relic.RelicCaravan.CaravanCurrentSector);
-                    stream.SendNext(Relic.RelicCaravan.CaravanTargetSector);
                     stream.SendNext(Jetpack.AdvancedJetPack);
                     stream.SendNext(Ammunition.DynamicAmmunition);
+                    stream.SendNext(Missions.slowMissionPickups);
+                    stream.SendNext(Relic.RelicCaravan.CaravanCurrentSector);
+                    stream.SendNext(Relic.RelicCaravan.CaravanTargetSector);
                 }
                 else
                 {
                     PFSectorCommander.bossFlag = (int)stream.ReceiveNext();
                     Relic.MiningDroneQuest.dronesActive = (bool)stream.ReceiveNext();
-                    Relic.MiningDroneQuest.GXData = (int)stream.ReceiveNext();
-                    Relic.RelicCaravan.CaravanCurrentSector = (int)stream.ReceiveNext();
-                    Relic.RelicCaravan.CaravanTargetSector = (int)stream.ReceiveNext();
+                    Relic.MiningDroneQuest.GXData = (int)stream.ReceiveNext();                    
                     Jetpack.AdvancedJetPack = (bool)stream.ReceiveNext();
                     Ammunition.DynamicAmmunition = (bool)stream.ReceiveNext();
+                    Missions.slowMissionPickups = (bool)stream.ReceiveNext();
+                    Relic.RelicCaravan.CaravanCurrentSector = (int)stream.ReceiveNext();
+                    Relic.RelicCaravan.CaravanTargetSector = (int)stream.ReceiveNext();
                 }
             }
         }
@@ -300,6 +421,10 @@ namespace ExpandedGalaxy
             {
                 case ESlotType.E_COMP_CPU:
                     if (shipComponent.SubType == CPUModManager.Instance.GetCPUIDFromName("Super Shield"))
+                        return true;
+                    break;
+                case ESlotType.E_COMP_CAPTAINS_CHAIR:
+                    if (shipComponent.SubType == CaptainsChairModManager.Instance.GetCaptainsChairIDFromName("Seat of the Surveyor"))
                         return true;
                     break;
                 case ESlotType.E_COMP_HULLPLATING:
@@ -322,6 +447,10 @@ namespace ExpandedGalaxy
                     if (shipComponent.SubType == MegaTurretModManager.Instance.GetMegaTurretIDFromName("WD Standard"))
                         return true;
                     break;
+                case ESlotType.E_COMP_SALVAGE_SYSTEM:
+                    if (shipComponent.SubType == ExtractorModManager.Instance.GetExtractorIDFromName("P.T. Extractor Prototype"))
+                        return true;
+                    break;
             }
             return false;
         }
@@ -342,7 +471,7 @@ namespace ExpandedGalaxy
                                 data.Add(component.NetID, component.SubTypeData);
                             }
                     }
-                    stream.SendNext((bool)(data.Count > 0));
+                    stream.SendNext(data.Count);
                     if (data.Count > 0)
                     {
                         stream.SendNext(data.Keys.ToArray());
@@ -351,8 +480,8 @@ namespace ExpandedGalaxy
                 }
                 else
                 {
-                    bool hasIDs = (bool)stream.ReceiveNext();
-                    if (hasIDs)
+                    int count = (int)stream.ReceiveNext();
+                    if (count > 0)
                     {
                         int[] netIDs = (int[])stream.ReceiveNext();
                         short[] subTypeDatas = (short[])stream.ReceiveNext();

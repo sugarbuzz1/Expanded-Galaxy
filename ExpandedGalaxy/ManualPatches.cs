@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using PulsarModLoader.Content.Components.CaptainsChair;
+using PulsarModLoader.Content.Components.Extractor;
 using PulsarModLoader.Content.Components.Hull;
 
 namespace ExpandedGalaxy
@@ -77,6 +78,19 @@ namespace ExpandedGalaxy
                 if (index <= -1 || index >= HullModManager.Instance.HullTypes.Count || __instance.ShipStats == null)
                     return;
                 HullModManager.Instance.HullTypes[index].FinalLateAddStats(__instance);
+            }
+        }
+
+        [HarmonyPatch(typeof(PLShipComponent), "OnWarp")]
+        private class ExtractorWarpPatch
+        {
+            private static void Postfix(PLShipComponent __instance)
+            {
+                PLExtractor extractor = __instance as PLExtractor;
+                if (extractor == null)
+                    return;
+                if (extractor.SubType == ExtractorModManager.Instance.GetExtractorIDFromName("P.T. Extractor Prototype"))
+                    extractor.SubTypeData = 0;
             }
         }
     }

@@ -1,11 +1,10 @@
-﻿using HarmonyLib;
+﻿using CodeStage.AntiCheat.ObscuredTypes;
+using HarmonyLib;
+using PulsarModLoader.Content.Components.AutoTurret;
 using PulsarModLoader.Content.Components.MegaTurret;
 using PulsarModLoader.Content.Components.Shield;
 using PulsarModLoader.Content.Components.Turret;
-using PulsarModLoader.Patches;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
+using System;
 using UnityEngine;
 
 namespace ExpandedGalaxy
@@ -22,7 +21,7 @@ namespace ExpandedGalaxy
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLMegaTurret>(ESlotType.E_COMP_MAINTURRET));
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                 {
                     __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_MAINTURRET, MegaTurretModManager.Instance.GetMegaTurretIDFromName("WD Standard"), 0, 0, 12)), visualSlot: ESlotType.E_COMP_MAINTURRET);
                 }
@@ -32,13 +31,14 @@ namespace ExpandedGalaxy
                     __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_MAINTURRET, MegaTurretModManager.Instance.GetMegaTurretIDFromName("WD Standard"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_MAINTURRET);
                     __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
                     __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_HULLPLATING, (int)EHullPlatingType.E_HULLPLATING_CCGE, __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_HULLPLATING);
+                    __instance.NumberOfFuelCapsules = 15;
                     if ((double)(float)PLServer.Instance.ChaosLevel > 1.0)
                     {
                         float num = Mathf.Clamp01((float)((double)deterministicRand.NextFloat() + (double)(float)PLServer.Instance.ChaosLevel * 0.01999999731779099));
                         if (num >= 0.85)
                         {
                             __instance.MyStats.RemoveShipComponent(__instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_TURRET)[deterministicRand.Next() % 2]);
-                            bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && deterministicRand.Next() % 3 == 0;
+                            bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && (int)deterministicRand.Next() % 3 == 0;
                             if (flag)
                                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, TurretModManager.Instance.GetTurretIDFromName("Particle Lance"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_TURRET);
                             else
@@ -59,7 +59,7 @@ namespace ExpandedGalaxy
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLMegaTurret>(ESlotType.E_COMP_MAINTURRET));
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                 {
                     __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_MAINTURRET, MegaTurretModManager.Instance.GetMegaTurretIDFromName("WD Standard"), 0, 0, 12)), visualSlot: ESlotType.E_COMP_MAINTURRET);
                 }
@@ -69,13 +69,14 @@ namespace ExpandedGalaxy
                     __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_MAINTURRET, MegaTurretModManager.Instance.GetMegaTurretIDFromName("WD Standard"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_MAINTURRET);
                     __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
                     __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_HULLPLATING, (int)EHullPlatingType.E_HULLPLATING_CCGE, __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_HULLPLATING);
+                    __instance.NumberOfFuelCapsules = 15;
                     if ((double)(float)PLServer.Instance.ChaosLevel > 1.0)
                     {
                         float num = Mathf.Clamp01((float)((double)deterministicRand.NextFloat() + (double)(float)PLServer.Instance.ChaosLevel * 0.01999999731779099));
                         if (num >= 0.85)
                         {
                             __instance.MyStats.RemoveShipComponent(__instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_TURRET)[deterministicRand.Next() % 1]);
-                            bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && deterministicRand.Next() % 3 == 0;
+                            bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && (int)deterministicRand.Next() % 3 == 0;
                             if (flag)
                                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, TurretModManager.Instance.GetTurretIDFromName("Particle Lance"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_TURRET);
                             else
@@ -95,18 +96,19 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_HULLPLATING, (int)EHullPlatingType.E_HULLPLATING_CCGE, __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_HULLPLATING);
+                __instance.NumberOfFuelCapsules = 15;
                 if ((double)(float)PLServer.Instance.ChaosLevel > 1.0)
                 {
                     float num = Mathf.Clamp01((float)((double)deterministicRand.NextFloat() + (double)(float)PLServer.Instance.ChaosLevel * 0.01999999731779099));
                     if (num >= 0.85)
                     {
                         __instance.MyStats.RemoveShipComponent(__instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_TURRET)[deterministicRand.Next() % 2]);
-                        bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && deterministicRand.Next() % 3 == 0;
+                        bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && (int)deterministicRand.Next() % 3 == 0;
                         if (flag)
                             __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, TurretModManager.Instance.GetTurretIDFromName("Particle Lance"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_TURRET);
                         else
@@ -125,18 +127,19 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_HULLPLATING, (int)EHullPlatingType.E_HULLPLATING_CCGE, __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_HULLPLATING);
+                __instance.NumberOfFuelCapsules = 15;
                 if ((double)(float)PLServer.Instance.ChaosLevel > 1.0)
                 {
                     float num = Mathf.Clamp01((float)((double)deterministicRand.NextFloat() + (double)(float)PLServer.Instance.ChaosLevel * 0.01999999731779099));
                     if (num >= 0.95)
                     {
                         __instance.MyStats.RemoveShipComponent(__instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_TURRET)[deterministicRand.Next() % 2]);
-                        bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && deterministicRand.Next() % 3 == 0;
+                        bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && (int)deterministicRand.Next() % 3 == 0;
                         if (flag)
                             __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, TurretModManager.Instance.GetTurretIDFromName("Particle Lance"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_TURRET);
                         else
@@ -155,18 +158,19 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_HULLPLATING, (int)EHullPlatingType.E_HULLPLATING_CCGE, __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_HULLPLATING);
+                __instance.NumberOfFuelCapsules = 15;
                 if ((double)(float)PLServer.Instance.ChaosLevel > 1.0)
                 {
                     float num = Mathf.Clamp01((float)((double)deterministicRand.NextFloat() + (double)(float)PLServer.Instance.ChaosLevel * 0.01999999731779099));
                     if (num >= 0.95)
                     {
                         __instance.MyStats.RemoveShipComponent(__instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_TURRET)[deterministicRand.Next() % 2]);
-                        bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && deterministicRand.Next() % 3 == 0;
+                        bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && (int)deterministicRand.Next() % 3 == 0;
                         if (flag)
                             __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, TurretModManager.Instance.GetTurretIDFromName("Particle Lance"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_TURRET);
                         else
@@ -185,7 +189,7 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                 {
                     __instance.MyStats.AddShipComponent(PLWarpDriveProgram.CreateWarpDriveProgramFromHash((int)EWarpDriveProgramType.QUANTUM_TUNNEL, 0, 0), visualSlot: ESlotType.E_COMP_PROGRAM);
                     return;
@@ -193,13 +197,14 @@ namespace ExpandedGalaxy
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_HULLPLATING, (int)EHullPlatingType.E_HULLPLATING_CCGE, __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_HULLPLATING);
+                __instance.NumberOfFuelCapsules = 15;
                 if ((double)(float)PLServer.Instance.ChaosLevel > 1.0)
                 {
                     float num = Mathf.Clamp01((float)((double)deterministicRand.NextFloat() + (double)(float)PLServer.Instance.ChaosLevel * 0.01999999731779099));
                     if (num >= 0.95)
                     {
                         __instance.MyStats.RemoveShipComponent(__instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_TURRET)[deterministicRand.Next() % 1]);
-                        bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && deterministicRand.Next() % 3 == 0;
+                        bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && (int)deterministicRand.Next() % 3 == 0;
                         if (flag)
                             __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, TurretModManager.Instance.GetTurretIDFromName("Particle Lance"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_TURRET);
                         else
@@ -231,18 +236,19 @@ namespace ExpandedGalaxy
                 if (netID != -1)
                     __instance.MyStats.RemoveShipComponentByNetID(netID);
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_PROGRAM, (int)EWarpDriveProgramType.DETECTOR, 0, 0, (int)ESlotType.E_COMP_PROGRAM)));
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_HULLPLATING, (int)EHullPlatingType.E_HULLPLATING_CCGE, __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_HULLPLATING);
+                __instance.NumberOfFuelCapsules = 15;
                 if ((double)(float)PLServer.Instance.ChaosLevel > 1.0)
                 {
                     float num = Mathf.Clamp01((float)((double)deterministicRand.NextFloat() + (double)(float)PLServer.Instance.ChaosLevel * 0.01999999731779099));
                     if (num >= 0.75)
                     {
                         __instance.MyStats.RemoveShipComponent(__instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_TURRET)[deterministicRand.Next() % 2]);
-                        bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && deterministicRand.Next() % 3 == 0;
+                        bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && (int)deterministicRand.Next() % 3 == 0;
                         if (flag)
                             __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, TurretModManager.Instance.GetTurretIDFromName("Particle Lance"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_TURRET);
                         else
@@ -250,7 +256,7 @@ namespace ExpandedGalaxy
                     }
                     if (num >= 0.5 && (double)(float)PLServer.Instance.ChaosLevel > 2.0)
                     {
-                        if (deterministicRand.Next() % 3 == 0)
+                        if ((int)deterministicRand.Next() % 3 == 0)
                         {
                             __instance.MyStats.RemoveShipComponent(__instance.MyStats.GetShipComponent<PLShieldGenerator>(ESlotType.E_COMP_SHLD));
                             __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_SHLD, ShieldModManager.Instance.GetShieldIDFromName("Reflector Shield Generator"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_SHLD);
@@ -282,18 +288,19 @@ namespace ExpandedGalaxy
                 if (netID != -1)
                     __instance.MyStats.RemoveShipComponentByNetID(netID);
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_PROGRAM, (int)EWarpDriveProgramType.DETECTOR, 0, 0, (int)ESlotType.E_COMP_PROGRAM)));
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_HULLPLATING, (int)EHullPlatingType.E_HULLPLATING_CCGE, __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_HULLPLATING);
+                __instance.NumberOfFuelCapsules = 15;
                 if ((double)(float)PLServer.Instance.ChaosLevel > 1.0)
                 {
                     float num = Mathf.Clamp01((float)((double)deterministicRand.NextFloat() + (double)(float)PLServer.Instance.ChaosLevel * 0.01999999731779099));
                     if (num >= 0.75)
                     {
                         __instance.MyStats.RemoveShipComponent(__instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_TURRET)[deterministicRand.Next() % 2]);
-                        bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && deterministicRand.Next() % 3 == 0;
+                        bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && (int)deterministicRand.Next() % 3 == 0;
                         if (flag)
                             __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, TurretModManager.Instance.GetTurretIDFromName("Particle Lance"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_TURRET);
                         else
@@ -301,7 +308,7 @@ namespace ExpandedGalaxy
                     }
                     if (num >= 0.5 && (double)(float)PLServer.Instance.ChaosLevel > 2.0)
                     {
-                        if (deterministicRand.Next() % 3 == 0)
+                        if ((int)deterministicRand.Next() % 3 == 0)
                         {
                             __instance.MyStats.RemoveShipComponent(__instance.MyStats.GetShipComponent<PLShieldGenerator>(ESlotType.E_COMP_SHLD));
                             __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_SHLD, ShieldModManager.Instance.GetShieldIDFromName("Reflector Shield Generator"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_SHLD);
@@ -320,11 +327,44 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_HULLPLATING, (int)EHullPlatingType.E_HULLPLATING_CCGE, __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_HULLPLATING);
+                __instance.NumberOfFuelCapsules = 15;
+            }
+
+            private static Exception Finalizer(Exception __exception, PLOldWarsShip_Sylvassi __instance, bool previewStats, bool startingPlayerShip)
+            {
+                if (__instance.MyStats.GetSlot(ESlotType.E_COMP_AUTO_TURRET).MaxItems > 0)
+                    return __exception;
+                __instance.MyStats.SetSlotLimit(ESlotType.E_COMP_AUTO_TURRET, 1);
+                if (previewStats)
+                    return __exception;
+                GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(__instance.RegularTurretPoints[0].gameObject);
+                gameObject.transform.SetParent(__instance.Exterior.transform);
+                gameObject.transform.localPosition = new Vector3(__instance.RegularTurretPoints[0].localPosition.x * -1, __instance.RegularTurretPoints[0].localPosition.y, __instance.RegularTurretPoints[0].localPosition.z);
+                gameObject.transform.localRotation = __instance.RegularTurretPoints[0].localRotation;
+                Transform[] transformArray = new Transform[1]
+                {
+                    gameObject.transform
+                };
+                __instance.AutoTurretPoints = transformArray;
+                if (!startingPlayerShip)
+                {
+                    PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
+                    float num = Mathf.Clamp01((float)((double)deterministicRand.NextFloat() + (double)(float)PLServer.Instance.ChaosLevel * 0.02));
+                    if (num >= 0.65)
+                    {
+                        __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_AUTO_TURRET, (int)AutoTurretModManager.Instance.GetAutoTurretIDFromName("Auto Laser Turret"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_AUTO_TURRET);
+                    }
+                    else
+                    {
+                        __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_AUTO_TURRET, (int)0, __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_AUTO_TURRET);
+                    }
+                }
+                return __exception;
             }
         }
 
@@ -337,24 +377,57 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_HULLPLATING, (int)EHullPlatingType.E_HULLPLATING_CCGE, __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_HULLPLATING);
+                __instance.NumberOfFuelCapsules = 15;
                 if ((double)(float)PLServer.Instance.ChaosLevel > 1.0)
                 {
                     float num = Mathf.Clamp01((float)((double)deterministicRand.NextFloat() + (double)(float)PLServer.Instance.ChaosLevel * 0.01999999731779099));
                     if (num >= 0.85)
                     {
                         __instance.MyStats.RemoveShipComponent(__instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_TURRET)[deterministicRand.Next() % 2]);
-                        bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && deterministicRand.Next() % 3 == 0;
+                        bool flag = (double)(float)PLServer.Instance.ChaosLevel > 2.0 && (int)deterministicRand.Next() % 3 == 0;
                         if (flag)
                             __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, TurretModManager.Instance.GetTurretIDFromName("Particle Lance"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_TURRET);
                         else
                             __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_TURRET, TurretModManager.Instance.GetTurretIDFromName("Sylvassi Turret"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_TURRET);
                     }
                 }
+            }
+
+            private static Exception Finalizer(Exception __exception, PLFluffyShipInfo __instance, bool previewStats, bool startingPlayerShip)
+            {
+                if (__instance.MyStats.GetSlot(ESlotType.E_COMP_AUTO_TURRET).MaxItems > 0 || (__instance is PLFluffyShipInfo2))
+                    return __exception;
+                __instance.MyStats.SetSlotLimit(ESlotType.E_COMP_AUTO_TURRET, 1);
+                if (previewStats)
+                    return __exception;
+                GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(__instance.RegularTurretPoints[0].gameObject);
+                gameObject.transform.SetParent(__instance.Exterior.transform);
+                gameObject.transform.localPosition = new Vector3(__instance.RegularTurretPoints[0].localPosition.x * -1, __instance.RegularTurretPoints[0].localPosition.y, __instance.RegularTurretPoints[0].localPosition.z);
+                gameObject.transform.localRotation = __instance.RegularTurretPoints[0].localRotation;
+                Transform[] transformArray = new Transform[1]
+                {
+                    gameObject.transform
+                };
+                __instance.AutoTurretPoints = transformArray;                
+                if (!startingPlayerShip)
+                {
+                    PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
+                    float num = Mathf.Clamp01((float)((double)deterministicRand.NextFloat() + (double)(float)PLServer.Instance.ChaosLevel * 0.02));
+                    if (num >= 0.65)
+                    {
+                        __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_AUTO_TURRET, (int)AutoTurretModManager.Instance.GetAutoTurretIDFromName("Auto Laser Turret"), __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_AUTO_TURRET);
+                    }
+                    else
+                    {
+                        __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_AUTO_TURRET, (int)0, __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_AUTO_TURRET);
+                    }
+                }
+                return __exception;
             }
         }
 
@@ -367,11 +440,16 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
+                if (previewStats)
+                    return;
+                __instance.Vents[1].Health = (ObscuredFloat)0f;
+                __instance.Vents[1].IsDead = (ObscuredBool)true;
                 if (startingPlayerShip)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_HULLPLATING, (int)EHullPlatingType.E_HULLPLATING_CCGE, __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_HULLPLATING);
+                __instance.NumberOfFuelCapsules = 15;
             }
         }
 
@@ -384,11 +462,12 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_HULLPLATING, (int)EHullPlatingType.E_HULLPLATING_CCGE, 5 + __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_HULLPLATING);
+                __instance.NumberOfFuelCapsules = 15;
             }
         }
 
@@ -401,11 +480,12 @@ namespace ExpandedGalaxy
                     return;
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
-                if (startingPlayerShip)
+                if (startingPlayerShip || previewStats)
                     return;
                 PLRand deterministicRand = PLShipInfoBase.GetShipDeterministicRand(__instance.PersistantShipInfo);
                 __instance.MyStats.RemoveShipComponent((PLShipComponent)__instance.MyStats.GetShipComponent<PLHullPlating>(ESlotType.E_COMP_HULLPLATING));
                 __instance.MyStats.AddShipComponent(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_HULLPLATING, (int)EHullPlatingType.E_HULLPLATING_CCGE, 4 + __instance.GetChaosBoost(deterministicRand.Next() % 50), 0, 12)), visualSlot: ESlotType.E_COMP_HULLPLATING);
+                __instance.NumberOfFuelCapsules = 15;
             }
         }
 

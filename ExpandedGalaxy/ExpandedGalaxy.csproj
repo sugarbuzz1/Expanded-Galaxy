@@ -9,9 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ExpandedGalaxy</RootNamespace>
     <AssemblyName>ExpandedGalaxy</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -92,7 +93,14 @@
   <ItemGroup>
     <Compile Include="CaptainChair.cs" />
     <Compile Include="Ammunition.cs" />
+    <Compile Include="ChaosEvents.cs" />
+    <Compile Include="Extractor.cs" />
+    <Compile Include="NPCData.cs" />
+    <Compile Include="CrewAI.cs" />
+    <Compile Include="ExGalCommand.cs" />
+    <Compile Include="CrewLog.cs" />
     <Compile Include="WarpDrive.cs" />
+    <Compile Include="PersistantScrapManager.cs" />
     <Compile Include="DistressSignal.cs" />
     <Compile Include="Missions.cs" />
     <Compile Include="Talent.cs" />
