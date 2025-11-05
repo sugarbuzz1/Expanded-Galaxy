@@ -94,7 +94,7 @@ namespace ExpandedGalaxy
 
         private class PhysicalTurretMod : MegaTurretMod
         {
-            public override string Name => "Physical Main Turret";
+            public override string Name => "Coil Artillery";
 
             public override PLShipComponent PLMegaTurret => new MainTurrets.PhysicalTurret();
         }

@@ -579,17 +579,6 @@ namespace ExpandedGalaxy
             return false;
         }
 
-        [HarmonyPatch(typeof(PLWarpDrive), "ChargePrograms")]
-        internal class EnemyFullChargePrograms
-        {
-            private static bool Prefix(PLWarpDrive __instance, ref bool chargeToFull, int overrideChargeCount)
-            {
-                if (!__instance.ShipStats.Ship.GetIsPlayerShip())
-                    chargeToFull = true;
-                return true;
-            }
-        }
-
         [HarmonyPatch(typeof(PLScientistComputerScreen), "Update")]
         internal class ProgramFGColor
         {

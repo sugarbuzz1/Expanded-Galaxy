@@ -15,7 +15,7 @@ namespace ExpandedGalaxy
         {
             private static bool Prefix()
             {
-                if (PLServer.Instance != null && (double)PLServer.Instance.lifetime > 30.0)
+                if (PhotonNetwork.isMasterClient && PLServer.Instance != null && (double)PLServer.Instance.lifetime > 30.0)
                     if (Mathf.FloorToInt((float)PLServer.Instance.ChaosLevel) > (int)PLServer.Instance.OldChaosLevel)
                     {
                         List<int> activePrevious = DeactivateAllChaosEvents();
