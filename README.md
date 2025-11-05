@@ -4,7 +4,7 @@
 - Developer: sugarbuzz1
 - Game Version: 1.2.08
 - PML Version: 0.12.3.31
-- Mod Version: 1.1.0
+- Mod Version: 1.1.1
 - MP Requirements: Host & Clients need the mod
 
 ## Installation
