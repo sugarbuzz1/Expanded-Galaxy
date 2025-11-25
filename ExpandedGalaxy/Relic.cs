@@ -2423,7 +2423,8 @@ namespace ExpandedGalaxy
                             traderPersistantDataEntry.ServerAddWare(PLShipComponent.CreateShipComponentFromHash((int)PLShipComponent.createHashFromInfo((int)ESlotType.E_COMP_SALVAGE_SYSTEM, (int)EExtractorType.E_STARSALVAGE_E70, 0, 0, (int)ESlotType.E_COMP_CARGO)));
                             caravanInfo.OptionalTPDE = traderPersistantDataEntry;
                             CaravanTraderData = traderPersistantDataEntry;
-                            RelicCaravan.CaravanCurrentSector = info.ID;
+                            caravanInfo.MyCurrentSector = info;
+                            CaravanCurrentSector = info.ID;
                             caravanInfo.CompOverrides.AddRange(CaravanComponents(__instance.Seed));
                             PLServer.Instance.AllPSIs.Add(caravanInfo);
                             CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 120000;
@@ -2851,6 +2852,13 @@ namespace ExpandedGalaxy
                         persistantCaravanInfo.ShipInstance.ShipNameValue = "Wandering Caravan";
                     bool flag = false;
                     bool flag1 = false;
+                    if (PLServer.Instance != null && (double)PLServer.Instance.lifetime > 5.0 && persistantCaravanInfo.MyCurrentSector != null && persistantCaravanInfo.MyCurrentSector.ID != CaravanCurrentSector)
+                    {
+                        CaravanCurrentSector = persistantCaravanInfo.MyCurrentSector.ID;
+                        flag = true;
+                        CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 120000;
+                        goto _L1;
+                    }
                     if (CaravanCurrentSector != -1 && PLServer.GetCurrentSector() != null)
                     {
                         if (PLServer.GetCurrentSector().ID != CaravanCurrentSector)
@@ -2952,19 +2960,21 @@ namespace ExpandedGalaxy
                                     flag = true;
                                     flag1 = true;
                                 }
+                                _L1:
                                 if (flag)
                                 {
                                     int targetID = CaravanTargetSector;
                                     if (flag1)
                                     {
+                                        CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 240000;
                                         List<ESectorVisualIndication> potentialTargets = new List<ESectorVisualIndication>()
-                            {
-                                ESectorVisualIndication.CORNELIA_HUB,
-                                ESectorVisualIndication.DESERT_HUB,
-                                ESectorVisualIndication.AOG_HUB,
-                                ESectorVisualIndication.GENTLEMEN_START,
-                                ESectorVisualIndication.THE_HARBOR
-                            };
+                                        {
+                                        ESectorVisualIndication.CORNELIA_HUB,
+                                        ESectorVisualIndication.DESERT_HUB,
+                                        ESectorVisualIndication.AOG_HUB,
+                                        ESectorVisualIndication.GENTLEMEN_START,
+                                        ESectorVisualIndication.THE_HARBOR
+                                        };
                                         if (CaravanTargetSector != -1)
                                             potentialTargets.Remove(PLServer.GetSectorWithID(CaravanTargetSector).VisualIndication);
                                         else
@@ -2982,7 +2992,6 @@ namespace ExpandedGalaxy
                                     if (CaravanTargetSector != -1)
                                         CaravanPath = GetPathToSector_NPC(PLServer.GetSectorWithID(CaravanCurrentSector), PLServer.GetSectorWithID(CaravanTargetSector), 0.12f);
                                     CaravanPathIndex = 0;
-                                    CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 240000;
                                 }
                             }
                         }

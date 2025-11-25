@@ -1845,6 +1845,7 @@ namespace ExpandedGalaxy
                         PLServer.Instance.AllPSIs.Add(droneInfo);
                         PLServer.Instance.AllPSIs.Add(friendInfo);
                         UpdateTreasureFleet.fleetUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 6000;
+                        CrewLogManager.Instance.AddPin("W.D. Fleet", startingSector.ID, PLGlobal.Instance.Galaxy.FactionColors[2], 4);
                     }
                 }
             }
@@ -2479,6 +2480,11 @@ namespace ExpandedGalaxy
                     this.Equip();
                     PLServer.Instance.CaptainChangeItemVisualSlot(this.ShipStats.Ship.ShipID, this.NetID, (int)ESlotType.E_COMP_AIRLOCK);
                 }
+                foreach (PLSlot slot in this.ShipStats.GetAllSlots())
+                {
+                    if (slot.Type != ESlotType.E_COMP_CARGO && slot.Type != ESlotType.E_COMP_HIDDENCARGO && slot.Type != ESlotType.E_COMP_AIRLOCK && slot.Type != ESlotType.E_COMP_REAC_COOLING && !slot.Locked)
+                        slot.Locked = true;
+                }
                 if (PLServer.Instance.HasCompletedMissionWithID(8000004) && PLEncounterManager.Instance.GetCPEI() != null && !this.ShipStats.Ship.IsAbandoned())
                 {
                     foreach (PLShipInfoBase pLShipInfoBase in PLEncounterManager.Instance.GetCPEI().MyCreatedShipInfos)
@@ -2540,8 +2546,32 @@ namespace ExpandedGalaxy
                 this.Desc = "If you're reading this, I fucked up :(";
                 this.CanBeDroppedOnShipDeath = false;
                 this.Level = 0;
-                this.SlotType = ESlotType.E_COMP_AIRLOCK;
-                this.ActualSlotType = ESlotType.E_COMP_AIRLOCK;
+            }
+
+            public override void Update()
+            {
+                base.Update();
+                if (this.ShipStats == null)
+                    return;
+                if (this.ShipStats.AllComponents[0] != this)
+                {
+                    this.ShipStats.AllComponents.Remove(this);
+                    this.ShipStats.AllComponents.Insert(0, this);
+                }
+                if (!PhotonNetwork.isMasterClient)
+                    return;
+                if (this.ActualSlotType != ESlotType.E_COMP_AIRLOCK && (double)(Time.time - this.ServerComponentUpdateTime) > 2.0)
+                {
+                    PLServer.Instance.photonView.RPC("CaptainRearrangeShipComponent", PhotonTargets.All, new object[6]
+                    {
+                        this.ShipStats.Ship.ShipID,
+                        this.NetID,
+                        -1,
+                        (int)ESlotType.E_COMP_AIRLOCK,
+                        (int)this.SlotType,
+                        0
+                    });
+                }
             }
         }
 
@@ -2576,8 +2606,27 @@ namespace ExpandedGalaxy
                 this.Desc = "If you're reading this, I fucked up :(";
                 this.CanBeDroppedOnShipDeath = false;
                 this.Level = 0;
-                this.SlotType = ESlotType.E_COMP_REAC_COOLING;
-                this.ActualSlotType = ESlotType.E_COMP_REAC_COOLING;
+            }
+
+            public override void Update()
+            {
+                base.Update();
+                if (this.ShipStats == null)
+                    return;
+                if (!PhotonNetwork.isMasterClient)
+                    return;
+                if (this.ActualSlotType != ESlotType.E_COMP_REAC_COOLING&& (double)(Time.time - this.ServerComponentUpdateTime) > 2.0)
+                {
+                    PLServer.Instance.photonView.RPC("CaptainRearrangeShipComponent", PhotonTargets.All, new object[6]
+                    {
+                        this.ShipStats.Ship.ShipID,
+                        this.NetID,
+                        -1,
+                        (int)ESlotType.rea,
+                        (int)this.SlotType,
+                        0
+                    });
+                }
             }
         }
 

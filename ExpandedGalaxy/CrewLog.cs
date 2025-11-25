@@ -613,31 +613,88 @@ namespace ExpandedGalaxy
             }
         }
 
-        private void AddPin(int index)
+        public string GetPinName(int sectorID)
+        {
+            if (m_mappins.ContainsKey(sectorID))
+            {
+                string[] info = m_mappins[sectorID].name.Split("_");
+                return info[0];
+            }
+            else
+                return string.Empty;
+        }
+
+        public int GetPinPriority(int sectorID)
+        {
+            if (m_mappins.ContainsKey(sectorID))
+            {
+                string[] info = m_mappins[sectorID].name.Split("_");
+                try
+                {
+                    int currentPriority = Int32.Parse(info[1]);
+                    return currentPriority;
+                }
+                catch
+                {
+                    return -1;
+                }
+                
+            }
+            else
+                return -1;
+        }
+
+        private void AddPin(int index, int priority = 0)
         {
             if (!(index < this.m_logs.Count))
                 return;
             CrewLogData data = m_logs[index];
-            if (m_mappins.ContainsKey(data.optionalSectorID))
-                return;
-            PLSectorInfo sectorWithId = PLServer.GetSectorWithID(data.optionalSectorID);
-            if (sectorWithId == null)
-                return;
-            Image pin = UnityEngine.Object.Instantiate(PLStarmap.Instance.HunterLocImage, PLStarmap.Instance.HunterLocImage.transform.parent);
-            pin.GetComponent<Image>().color = data.optionalColor;
-            Image[] image = pin.GetComponentsInChildren<Image>();
-            image[1].color = data.optionalColor * 0.5f;
-            image[2].color = data.optionalColor;
-            pin.GetComponentInChildren<Text>().text = FormatPlaytime(data.timeStamp);
-            pin.GetComponentInChildren<Text>().color = data.optionalColor;
-            pin.transform.localPosition = sectorWithId.Position * 2000f + new Vector3(0.0f, -15f, 0.0f);
-            pin.transform.localPosition = new Vector3(pin.transform.localPosition.x, pin.transform.localPosition.y, 0.0f);
-            pin.gameObject.SetActive(true);
-            image[1].gameObject.SetActive(true);
-            m_mappins.Add(data.optionalSectorID, pin.gameObject);
+            AddPin(FormatPlaytime(data.timeStamp), data.optionalSectorID, data.optionalColor, priority);
         }
 
-        private void UpdatePinForSector(int inSectorID, int removedLogIndex)
+        public void AddPin(string name, int sectorID, Color color, int priority = 0)
+        {
+            PLSectorInfo sectorWithId = PLServer.GetSectorWithID(sectorID);
+            if (sectorWithId == null)
+                return;
+            if (m_mappins.ContainsKey(sectorID))
+            {
+                if (GetPinPriority(sectorID) >= priority)
+                    return;
+                else
+                    RemovePin(info[0], sectorID);
+            }
+            Image pin = UnityEngine.Object.Instantiate(PLStarmap.Instance.HunterLocImage, PLStarmap.Instance.HunterLocImage.transform.parent);
+            pin.GetComponent<Image>().color = color;
+            Image[] image = pin.GetComponentsInChildren<Image>();
+            image[1].color = color * 0.5f;
+            image[2].color = color;
+            pin.GetComponentInChildren<Text>().text = name;
+            pin.GetComponentInChildren<Text>().color = color;
+            pin.transform.localPosition = sectorWithId.Position * 2000f + new Vector3(0.0f, -15f, 0.0f);
+            pin.transform.localPosition = new Vector3(pin.transform.localPosition.x, pin.transform.localPosition.y, 0.0f);
+            pin.gameObject.name = name + "_" + priority.ToString();
+            pin.gameObject.SetActive(true);
+            image[1].gameObject.SetActive(true);
+            m_mappins.Add(sectorID, pin.gameObject);
+        }
+
+        public void MovePin(int oldSectorID, int newSectorID)
+        {
+            if (!m_mappins.ContainsKey(oldSectorID))
+                return;
+            PLSectorInfo sectorWithId = PLServer.GetSectorWithID(newSectorID);
+            if (sectorWithId == null)
+                return;
+            GameObject pin = m_mappins[oldSectorID];
+            pin.transform.localPosition = sectorWithId.Position * 2000f + new Vector3(0.0f, -15f, 0.0f);
+            pin.transform.localPosition = new Vector3(pin.transform.localPosition.x, pin.transform.localPosition.y, 0.0f);
+            m_mappins.Remove(oldSectorID);
+            m_mappins.Add(newSectorID, pin);
+            UpdatePinForSector(oldSectorID);
+        }
+
+        private void UpdatePinForSector(int inSectorID, int removedLogIndex = -1)
         {
             int index = 0;
             foreach (CrewLogData logData in CrewLogManager.Instance.GetLogs())
@@ -675,6 +732,15 @@ namespace ExpandedGalaxy
             UnityEngine.Object.Destroy(m_mappins[data.optionalSectorID]);
             m_mappins.Remove(data.optionalSectorID);
             UpdatePinForSector(data.optionalSectorID, index);
+        }
+
+        public void RemovePin(int sectorID)
+        {
+            if (!m_mappins.ContainsKey(sectorID))
+                return;
+            UnityEngine.Object.Destroy(m_mappins[sectorID]);
+            m_mappins.Remove(sectorID);
+            UpdatePinForSector(sectorID);
         }
     }
     internal class CrewLog

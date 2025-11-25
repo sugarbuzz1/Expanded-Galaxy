@@ -646,6 +646,23 @@ namespace ExpandedGalaxy
                 reqScreenCountOut = countScreensTotalOut;
             }
         }
+
+        public static bool IsWanderingNPCShip(PLPersistantShipInfo persistantShipInfo)
+        {
+            if (persistantShipInfo != null)
+            {
+                switch(persistantShipInfo.SelectedActorID)
+                {
+                    case "ExGal_RelicCaravan":
+                    case "ExGal_TreasureFleet_Cruiser":
+                    case "ExGal_TreasureFleet_Friend":
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+            return false;
+        }
     }
 }
 
