@@ -663,6 +663,61 @@ namespace ExpandedGalaxy
             }
             return false;
         }
+
+        public static bool HandleBurrowMusic(PLSectorInfo currentSector) 
+        {
+            if (PLNetworkManager.Instance.LocalPlayer != null && PLNetworkManager.Instance.LocalPlayer.GetPawn() != null && currentSector != null)
+            {
+                if (currentSector.VisualIndication == ESectorVisualIndication.DESERT_HUB && !PLNetworkManager.Instance.LocalPlayer.GetPawn().SpawnedInArena)
+                {
+                    PLMusic.Instance.PlayMusic("mx_AllGent_ExploreLP", false, true);
+                    return true;
+                }
+                return false;
+            } 
+        }
+
+        [HarmonyPatch(typeof(PLPersistantEncounterInstance), "MusicUpdate")]
+        internal class BurrowMusic
+        {
+            private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+            {
+                Label failed = generator.DefineLabel();
+
+                List<CodeInstruction> list = instructions.ToList();
+
+                List<CodeInstruction> targetSequence = new List<CodeInstruction>() {
+                    new CodeInstruction(OpCodes.Call),
+                    new CodeInstruction(OpCodes.Stloc_1),
+                    new CodeInstruction(OpCodes.Ldloc_1),
+                    new CodeInstruction(OpCodes.Brfalse)
+                };
+                List<CodeInstruction> patchSequence = new List<CodeInstruction>()
+                {
+                    new CodeInstruction(OpCodes.Ldloc_1),
+                    new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Systems), "HandleBurrowMusic", new Type[1] {typeof(PLSectorInfo)})),
+                    new CodeInstruction(OpCodes.Brfalse, failed),
+                    new CodeInstruction(OpCodes.Ret),
+                    new CodeInstruction(OpCodes.Nop)
+                };
+                patchSequence[4].labels.Add(failed);
+
+                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.AFTER, HarmonyHelpers.CheckMode.NONNULL, false);
+            }
+        }
+
+        [HarmonyPatch(typeof(PLBurrowArena), "Update")]
+        internal class BurrowArenaKillMusic
+        {
+            private static void Postfix(PLBurrowArena __instance)
+            {
+                if (PLNetworkManager.Instance.LocalPlayer != null && PLNetworkManager.Instance.LocalPlayer.GetPawn() != null)
+                {
+                    if (__instance.ArenaIsActive && PLNetworkManager.Instance.LocalPlayer.OnPlanet && PLNetworkManager.Instance.LocalPlayer.GetPawn().SpawnedInArena && PLMusic.Instance.CurrentPlayingMusicEventString != "")
+                        PLMusic.Instance.StopCurrentMusic();
+                }
+            }
+        }
     }
 }
 
