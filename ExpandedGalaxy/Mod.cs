@@ -1,7 +1,11 @@
-﻿using HarmonyLib;
+﻿using CodeStage.AntiCheat.ObscuredTypes;
+using HarmonyLib;
 using PulsarModLoader;
 using PulsarModLoader.Keybinds;
+using System;
 using System.Collections.Generic;
+using Talents.Framework;
+using UnityEngine;
 
 namespace ExpandedGalaxy
 {
@@ -12,7 +16,7 @@ namespace ExpandedGalaxy
             PLGlobal.Instance.AuxSystemNames[4] = PLLocalize.Localize("Turret Autofire");
             PLGlobal.Instance.Galaxy.FactionColors[6] = Relic.getRelicColor();
         }
-        public override string Version => "1.1.1";
+        public override string Version => "1.2.0";
 
         public override string Author => "sugarbuzz1";
 
@@ -36,8 +40,6 @@ namespace ExpandedGalaxy
             PLInput.Instance.EInputActionNameToString[63] = "full_reverse_throttle";
             PLInput.Instance.EInputActionNameToString[62] = "full_throttle";
             Talent.SetTalentsAsUnhidden();
-            PLGlobal.SafeGameObjectSetActive(Relic.RelicCaravan.CaravanIcon.CaravanLocImage.gameObject, false);
-            PLGlobal.SafeGameObjectSetActive(Relic.RelicCaravan.CaravanIcon.CaravanLocBG.gameObject, false);
             Traverse traverse = Traverse.Create(PLGlobal.Instance);
             traverse.Field("CachedTalentInfos").SetValue(new Dictionary<int, TalentInfo>());
             base.Unload();

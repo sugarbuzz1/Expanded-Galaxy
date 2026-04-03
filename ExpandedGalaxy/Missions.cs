@@ -36,6 +36,8 @@ namespace ExpandedGalaxy
                 pickupMissionData.LongRangeDialogueActorID = "";
                 pickupMissionData.LongRangeDialogueDisplayName = "";
                 pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
+                pickupMissionData.RecCrewLevel = 0;
+                pickupMissionData.Rarity = -1f;
                 List<ObjectiveData> objectiveDatas = new List<ObjectiveData>()
                 {
                     new ObjectiveData
@@ -108,6 +110,8 @@ namespace ExpandedGalaxy
                 pickupMissionData.LongRangeDialogueActorID = "";
                 pickupMissionData.LongRangeDialogueDisplayName = "";
                 pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
+                pickupMissionData.RecCrewLevel = 0;
+                pickupMissionData.Rarity = -1f;
                 List<ObjectiveData> objectiveDatas = new List<ObjectiveData>()
                 {
                     new ObjectiveData
@@ -160,6 +164,8 @@ namespace ExpandedGalaxy
                 pickupMissionData.LongRangeDialogueActorID = "";
                 pickupMissionData.LongRangeDialogueDisplayName = "";
                 pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
+                pickupMissionData.RecCrewLevel = 0;
+                pickupMissionData.Rarity = -1f;
                 List<ObjectiveData> objectiveDatas = new List<ObjectiveData>()
                 {
                     new ObjectiveData
@@ -258,6 +264,8 @@ namespace ExpandedGalaxy
                 pickupMissionData.LongRangeDialogueActorID = "";
                 pickupMissionData.LongRangeDialogueDisplayName = "";
                 pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
+                pickupMissionData.RecCrewLevel = 0;
+                pickupMissionData.Rarity = -1f;
                 List<ObjectiveData> objectiveDatas = new List<ObjectiveData>()
                 {
                     new ObjectiveData
@@ -315,7 +323,7 @@ namespace ExpandedGalaxy
             public static PickupMissionData CreateData()
             {
                 PickupMissionData pickupMissionData = new PickupMissionData();
-                pickupMissionData.Name = "Hunt Project Vulcanus";
+                pickupMissionData.Name = "Hunt Project: Vulcanus";
                 pickupMissionData.Desc = "I've tracked the crew to this sector. Take over the ship - DON'T DESTROY IT - and bring it to Maes Argale at Dutain's Garage. I'll have another crew handle your ship.";
                 pickupMissionData.CanBeAbandonedByPlayers = true;
                 pickupMissionData.MissionID = 8000004;
@@ -323,6 +331,7 @@ namespace ExpandedGalaxy
                 pickupMissionData.LongRangeDialogueActorID = "";
                 pickupMissionData.LongRangeDialogueDisplayName = "";
                 pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
+                pickupMissionData.Rarity = -1f;
 
                 PickupSectorData pickupSectorData = new PickupSectorData();
                 pickupSectorData.SectorType = 145;
@@ -333,7 +342,7 @@ namespace ExpandedGalaxy
                 pickupSectorData.Name = "";
                 
                 PickupShipData pickupShipData = new PickupShipData();
-                pickupShipData.Name = "Project Vulcanus";
+                pickupShipData.Name = "Project: Vulcanus";
                 pickupShipData.RandomizeName = false;
                 pickupShipData.DropDefaultCredits = false;
                 pickupShipData.CreditsToDrop = 0;
@@ -617,7 +626,14 @@ namespace ExpandedGalaxy
                         CompType = (int)ESlotType.E_COMP_DISTRESS_SIGNAL,
                         CompSubType = 5,
                         CompLevel = 0,
-                        IsCargo = true,
+                        IsCargo = false,
+                    },
+                    new ComponentOverrideData()
+                    {
+                        CompType = (int)ESlotType.E_COMP_DISTRESS_SIGNAL,
+                        CompSubType = 7,
+                        CompLevel = 0,
+                        IsCargo = false,
                     }
                 };
                 pickupShipData.ImmediatelyStartDialogue = false;
@@ -741,6 +757,7 @@ namespace ExpandedGalaxy
                 pickupMissionData.LongRangeDialogueActorID = "";
                 pickupMissionData.LongRangeDialogueDisplayName = "";
                 pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
+                pickupMissionData.Rarity = -1f;
 
                 PickupSectorData pickupSectorData = new PickupSectorData();
                 pickupSectorData.SectorType = 146;
@@ -885,6 +902,7 @@ namespace ExpandedGalaxy
                 pickupMissionData.LongRangeDialogueActorID = "";
                 pickupMissionData.LongRangeDialogueDisplayName = "";
                 pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
+                pickupMissionData.Rarity = -1f;
 
                 PickupSectorData pickupSectorData = new PickupSectorData();
                 pickupSectorData.SectorType = 146;
@@ -1020,6 +1038,7 @@ namespace ExpandedGalaxy
                 pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
                 pickupMissionData.FailureRequirements_ALLMUSTMATCH = false;
                 pickupMissionData.Hidden = true;
+                pickupMissionData.Rarity = -1f;
 
                 List<ObjectiveData> objectiveDatas = new List<ObjectiveData>()
                 {
@@ -1104,6 +1123,7 @@ namespace ExpandedGalaxy
                 pickupMissionData.LongRangeDialogueActorID = "";
                 pickupMissionData.LongRangeDialogueDisplayName = "";
                 pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
+                pickupMissionData.Rarity = -1f;
 
                 List<ObjectiveData> objectiveDatas = new List<ObjectiveData>()
                 {
@@ -1197,6 +1217,7 @@ namespace ExpandedGalaxy
                 pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
                 pickupMissionData.FailureRequirements_ALLMUSTMATCH = false;
                 pickupMissionData.Hidden = true;
+                pickupMissionData.Rarity = -1f;
 
                 List<RewardData> rewardDatas = new List<RewardData>()
                 {
@@ -1236,6 +1257,7 @@ namespace ExpandedGalaxy
                 pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
                 pickupMissionData.FailureRequirements_ALLMUSTMATCH = false;
                 pickupMissionData.Hidden = true;
+                pickupMissionData.Rarity = -1f;
 
                 List<RewardData> rewardDatas = new List<RewardData>()
                 {
@@ -1293,6 +1315,7 @@ namespace ExpandedGalaxy
                 pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
                 pickupMissionData.FailureRequirements_ALLMUSTMATCH = false;
                 pickupMissionData.Hidden = true;
+                pickupMissionData.Rarity = -1f;
 
                 List<ObjectiveData> objectives = new List<ObjectiveData>()
                 {
@@ -1376,24 +1399,58 @@ namespace ExpandedGalaxy
             {
                 PickupMissionData pickupMissionData = new PickupMissionData();
                 pickupMissionData.Name = "Bad Biscuits";
-                pickupMissionData.Desc = "";
+                pickupMissionData.Desc = "Eliminate the target and then return to me. If you get caught this meeting never happened.";
                 pickupMissionData.CanBeAbandonedByPlayers = true;
                 pickupMissionData.MissionID = 8000012;
                 pickupMissionData.CanBeBlockedByOtherPickupMissions = false;
                 pickupMissionData.LongRangeDialogueActorID = "";
                 pickupMissionData.LongRangeDialogueDisplayName = "";
                 pickupMissionData.LongRangeDialogueDisplayNameOriginal = "";
+                pickupMissionData.Rarity = -1f;
+
+                PickupSectorData pickupSectorData = new PickupSectorData();
+                pickupSectorData.SectorType = 0;
+                pickupSectorData.UniqueType = false;
+                pickupSectorData.Distance = 22f;
+                pickupSectorData.SpawnRegularShipsToo = true;
+                pickupSectorData.FactionID = 3;
+                pickupSectorData.Name = "";
+
+                PickupShipData pickupShipData = new PickupShipData();
+                pickupShipData.Name = "Sugary Speeders";
+                pickupShipData.RandomizeName = false;
+                pickupShipData.DropDefaultCredits = true;
+                pickupShipData.CreditsToDrop = 2000;
+                pickupShipData.DialogueActorID = "";
+                pickupShipData.Flagged = false;
+                pickupShipData.ForceHostileAgainstPlayerShip = false;
+                pickupShipData.ShipType = (int)EShipType.E_FLUFFY_RIVAL_GENERIC;
+                pickupShipData.ImmediatelyStartDialogue = false;
+                pickupShipData.ForceHostileAgainstAll = false;
+                pickupShipData.ForceHostileAgainstName = "";
+
+                pickupSectorData.Ships.Add(pickupShipData);
+
+                pickupMissionData.Sectors.Add(pickupSectorData);
 
                 List<ObjectiveData> objectives = new List<ObjectiveData>()
                 {
                     new ObjectiveData()
                     {
-                        ObjType = 22,
+                        ObjType = 8,
                         Data = new Dictionary<string, string>()
                         {
                             {
                             "ScriptName",
                             "ExGal_BadBiscuit_Kill"
+                            },
+                            {
+                                "KSN_Name",
+                                "Sugary Speeders"
+                            },
+                            {
+                                "KSN_AmountNeeded",
+                                "1"
                             }
                         }
                     },
@@ -1439,6 +1496,7 @@ namespace ExpandedGalaxy
                 pickupMissionData.BlocksOtherPickupMissionStarts = true;
                 pickupMissionData.FailureRequirements_ALLMUSTMATCH = true;
                 pickupMissionData.IsRepeatable = true;
+                pickupMissionData.Rarity = -1f;
 
                 PickupSectorData pickupSectorData = new PickupSectorData();
                 pickupSectorData.SectorType = 78;
@@ -1451,22 +1509,7 @@ namespace ExpandedGalaxy
                 pickupMissionData.Sectors.Add(pickupSectorData);
 
                 RequirementData requirementData = new RequirementData();
-                requirementData.ReqType = 16;
-                requirementData.Data = new Dictionary<string, string>()
-                {
-                    {
-                        "PercentSectorsFaction_ID",
-                        "0"
-                    },
-                    {
-                        "PercentSectorsFaction_Percent",
-                        "50"
-                    },
-                    {
-                        "PercentSectorsFaction_Range",
-                        "5"
-                    }
-                };
+                requirementData.ReqType = 26;
                 pickupMissionData.StartingRequirements.Add(requirementData);
                 
                 List<ObjectiveData> objectiveDatas = new List<ObjectiveData>()
@@ -1539,6 +1582,210 @@ namespace ExpandedGalaxy
                     }
                 };
                 pickupMissionData.FailureRewards.AddRange(rewardDatasFailure);
+
+                return pickupMissionData;
+            }
+        }
+
+        public class ReflectedRiftStart
+        {
+            public static PickupMissionData MissionData => CreateData();
+
+            public static PickupMissionData CreateData()
+            {
+                PickupMissionData pickupMissionData = new PickupMissionData();
+                pickupMissionData.Name = "A Rift in Space";
+                pickupMissionData.Desc = "Urgent message from the Outpost 448 Command Center: [PLAYERSHIP_NAME], your crew has been deemed appropriate for a unique assingment. Please make your way to the provided coordinates as fast as you please. A Union vessel will be waiting there to brief you on the assignment.";
+                pickupMissionData.CanBeAbandonedByPlayers = false;
+                pickupMissionData.MissionID = 8000014;
+                pickupMissionData.CanBeBlockedByOtherPickupMissions = false;
+                pickupMissionData.LongRangeDialogueActorID = "ExGal_ReflectedRift_Start";
+                pickupMissionData.LongRangeDialogueDisplayName = "CU Information Desk";
+                pickupMissionData.LongRangeDialogueDisplayNameOriginal = "CU Information Desk";
+                pickupMissionData.CallOnStart = true;
+                pickupMissionData.BlocksOtherPickupMissionStarts = false;
+                pickupMissionData.IsRepeatable = false;
+                pickupMissionData.RecCrewLevel = 0;
+                pickupMissionData.Rarity = 1f;
+
+                pickupMissionData.OriginalName = "A Rift in Space";
+                pickupMissionData.OriginalDesc = "Urgent message from the Outpost 448 Command Center: [PLAYERSHIP_NAME], your crew has been deemed appropriate for a unique assingment. Please make your way to the provided coordinates as fast as you please. A Union vessel will be waiting there to brief you on the assignment.";
+
+                PickupSectorData pickupSectorData = new PickupSectorData();
+                pickupSectorData.SectorType = 93;
+                pickupSectorData.UniqueType = false;
+                pickupSectorData.Distance = 60f;
+                pickupSectorData.SpawnRegularShipsToo = false;
+                pickupSectorData.FactionID = 6;
+                pickupSectorData.Name = "Spacial Rift";
+
+                PickupShipData pickupShipData = new PickupShipData();
+                pickupShipData.Name = "";
+                pickupShipData.DialogueActorID = "ExGal_ReflectedRift_NPC";
+                pickupShipData.ImmediatelyStartDialogue = true;
+                pickupShipData.ForceHostileAgainstName = "";
+                pickupShipData.ShipType = 23;
+                pickupSectorData.Ships.Add(pickupShipData);
+
+                pickupMissionData.Sectors.Add(pickupSectorData);
+
+                pickupMissionData.StartingRequirements = new List<RequirementData>()
+                {
+                    new RequirementData()
+                    {
+                        ReqType = 3,
+                        Data = new Dictionary<string, string>()
+                        {
+                            {
+                                "ChaosLevelMin_Level",
+                                "2"
+                            }
+                        }
+                    }
+                };
+                pickupMissionData.StartingRequirements_ALLMUSTMATCH = true;
+
+                List<ObjectiveData> objectiveDatas = new List<ObjectiveData>()
+                {
+                    new ObjectiveData
+                    {
+                        ObjType = 1,
+                        Data = new Dictionary<string, string>()
+                        {
+                            {
+                                "RST_SectorTypeValue",
+                                "DIMENSION_STATION"
+                            },
+                            {
+                                "RST_DestNameValue",
+                                "Spacial Rift"
+                            },
+                            {
+                                "RST_MustKillAll",
+                                "0"
+                            },
+                            {
+                                "CustomText",
+                                "Go to the marked sector"
+                            }
+                        }
+                    },
+                    new ObjectiveData
+                    {
+                        ObjType = 0,
+                        Data = new Dictionary<string, string>()
+                        {
+                            {
+                                "ScriptName",
+                                "ExGal_ReflectedRift_Enter"
+                            },
+                            {
+                                "CustomText",
+                                "Enter the rift"
+                            }
+                        }
+                    },
+                    new ObjectiveData
+                    {
+                        ObjType = 13,
+                        Data = new Dictionary<string, string>()
+                        {
+                            {
+                                "ScriptName",
+                                "ExGal_ReflectedRift_Finsh"
+                            },
+                            {
+                                "DPO_Name",
+                                ""
+                            },
+                            {
+                                "DPO_AmountNeeded",
+                                "1"
+                            },
+                            {
+                                "CustomText",
+                                "Unravel the Anomaly"
+                            }
+                        }
+                    },
+                };
+                pickupMissionData.Objectives.AddRange(objectiveDatas);
+
+                return pickupMissionData;
+            }
+        }
+
+        public class MiningDroneQuest
+        {
+            public static PickupMissionData MissionData => CreateData();
+
+            public static PickupMissionData CreateData()
+            {
+                PickupMissionData pickupMissionData = new PickupMissionData();
+                pickupMissionData.Name = "Ancient Drones";
+                pickupMissionData.Desc = "The galaxy is littered with squadrons of extraction vessels, each recieving and relaying data to... somewhere. Leave them be and they will pay you no mind. Though finding their base of operations could prove useful...";
+                pickupMissionData.CanBeAbandonedByPlayers = false;
+                pickupMissionData.MissionID = 8000015;
+                pickupMissionData.CanBeBlockedByOtherPickupMissions = false;
+                pickupMissionData.LongRangeDialogueActorID = "";
+                pickupMissionData.CallOnStart = false;
+                pickupMissionData.BlocksOtherPickupMissionStarts = false;
+                pickupMissionData.IsRepeatable = false;
+                pickupMissionData.RecCrewLevel = 0;
+                pickupMissionData.Rarity = -1f;
+
+                pickupMissionData.OriginalName = "Ancient Drones";
+                pickupMissionData.OriginalDesc = "The galaxy is littered with squadrons of extraction vessels, each recieving and relaying data to... somewhere. Leave them be and they will pay you no mind. Though finding their base of operations could prove useful...";
+
+                RequirementData requirementData = new RequirementData();
+                requirementData.ReqType = 16;
+
+                List<ObjectiveData> objectiveDatas = new List<ObjectiveData>()
+                {
+                    new ObjectiveData
+                    {
+                        ObjType = 1,
+                        Data = new Dictionary<string, string>()
+                        {
+                            {
+                                "RST_SectorTypeValue",
+                                "LAVA2"
+                            },
+                            {
+                                "RST_DestNameValue",
+                                ""
+                            },
+                            {
+                                "RST_MustKillAll",
+                                "0"
+                            },
+                            {
+                                "CustomText",
+                                "Locate the mining drone hub world"
+                            }
+                        }
+                    },
+                    new ObjectiveData
+                    {
+                        ObjType = 9,
+                        Data = new Dictionary<string, string>()
+                        {
+                            {
+                                "ScriptName",
+                                "ExGal_MiningDrone_Finish"
+                            },
+                            {
+                                "CustomText",
+                                "Investigate the source of the drones"
+                            },
+                            {
+                                "RVON_Name",
+                                "ExGal_MiningDrone_Volume"
+                            }
+                        }
+                    }
+                };
+                pickupMissionData.Objectives.AddRange(objectiveDatas);
 
                 return pickupMissionData;
             }
@@ -1636,29 +1883,23 @@ namespace ExpandedGalaxy
                                 }
                                 playerShipData.AllComponentOverrides.Add(new ComponentOverrideData()
                                 {
-                                    ReplaceExistingComp = true,
-                                    CompTypeToReplace = (int)ESlotType.E_COMP_AIRLOCK,
                                     CompType = (int)ESlotType.E_COMP_DISTRESS_SIGNAL,
                                     CompSubType = 6,
                                     CompLevel = 0,
                                     IsCargo = false,
-                                    SlotNumberToReplace = 0,
                                 });
                                 playerShipData.AllComponentOverrides.Add(new ComponentOverrideData()
                                 {
-                                    ReplaceExistingComp = true,
-                                    CompTypeToReplace = (int)ESlotType.E_COMP_REAC_COOLING,
                                     CompType = (int)ESlotType.E_COMP_DISTRESS_SIGNAL,
                                     CompSubType = 7,
                                     CompLevel = 0,
                                     IsCargo = false,
-                                    SlotNumberToReplace = 0,
                                 });
                                 playerShipData.FactionID = PLEncounterManager.Instance.PlayerShip.FactionID;
                                 playerShipData.DialogueActorID = "";
                                 playerShipData.Flagged = PLEncounterManager.Instance.PlayerShip.IsFlagged;
                                 (PLServer.Instance.GetActiveMissionWithID(8000004).MyMissionData as PickupMissionData).Sectors[0].Ships.Add(playerShipData);
-                                PLEncounterManager.Instance.PlayerShip.MyStats.AddShipComponent(new MissionNoExtractorFlag((int)ESlotType.E_COMP_DISTRESS_SIGNAL), visualSlot: ESlotType.E_COMP_AIRLOCK);
+                                PLEncounterManager.Instance.PlayerShip.MyStats.AddShipComponent(new MissionNoExtractorFlag((int)ESlotType.E_COMP_DISTRESS_SIGNAL), visualSlot: ESlotType.E_COMP_ID_MAX);
                                 PLEncounterManager.Instance.PlayerShip.DropScrap = false;
                             }
                         }
@@ -1728,7 +1969,11 @@ namespace ExpandedGalaxy
                                 shipInfo.CompOverrides.AddRange(shipData.AllComponentOverrides);
                                 shipInfo.ShipName = shipData.Name;
                                 shipInfo.SelectedActorID = shipData.DialogueActorID;
-                                PLShipInfo info = (PLShipInfo)PLEncounterManager.Instance.GetCPEI().SpawnEnemyShip(shipInfo.Type, shipInfo, spawnPos: new UnityEngine.Vector3(-2351f, 414f, -94f));
+                                shipInfo.CreateShipInstance(PLEncounterManager.Instance.GetCPEI());
+                                if (shipInfo.ShipInstance == null)
+                                    return;
+                                PLShipInfo info = (PLShipInfo)shipInfo.ShipInstance;
+                                info.Exterior.transform.position = new UnityEngine.Vector3(-2351f, 414f, -94f);
                                 info.CreditsLeftBehind = 0;
                                 info.SetAbandoned(true);
                             }
@@ -1845,7 +2090,7 @@ namespace ExpandedGalaxy
                         PLServer.Instance.AllPSIs.Add(droneInfo);
                         PLServer.Instance.AllPSIs.Add(friendInfo);
                         UpdateTreasureFleet.fleetUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 6000;
-                        CrewLogManager.Instance.AddPin("W.D. Fleet", startingSector.ID, PLGlobal.Instance.Galaxy.FactionColors[2], 4);
+                        CrewLogManager.Instance.AddPin("W.D. FLEET", startingSector.ID, PLGlobal.Instance.Galaxy.FactionColors[2], 4);
                     }
                 }
             }
@@ -1914,6 +2159,7 @@ namespace ExpandedGalaxy
                         if (cruiserInfo == null)
                         {
                             __instance.GetActiveMissionWithID(8000008).FailMission();
+                            ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendNPCSector", PhotonTargets.Others, new object[3] { 8000008, 0, -1 });
                             return;
                         }
                         if (cruiserInfo.IsShipDestroyed)
@@ -1942,6 +2188,7 @@ namespace ExpandedGalaxy
                         if (wdHubSector == null)
                         {
                             __instance.GetActiveMissionWithID(8000008).FailMission();
+                            ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendNPCSector", PhotonTargets.Others, new object[3] { 8000008, 0, -1 });
                             PLServer.Instance.AllPSIs.Remove(cruiserInfo);
                             if (destroyerInfo != null)
                                 PLServer.Instance.AllPSIs.Remove(destroyerInfo);
@@ -1955,6 +2202,7 @@ namespace ExpandedGalaxy
                         if (fleetPath.Count < 2)
                         {
                             PulsarModLoader.Utilities.Logger.Info("Could not properly find a path for Treasure Fleet!");
+                            ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendNPCSector", PhotonTargets.Others, new object[3] { 8000008, 0, -1 });
                             __instance.GetActiveMissionWithID(8000008).FailMission();
                             PLServer.Instance.AllPSIs.Remove(cruiserInfo);
                             if (destroyerInfo != null)
@@ -1969,6 +2217,7 @@ namespace ExpandedGalaxy
                         {
                             cruiserInfo.IsShipDestroyed = true;
                             __instance.GetActiveMissionWithID(8000008).FailMission();
+                            ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendNPCSector", PhotonTargets.Others, new object[3] { 8000008, 0, -1 });
                             PLServer.Instance.AllPSIs.Remove(cruiserInfo);
                             if (destroyerInfo != null)
                                 PLServer.Instance.AllPSIs.Remove(destroyerInfo);
@@ -1984,31 +2233,38 @@ namespace ExpandedGalaxy
                             cruiserInfo.ShldPercent = 1f;
                             bool flag = fleetPath[1] == PLServer.GetCurrentSector();
                             if (flag)
-                                PLEncounterManager.Instance.GetCPEI().SpawnEnemyShip(cruiserInfo.Type, cruiserInfo);
+                                cruiserInfo.CreateShipInstance(PLEncounterManager.Instance.GetCPEI());
                             if (destroyerInfo != null)
                             {
                                 destroyerInfo.MyCurrentSector = fleetPath[1];
                                 destroyerInfo.ShldPercent = 1f;
                                 if (flag)
-                                    PLEncounterManager.Instance.GetCPEI().SpawnEnemyShip(destroyerInfo.Type, destroyerInfo);
+                                    destroyerInfo.CreateShipInstance(PLEncounterManager.Instance.GetCPEI());
                             }
                             if (droneInfo != null)
                             {
                                 droneInfo.MyCurrentSector = fleetPath[1];
                                 droneInfo.ShldPercent = 1f;
                                 if (flag)
-                                    PLEncounterManager.Instance.GetCPEI().SpawnEnemyShip(droneInfo.Type, droneInfo);
+                                    droneInfo.CreateShipInstance(PLEncounterManager.Instance.GetCPEI());
                             }
                             if (friendInfo != null)
                             {
                                 friendInfo.MyCurrentSector = fleetPath[1];
                                 friendInfo.ShldPercent = 1f;
                                 if (flag)
-                                    PLEncounterManager.Instance.GetCPEI().SpawnEnemyShip(friendInfo.Type, friendInfo);
+                                    friendInfo.CreateShipInstance(PLEncounterManager.Instance.GetCPEI());
                             }
                             if (PLServer.Instance.GetActiveMissionWithID(8000008).MyMissionData.Objectives[0].Data.ContainsKey("ExGal_NPC_SectorCurrent"))
                             {
                                 PLServer.Instance.GetActiveMissionWithID(8000008).MyMissionData.Objectives[0].Data["ExGal_NPC_SectorCurrent"] = fleetPath[1].ID.ToString();
+                                int id;
+                                CrewLogManager.Instance.GetPinOfName("W.D. FLEET", out id);
+                                if (id != -1)
+                                    CrewLogManager.Instance.MovePin("W.D. FLEET", id, fleetPath[1].ID);
+                                else
+                                    CrewLogManager.Instance.AddPin("W.D. FLEET", fleetPath[1].ID, PLGlobal.Instance.Galaxy.FactionColors[2], 4);
+
                                 ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendNPCSector", PhotonTargets.Others, new object[3] { 8000008, 0, fleetPath[1].ID });
                             }
                         }
@@ -2024,74 +2280,27 @@ namespace ExpandedGalaxy
                     int objectiveIndex = (int)arguments[1];
                     int sectorID = (int)arguments[2];
 
+                    if (missionID == 8000008)
+                    {
+                        if (sectorID == -1)
+                        {
+                            CrewLogManager.Instance.RemovePinOfName("W.D. FLEET");
+                        }
+                        else
+                        {
+                            int id;
+                            CrewLogManager.Instance.GetPinOfName("W.D. FLEET", out id);
+                            if (id != -1)
+                                CrewLogManager.Instance.MovePin("W.D. FLEET", id, sectorID);
+                            else
+                                CrewLogManager.Instance.AddPin("W.D. FLEET", sectorID, PLGlobal.Instance.Galaxy.FactionColors[2], 4);
+                        }
+                    }
                     if (PLServer.Instance == null || !PLServer.Instance.HasActiveMissionWithID(missionID))
                         return;
                     if (PLServer.Instance.GetActiveMissionWithID(missionID).MyMissionData == null || PLServer.Instance.GetActiveMissionWithID(missionID).MyMissionData.Objectives.Count < objectiveIndex)
                         return;
-                    PLServer.Instance.GetActiveMissionWithID(missionID).MyMissionData.Objectives[objectiveIndex].Data["ExGal_NPC_SectorCurrent"] = sectorID.ToString();
-                }
-            }
-
-            [HarmonyPatch(typeof(PLStarmap), "Update")]
-            internal class FleetIcon
-            {
-                public static Image FleetLocImage;
-                public static Image FleetLocBG;
-                private static void Postfix(PLStarmap __instance)
-                {
-                    if (FleetLocImage == null)
-                    {
-                        FleetLocImage = UnityEngine.Object.Instantiate(__instance.HunterLocImage, __instance.HunterLocImage.transform.parent);
-                        FleetLocImage.GetComponent<Image>().color = PLGlobal.Instance.Galaxy.FactionColors[2];
-                        Image[] image = FleetLocImage.GetComponentsInChildren<Image>();
-                        image[1].color = new Color(0.5f, 0.2375f, 0f, 0.5f);
-                        FleetLocBG = image[1];
-                        image[2].color = PLGlobal.Instance.Galaxy.FactionColors[2];
-                        FleetLocImage.GetComponentInChildren<Text>().text = "W.D. FLEET";
-                        FleetLocImage.GetComponentInChildren<Text>().color = PLGlobal.Instance.Galaxy.FactionColors[2];
-                        PLGlobal.SafeGameObjectSetActive(FleetLocImage.gameObject, false);
-                        PLGlobal.SafeGameObjectSetActive(FleetLocBG.gameObject, false);
-                    }
-                    if (PLServer.Instance == null || PLGlobal.Instance.Galaxy == null)
-                    {
-                        PLGlobal.SafeGameObjectSetActive(FleetLocImage.gameObject, false);
-                        PLGlobal.SafeGameObjectSetActive(FleetLocBG.gameObject, false);
-                        return;
-                    }
-                    if (__instance.IsActive && FleetLocImage != null && FleetLocBG != null)
-                    {
-                        if (PLServer.Instance.HasActiveMissionWithID(8000008))
-                        {
-                            int cruiserCurrentSectorID = -1;
-                            if (PLServer.Instance.GetActiveMissionWithID(8000008).MyMissionData.Objectives[0].Data.ContainsKey("ExGal_NPC_SectorCurrent"))
-                            {
-                                try
-                                {
-                                    cruiserCurrentSectorID = int.Parse(PLServer.Instance.GetActiveMissionWithID(8000008).MyMissionData.Objectives[0].Data["ExGal_NPC_SectorCurrent"]);
-                                }
-                                catch (Exception)
-                                { }
-                            }
-
-                            if (cruiserCurrentSectorID != -1)
-                            {
-                                PLSectorInfo sectorWithId = PLServer.GetSectorWithID(cruiserCurrentSectorID);
-                                if (sectorWithId != null)
-                                {
-                                    PLGlobal.SafeGameObjectSetActive(FleetLocImage.gameObject, true);
-                                    PLGlobal.SafeGameObjectSetActive(FleetLocBG.gameObject, true);
-                                    if (FleetLocImage.gameObject.activeSelf)
-                                    {
-                                        FleetLocImage.transform.localPosition = sectorWithId.Position * 2000f + new Vector3(0.0f, -15f, 0.0f);
-                                        FleetLocImage.transform.localPosition = new Vector3(FleetLocImage.transform.localPosition.x, FleetLocImage.transform.localPosition.y, 0.0f);
-                                    }
-                                    return;
-                                }
-                            }
-                        }
-                        PLGlobal.SafeGameObjectSetActive(FleetLocImage.gameObject, false);
-                        PLGlobal.SafeGameObjectSetActive(FleetLocBG.gameObject, false);
-                    }
+                    PLServer.Instance.GetActiveMissionWithID(missionID).MyMissionData.Objectives[objectiveIndex].Data["ExGal_NPC_SectorCurrent"] = sectorID.ToString();                   
                 }
             }
 
@@ -2120,14 +2329,12 @@ namespace ExpandedGalaxy
                             List<PLPersistantShipInfo> pLPersistantShipInfos = new List<PLPersistantShipInfo>();
                             foreach (PLPersistantShipInfo allPsI in PLServer.Instance.AllPSIs)
                             {
-                                if (allPsI != null && allPsI.MyCurrentSector == sectorWithId && !(allPsI.FactionID == 2 || allPsI.SelectedActorID == "ExGal_TreasureFleet_Friend"))
+                                if (allPsI != null && allPsI.MyCurrentSector == sectorWithId && (allPsI.FactionID == 2 || allPsI.SelectedActorID == "ExGal_TreasureFleet_Friend"))
                                     pLPersistantShipInfos.Add(allPsI);
                             }
-                            if (pLPersistantShipInfos.Count != 0)
-                            {
-                                foreach (PLPersistantShipInfo PsI in pLPersistantShipInfos)
-                                    PLServer.Instance.AllPSIs.Remove(PsI);
-                            }
+                            PLPersistantEncounterInstance.ClearPSIs(sectorWithId);
+                            foreach (PLPersistantShipInfo PsI in pLPersistantShipInfos)
+                                PLServer.Instance.AllPSIs.Add(PsI);
                         }
                     }
                 }
@@ -2294,16 +2501,6 @@ namespace ExpandedGalaxy
             }
         }
 
-        public class PLMissionObjective_EliminateTopBiscuit : PLMissionObjective_KillShipOfName
-        {
-            public PLMissionObjective_EliminateTopBiscuit(string inName, string inSectorNum, int inAmountNeeded = 1) : base(inName, inAmountNeeded)
-            {
-                if (this.AmountNeeded > 1)
-                    this.m_ObjectiveText = "Destroy " + this.AmountNeeded.ToString() + " " + inName + " at sector " + inSectorNum;
-                else
-                    this.m_ObjectiveText = "Destroy the " + inName + " at sector " + inSectorNum; 
-            }
-        }
 
         [HarmonyPatch(typeof(PLMissionObjective_CompleteWithinJumpCount), "OnShipWarp")]
         internal class CompleteAfterJumpWarp
@@ -2311,55 +2508,6 @@ namespace ExpandedGalaxy
             private static void Postfix()
             {
                 PLMissionObjective_CompleteAfterJumpCount.OnShipWarp();
-            }
-        }
-
-        [HarmonyPatch(typeof(PLMissionBase), "CreateObjectiveFromData")]
-        internal class AddModdedObjectives
-        {
-            private static bool Prefix(PLMissionBase __instance, PLMissionBase inMission, ObjectiveData inObjData)
-            {
-                PLMissionObjective missionObjective = null;
-                if (inObjData.ObjType == 21)
-                {
-                    missionObjective = (PLMissionObjective)new PLMissionObjective_CompleteAfterJumpCount(int.Parse(inObjData.GetValueFromKey("CMAJC_Value")));
-                }
-                else if (inObjData.ObjType == 22)
-                {
-                    if (inObjData.Data.ContainsKey("ETB_Name"))
-                        missionObjective = new PLMissionObjective_EliminateTopBiscuit(inObjData.Data["ETB_Name"], inObjData.Data["ETB_SectorNum"]);
-                    else if (PLServer.Instance != null)
-                    {
-                        PLPersistantShipInfo_FBRival highest = null;
-                        foreach (PLPersistantShipInfo pLPersistantShipInfo in PLServer.Instance.AllPSIs)
-                        {
-                            if (pLPersistantShipInfo is PLPersistantShipInfo_FBRival fBRival)
-                            {
-                                if (fBRival.IsShipDestroyed)
-                                    continue;
-                                if (highest == null)
-                                    highest = fBRival;
-                                else if (fBRival.BiscuitsSold > highest.BiscuitsSold)
-                                    highest = fBRival;
-                            }
-                        }
-                        if (highest != null)
-                        {
-                            inObjData.Data.Add("ETB_Name", highest.ShipName);
-                            inObjData.Data.Add("ETB_SectorNum", highest.MyCurrentSector.ID.ToString());
-                            missionObjective = new PLMissionObjective_EliminateTopBiscuit(inObjData.Data["ETB_Name"], inObjData.Data["ETB_SectorNum"]);
-                        }
-                    }
-                }
-                else
-                    return true;
-                if (missionObjective == null)
-                    return true;
-                missionObjective.Init();
-                missionObjective.RawCustomText = inObjData.GetValueFromKey("CustomText");
-                missionObjective.ScriptName = inObjData.GetValueFromKey("ScriptName");
-                inMission.Objectives.Add(missionObjective);
-                return false;
             }
         }
 
@@ -2374,86 +2522,64 @@ namespace ExpandedGalaxy
             }
         }
 
-        [HarmonyPatch(typeof(PLCampaignIO), "GetMissionOfTypeID")]
-        internal class CreateMissions
+        [HarmonyPatch(typeof(PLCampaignIO), "ReadCampaign")]
+        internal class AddMissionsToCampaign
         {
-            private static void Postfix(PLCampaignIO __instance, int inID, ref MissionData __result)
+            private static void Postfix()
             {
-                if (__result != null)
-                    return;
-                switch (inID)
+                PLCampaignIO.Instance.GetAllMissionData().Add(ReflectedRiftStart.MissionData);
+                PLCampaignIO.Instance.GetAllPickupMissionData().Add(ReflectedRiftStart.MissionData);
+
+                PLCampaignIO.Instance.GetAllMissionData().Add(JunkCubeStart.MissionData);
+                PLCampaignIO.Instance.GetAllPickupMissionData().Add(JunkCubeStart.MissionData);
+                PLCampaignIO.Instance.GetAllMissionData().Add(JunkCubeWait1.MissionData);
+                PLCampaignIO.Instance.GetAllPickupMissionData().Add(JunkCubeWait1.MissionData);
+                PLCampaignIO.Instance.GetAllMissionData().Add(JunkCubeRetrieval.MissionData);
+                PLCampaignIO.Instance.GetAllPickupMissionData().Add(JunkCubeRetrieval.MissionData);
+                PLCampaignIO.Instance.GetAllMissionData().Add(JunkCubeWait2.MissionData);
+                PLCampaignIO.Instance.GetAllPickupMissionData().Add(JunkCubeWait2.MissionData);
+                PLCampaignIO.Instance.GetAllMissionData().Add(CUFriendlyFavorA.MissionData);
+                PLCampaignIO.Instance.GetAllPickupMissionData().Add(CUFriendlyFavorA.MissionData);
+                PLCampaignIO.Instance.GetAllMissionData().Add(CUFriendlyFavorB.MissionData);
+                PLCampaignIO.Instance.GetAllPickupMissionData().Add(CUFriendlyFavorB.MissionData);
+                PLCampaignIO.Instance.GetAllMissionData().Add(CUFriendlyFavorAHidden.MissionData);
+                PLCampaignIO.Instance.GetAllPickupMissionData().Add(CUFriendlyFavorAHidden.MissionData);
+                PLCampaignIO.Instance.GetAllMissionData().Add(WDHuntProjVulcanus.MissionData);
+                PLCampaignIO.Instance.GetAllPickupMissionData().Add(WDHuntProjVulcanus.MissionData);
+                PLCampaignIO.Instance.GetAllMissionData().Add(TreasureFleet.MissionData);
+                PLCampaignIO.Instance.GetAllPickupMissionData().Add(TreasureFleet.MissionData);
+                PLCampaignIO.Instance.GetAllMissionData().Add(TreasureFleetRewardA.MissionData);
+                PLCampaignIO.Instance.GetAllPickupMissionData().Add(TreasureFleetRewardA.MissionData);
+                PLCampaignIO.Instance.GetAllMissionData().Add(TreasureFleetRewardB.MissionData);
+                PLCampaignIO.Instance.GetAllPickupMissionData().Add(TreasureFleetRewardB.MissionData);
+                PLCampaignIO.Instance.GetAllMissionData().Add(TreasureFleetKilledFriendly.MissionData);
+                PLCampaignIO.Instance.GetAllPickupMissionData().Add(TreasureFleetKilledFriendly.MissionData);
+                PLCampaignIO.Instance.GetAllMissionData().Add(BadBiscuits.MissionData);
+                PLCampaignIO.Instance.GetAllPickupMissionData().Add(BadBiscuits.MissionData);
+                PLCampaignIO.Instance.GetAllMissionData().Add(MiningDroneQuest.MissionData);
+                PLCampaignIO.Instance.GetAllPickupMissionData().Add(MiningDroneQuest.MissionData);                
+            }
+        }
+
+        [HarmonyPatch(typeof(PLMissionBase), "CreateObjectiveFromData")]
+        internal class AddModdedObjectives
+        {
+            private static bool Prefix(PLMissionBase __instance, PLMissionBase inMission, ObjectiveData inObjData)
+            {
+                PLMissionObjective missionObjective = null;
+                if (inObjData.ObjType == 21)
                 {
-                    case 8000000:
-                        PickupMissionData missiondata1 = Missions.JunkCubeStart.MissionData;
-                        PLCampaignIO.Instance.GetAllPickupMissionData().Add(missiondata1);
-                        __result = (MissionData)missiondata1;
-                        break;
-                    case 8000001:
-                        PickupMissionData missiondata2 = Missions.JunkCubeWait1.MissionData;
-                        PLCampaignIO.Instance.GetAllPickupMissionData().Add(missiondata2);
-                        __result = (MissionData)missiondata2;
-                        break;
-                    case 8000002:
-                        PickupMissionData missiondata3 = Missions.JunkCubeRetrieval.MissionData;
-                        PLCampaignIO.Instance.GetAllPickupMissionData().Add(missiondata3);
-                        __result = (MissionData)missiondata3;
-                        break;
-                    case 8000003:
-                        PickupMissionData missiondata4 = Missions.JunkCubeWait2.MissionData;
-                        PLCampaignIO.Instance.GetAllPickupMissionData().Add(missiondata4);
-                        __result = (MissionData)missiondata4;
-                        break;
-                    case 8000004:
-                        PickupMissionData missiondata5 = Missions.WDHuntProjVulcanus.MissionData;
-                        PLCampaignIO.Instance.GetAllPickupMissionData().Add(missiondata5);
-                        __result = (MissionData)missiondata5;
-                        break;
-                    case 8000005:
-                        PickupMissionData missiondata6 = Missions.CUFriendlyFavorA.MissionData;
-                        PLCampaignIO.Instance.GetAllPickupMissionData().Add(missiondata6);
-                        __result = (MissionData)missiondata6;
-                        break;
-                    case 8000006:
-                        PickupMissionData missiondata7 = Missions.CUFriendlyFavorB.MissionData;
-                        PLCampaignIO.Instance.GetAllPickupMissionData().Add(missiondata7);
-                        __result = (MissionData)missiondata7;
-                        break;
-                    case 8000007:
-                        PickupMissionData missiondata8 = Missions.CUFriendlyFavorAHidden.MissionData;
-                        PLCampaignIO.Instance.GetAllPickupMissionData().Add(missiondata8);
-                        __result = (MissionData)missiondata8;
-                        break;
-                    case 8000008:
-                        PickupMissionData missiondata9 = Missions.TreasureFleet.MissionData;
-                        PLCampaignIO.Instance.GetAllPickupMissionData().Add(missiondata9);
-                        __result = (MissionData)missiondata9;
-                        break;
-                    case 8000009:
-                        PickupMissionData missiondata10 = Missions.TreasureFleetRewardA.MissionData;
-                        PLCampaignIO.Instance.GetAllPickupMissionData().Add(missiondata10);
-                        __result = (MissionData)missiondata10;
-                        break;
-                    case 8000010:
-                        PickupMissionData missiondata11 = Missions.TreasureFleetRewardB.MissionData;
-                        PLCampaignIO.Instance.GetAllPickupMissionData().Add(missiondata11);
-                        __result = (MissionData)missiondata11;
-                        break;
-                    case 8000011:
-                        PickupMissionData missiondata12 = Missions.TreasureFleetKilledFriendly.MissionData;
-                        PLCampaignIO.Instance.GetAllPickupMissionData().Add(missiondata12);
-                        __result = (MissionData)missiondata12;
-                        break;
-                    case 8000012:
-                        PickupMissionData missiondata13 = Missions.BadBiscuits.MissionData;
-                        PLCampaignIO.Instance.GetAllPickupMissionData().Add(missiondata13);
-                        __result = (MissionData)missiondata13;
-                        break;
-                    case 8000013:
-                        PickupMissionData missiondata14 = Missions.CargoInspectionRepeatable.MissionData;
-                        PLCampaignIO.Instance.GetAllPickupMissionData().Add(missiondata14);
-                        __result = (MissionData)missiondata14;
-                        break;
+                    missionObjective = (PLMissionObjective)new PLMissionObjective_CompleteAfterJumpCount(int.Parse(inObjData.GetValueFromKey("CMAJC_Value")));
                 }
+                else
+                    return true;
+                if (missionObjective == null)
+                    return true;
+                missionObjective.Init();
+                missionObjective.RawCustomText = inObjData.GetValueFromKey("CustomText");
+                missionObjective.ScriptName = inObjData.GetValueFromKey("ScriptName");
+                inMission.Objectives.Add(missionObjective);
+                return false;
             }
         }
 
@@ -2466,7 +2592,7 @@ namespace ExpandedGalaxy
                 this.Desc = "If you're reading this, I fucked up :(";
                 this.CanBeDroppedOnShipDeath = false;
                 this.Level = inLevel;
-                this.SlotType = ESlotType.E_COMP_AIRLOCK;
+                this.ActualSlotType = ESlotType.E_COMP_ID_MAX;
                 this.SubTypeData = 0;
             }
 
@@ -2475,14 +2601,19 @@ namespace ExpandedGalaxy
                 base.Tick();
                 if (!PhotonNetwork.isMasterClient)
                     return;
-                if (!this.IsEquipped && this.ShipStats != null)
+                if (this.ShipStats != null && this.VisualSlotType != ESlotType.E_COMP_ID_MAX)
                 {
                     this.Equip();
-                    PLServer.Instance.CaptainChangeItemVisualSlot(this.ShipStats.Ship.ShipID, this.NetID, (int)ESlotType.E_COMP_AIRLOCK);
+                    PLServer.Instance.photonView.RPC("CaptainChangeItemVisualSlot", PhotonTargets.All, new object[3]
+                    {
+                        this.ShipStats.Ship.ShipID,
+                        this.NetID,
+                        (int)ESlotType.E_COMP_ID_MAX
+                    });
                 }
                 foreach (PLSlot slot in this.ShipStats.GetAllSlots())
                 {
-                    if (slot.Type != ESlotType.E_COMP_CARGO && slot.Type != ESlotType.E_COMP_HIDDENCARGO && slot.Type != ESlotType.E_COMP_AIRLOCK && slot.Type != ESlotType.E_COMP_REAC_COOLING && !slot.Locked)
+                    if (slot.Type != ESlotType.E_COMP_CARGO && slot.Type != ESlotType.E_COMP_HIDDENCARGO && slot.Type != ESlotType.E_COMP_ID_MAX && !slot.Locked)
                         slot.Locked = true;
                 }
                 if (PLServer.Instance.HasCompletedMissionWithID(8000004) && PLEncounterManager.Instance.GetCPEI() != null && !this.ShipStats.Ship.IsAbandoned())
@@ -2502,8 +2633,8 @@ namespace ExpandedGalaxy
                         {
                             this.ShipStats.Ship.SetAbandoned(true);
                             pLShipInfoBase.SetAbandoned(false);
-                            if (pLShipInfoBase.MyStats.GetShipComponent<PLShipComponent>(ESlotType.E_COMP_REAC_COOLING) != null)
-                                pLShipInfoBase.MyStats.RemoveShipComponent(pLShipInfoBase.MyStats.GetShipComponent<PLShipComponent>(ESlotType.E_COMP_REAC_COOLING));
+                            if (pLShipInfoBase.MyStats.GetShipComponent<PLShipComponent>(ESlotType.E_COMP_ID_MAX) != null)
+                                pLShipInfoBase.MyStats.RemoveShipComponent(pLShipInfoBase.MyStats.GetShipComponent<PLShipComponent>(ESlotType.E_COMP_ID_MAX));
                             PLServer.Instance.photonView.RPC("ClaimShip", PhotonTargets.All, pLShipInfoBase.ShipID);
                             foreach (PLPlayer allPlayer in PLServer.Instance.AllPlayers)
                             {
@@ -2524,9 +2655,9 @@ namespace ExpandedGalaxy
 
             public override void FinalLateAddStats(PLShipStats inStats)
             {
-                inStats.TurretDamageFactor *= Mathf.Clamp(1.2f - 0.05f * this.SubTypeData, 0.8f, 1.2f);
+                inStats.TurretDamageFactor *= Mathf.Clamp(1.2f - 0.05f * this.SubTypeData, 0.5f, 1.2f);
                 inStats.QuantumShieldDefensesActive = inStats.ShieldsCurrent / inStats.ShieldsMax > Mathf.Clamp01(0.1f + 0.2f * this.SubTypeData);
-                inStats.ReactorOutputFactor *= Mathf.Clamp(1.2f - 0.05f * this.SubTypeData, 0.8f, 1.2f);
+                inStats.ReactorOutputFactor *= Mathf.Clamp(1.2f - 0.05f * this.SubTypeData, 0.5f, 1.2f);
                 inStats.HullArmor += Mathf.Clamp(100f - 20f * this.SubTypeData, 0f, 100f) / 250f;
             }
 
@@ -2546,11 +2677,12 @@ namespace ExpandedGalaxy
                 this.Desc = "If you're reading this, I fucked up :(";
                 this.CanBeDroppedOnShipDeath = false;
                 this.Level = 0;
+                this.ActualSlotType = ESlotType.E_COMP_ID_MAX;
             }
 
-            public override void Update()
+            public override void Tick()
             {
-                base.Update();
+                base.Tick();
                 if (this.ShipStats == null)
                     return;
                 if (this.ShipStats.AllComponents[0] != this)
@@ -2560,16 +2692,14 @@ namespace ExpandedGalaxy
                 }
                 if (!PhotonNetwork.isMasterClient)
                     return;
-                if (this.ActualSlotType != ESlotType.E_COMP_AIRLOCK && (double)(Time.time - this.ServerComponentUpdateTime) > 2.0)
+                if (this.ShipStats != null && this.VisualSlotType != ESlotType.E_COMP_ID_MAX)
                 {
-                    PLServer.Instance.photonView.RPC("CaptainRearrangeShipComponent", PhotonTargets.All, new object[6]
+                    this.Equip();
+                    PLServer.Instance.photonView.RPC("CaptainChangeItemVisualSlot", PhotonTargets.All, new object[3]
                     {
                         this.ShipStats.Ship.ShipID,
                         this.NetID,
-                        -1,
-                        (int)ESlotType.E_COMP_AIRLOCK,
-                        (int)this.SlotType,
-                        0
+                        (int)ESlotType.E_COMP_ID_MAX
                     });
                 }
             }
@@ -2606,25 +2736,24 @@ namespace ExpandedGalaxy
                 this.Desc = "If you're reading this, I fucked up :(";
                 this.CanBeDroppedOnShipDeath = false;
                 this.Level = 0;
+                this.ActualSlotType = ESlotType.E_COMP_ID_MAX;
             }
 
-            public override void Update()
+            public override void Tick()
             {
-                base.Update();
+                base.Tick();
                 if (this.ShipStats == null)
                     return;
                 if (!PhotonNetwork.isMasterClient)
                     return;
-                if (this.ActualSlotType != ESlotType.E_COMP_REAC_COOLING&& (double)(Time.time - this.ServerComponentUpdateTime) > 2.0)
+                if (this.ShipStats != null && this.VisualSlotType != ESlotType.E_COMP_ID_MAX)
                 {
-                    PLServer.Instance.photonView.RPC("CaptainRearrangeShipComponent", PhotonTargets.All, new object[6]
+                    this.Equip();
+                    PLServer.Instance.photonView.RPC("CaptainChangeItemVisualSlot", PhotonTargets.All, new object[3]
                     {
                         this.ShipStats.Ship.ShipID,
                         this.NetID,
-                        -1,
-                        (int)ESlotType.rea,
-                        (int)this.SlotType,
-                        0
+                        (int)ESlotType.E_COMP_ID_MAX
                     });
                 }
             }
@@ -2638,7 +2767,7 @@ namespace ExpandedGalaxy
                 if (__instance.ShipStats != null)
                 {
                     bool flag = false;
-                    foreach (PLShipComponent component in __instance.ShipStats.GetComponentsOfType(ESlotType.E_COMP_AIRLOCK))
+                    foreach (PLShipComponent component in __instance.ShipStats.GetComponentsOfType(ESlotType.E_COMP_ID_MAX))
                     {
                         if (component is MissionNoExtractorFlag)
                         {
@@ -2737,6 +2866,41 @@ namespace ExpandedGalaxy
                         }
                         return false;
                     }
+                }
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(PLTabMenu), "GetDifficultyForMission")]
+        internal class MissionDifficultyOverride
+        {
+            private static void Postfix(PLTabMenu __instance, PLTabMenu.MissionDisplay md, ref int __result)
+            {
+                if (PLServer.Instance == null || md.Mission == null)
+                    return;
+                switch (md.Mission.MyMissionData.MissionID)
+                {
+                    case 8000000:
+                    case 8000001:
+                    case 8000002:
+                    case 8000003:
+                    case 8000014:
+                    case 8000015:
+                        __result = 4;
+                        break;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(PLTabMenu), "GetColorForDifficulty")]
+        internal class MissionDifficultyColor
+        {
+            private static bool Prefix(PLTabMenu __instance, int difficulty, ref Color __result)
+            {
+                if (difficulty == 4)
+                {
+                    __result = Relic.getRelicColor();
+                    return false;
                 }
                 return true;
             }

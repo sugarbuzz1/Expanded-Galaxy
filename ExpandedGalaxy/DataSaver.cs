@@ -19,7 +19,7 @@ namespace ExpandedGalaxy
 {
     internal class DataSaver : PMLSaveData
     {
-        public override uint VersionID => 4;
+        public override uint VersionID => 5;
 
         public override string Identifier() => "sugarbuzz1.ExpandedGalaxy";
 
@@ -121,7 +121,12 @@ namespace ExpandedGalaxy
                     }
                     Debug.Log("[ExGal] Created Carrier Shop with [" + dataEntry1.ServerWareIDCounter.ToString() + "] items");
                     data.Add(dataEntry1);
-                    
+
+                    if (VersionID < 5)
+                        return;
+                    Relic.ReflectedRift.riftData = binaryReader.ReadByte();
+                    data.Add(binaryReader.ReadInt64());         
+
                     DelayedLoadData(data);
                 }
             }
@@ -219,6 +224,10 @@ namespace ExpandedGalaxy
                             binaryWriter.Write(ware.getHash());
                         }
                     }
+
+                    binaryWriter.Write(Relic.ReflectedRift.riftData);
+
+                    binaryWriter.Write(PLServer.Instance.ActiveChaosEvents);
                 }
                 return output.ToArray();
             }
@@ -226,6 +235,7 @@ namespace ExpandedGalaxy
 
         private async void DelayedLoadData(List<object> data)
         {
+            Debug.Log("[ExGal] DelayedLoadData");
             await Task.Delay(5000);
             while (true)
             {
@@ -266,6 +276,48 @@ namespace ExpandedGalaxy
                     break;
                 }
             }
+            ++index;
+            PLServer.Instance.ActiveChaosEvents = (long)data[index];
+            for (int i = 0; i < 10; i++)
+            {
+                if (PLServer.Instance.IsChaosEventActive((EChaosEvent)i))
+                {
+                    ChaosEvents.CreateLRDAForChaosEvent((EChaosEvent)i);
+                    break;
+                }
+            }
+
+            List<object> sendArgumentList = new List<object>();
+            int num = 0;
+            foreach (CrewLogData sendLogData in CrewLogManager.Instance.GetLogs())
+            {
+                ++num;
+                sendArgumentList.Add(sendLogData.Text);
+                sendArgumentList.Add(sendLogData.timeStamp);
+                sendArgumentList.Add(sendLogData.optionalSectorID);
+                sendArgumentList.Add(sendLogData.optionalColor.r);
+                sendArgumentList.Add(sendLogData.optionalColor.g);
+                sendArgumentList.Add(sendLogData.optionalColor.b);
+                sendArgumentList.Add(sendLogData.optionalColor.a);
+                sendArgumentList.Add(sendLogData.specialData);
+            }
+            sendArgumentList.Insert(0, num);
+            ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendLog", PhotonTargets.Others, sendArgumentList.ToArray());
+            Debug.Log("[ExGal] Save data loading finished!");
+        }
+
+        private static bool IsTalentUnlocked(int talentID)
+        {
+            int num = talentID / 64;
+            int num2 = talentID % 64;
+            if (num != 0)
+            {
+                long num3 = 1L << num2;
+                Dictionary<int, ObscuredLong> dictionary = TalentModManager.Instance.extraTalentLockedStatus;
+                int key = num;
+                return ((long)dictionary[key] & num3) > 0;
+            }
+            return false;
         }
     }
 
@@ -286,6 +338,7 @@ namespace ExpandedGalaxy
                 Relic.RelicCaravan.CaravanTargetSector = -1;
                 Relic.RelicCaravan.CaravanUpdateTime = 60000;
                 Relic.RelicCaravan.ClearCaravanPath();
+                Relic.ReflectedRift.riftData = 0;
                 Missions.pickupMissionDelay = 0;
                 PersistantScrapManager.Instance.ClearData();
                 CrewLogManager.Instance.OnNewGame();
@@ -395,22 +448,28 @@ namespace ExpandedGalaxy
                     stream.SendNext(PFSectorCommander.bossFlag);
                     stream.SendNext(Relic.MiningDroneQuest.dronesActive);
                     stream.SendNext(Relic.MiningDroneQuest.GXData);
-                    stream.SendNext(Jetpack.AdvancedJetPack);
-                    stream.SendNext(Ammunition.DynamicAmmunition);
-                    stream.SendNext(Missions.slowMissionPickups);
                     stream.SendNext(Relic.RelicCaravan.CaravanCurrentSector);
                     stream.SendNext(Relic.RelicCaravan.CaravanTargetSector);
+                    stream.SendNext(Relic.ReflectedRift.riftData);
+                    stream.SendNext(Jetpack.AdvancedJetPack);
+                    stream.SendNext(Ammunition.DynamicAmmunition);
+                    stream.SendNext(Exosuit.BetterExosuit);
+                    stream.SendNext(Missions.slowMissionPickups);
+                    
                 }
                 else
                 {
                     PFSectorCommander.bossFlag = (int)stream.ReceiveNext();
                     Relic.MiningDroneQuest.dronesActive = (bool)stream.ReceiveNext();
-                    Relic.MiningDroneQuest.GXData = (int)stream.ReceiveNext();                    
-                    Jetpack.AdvancedJetPack = (bool)stream.ReceiveNext();
-                    Ammunition.DynamicAmmunition = (bool)stream.ReceiveNext();
-                    Missions.slowMissionPickups = (bool)stream.ReceiveNext();
+                    Relic.MiningDroneQuest.GXData = (int)stream.ReceiveNext();
                     Relic.RelicCaravan.CaravanCurrentSector = (int)stream.ReceiveNext();
                     Relic.RelicCaravan.CaravanTargetSector = (int)stream.ReceiveNext();
+                    Relic.ReflectedRift.riftData = (byte)stream.ReceiveNext();
+                    Jetpack.AdvancedJetPack = (bool)stream.ReceiveNext();
+                    Ammunition.DynamicAmmunition = (bool)stream.ReceiveNext();
+                    Exosuit.BetterExosuit = (bool)stream.ReceiveNext();
+                    Missions.slowMissionPickups = (bool)stream.ReceiveNext();
+                    
                 }
             }
         }
@@ -420,7 +479,7 @@ namespace ExpandedGalaxy
             switch (shipComponent.ActualSlotType)
             {
                 case ESlotType.E_COMP_CPU:
-                    if (shipComponent.SubType == CPUModManager.Instance.GetCPUIDFromName("Super Shield"))
+                    if (shipComponent.SubType == CPUModManager.Instance.GetCPUIDFromName("Super Shield") || shipComponent.SubType == CPUModManager.Instance.GetCPUIDFromName("Sylvassi Shield Charger"))
                         return true;
                     break;
                 case ESlotType.E_COMP_CAPTAINS_CHAIR:
@@ -449,6 +508,10 @@ namespace ExpandedGalaxy
                     break;
                 case ESlotType.E_COMP_SALVAGE_SYSTEM:
                     if (shipComponent.SubType == ExtractorModManager.Instance.GetExtractorIDFromName("P.T. Extractor Prototype"))
+                        return true;
+                    break;
+                case ESlotType.E_COMP_ID_MAX:
+                    if (shipComponent.SubType == 5)
                         return true;
                     break;
             }

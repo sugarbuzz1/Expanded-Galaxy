@@ -555,7 +555,6 @@ namespace ExpandedGalaxy
                     missionOpener.Requirements.Add(new LineRequirementData() { Type = "13", Parameter = "36642" });
                     missionOpener.Requirements.Add(new LineRequirementData() { Type = "16", Parameter = "2" });
                     missionOpener.Requirements.Add(new LineRequirementData() { Type = "19", Parameter = "-1" });
-                    missionOpener.Requirements.Add(new LineRequirementData() { Type = "38", Parameter = string.Empty});
 
                     LineData accept = new LineData();
                     accept.TextOptions.Add("Accept");
@@ -898,6 +897,141 @@ namespace ExpandedGalaxy
                     opener.ChildLines.Add(close);
 
                     data.OpeningLines.Add(opener);
+
+                    __result = data;
+                }
+                else if (inActorName == "ExGal_ReflectedRift_Start")
+                {
+                    ActorTypeData data = new ActorTypeData();
+                    data.Name = inActorName;
+                    data.HailOnStart = true;
+
+                    LineData opener = new LineData();
+                    opener.TextOptions.Add("Urgent message from the Outpost 448 Command Center: [PLAYERSHIP_NAME], your crew has been deemed appropriate for a unique assingment. Please make your way to the provided coordinates as fast as you please. A Union vessel will be waiting there to brief you on the assignment. If you are not the crew of [PLAYERSHIP_NAME], disregard this message.");
+                    opener.Actions.Add(new LineActionData() { Type = "1" });
+                    opener.Actions.Add(new LineActionData() { Type = "0" });
+                    opener.Actions.Add(new LineActionData() { Type = "3", Parameter = "8000014" });
+
+                    LineData close = new LineData();
+                    close.TextOptions.Add("CLOSE TRANSMISSION");
+                    close.IsPlayerLine = true;
+                    close.Actions.Add(new LineActionData() { Type = "1" });
+                    close.Actions.Add(new LineActionData() { Type = "10" });
+
+                    opener.ChildLines.Add(close);
+
+                    data.OpeningLines.Add(opener);
+
+                    __result = data;
+                }
+                else if (inActorName == "ExGal_ReflectedRift_NPC")
+                {
+                    ActorTypeData data = new ActorTypeData();
+                    data.Name = inActorName;
+                    data.HailOnStart = true;
+
+                    LineData opener = new LineData();
+                    opener.TextOptions.Add("You must be the crew sent by the Command Center. I'm here to welcome you to the only thing the Union and the Corporation seem to want to work together on. You of course are going to be the guinea pigs of this operation and be the first manned ship to enter the rift. If you have any questions, feel free to ask.");
+                    opener.Actions.Add(new LineActionData() { Type = "1" });
+                    opener.Actions.Add(new LineActionData() { Type = "0" });
+                    opener.OneTimeLine = true;
+
+                    LineData landing = new LineData();
+                    landing.TextOptions.Add("Anything else you would like to know about?");
+                    landing.Actions.Add(new LineActionData() { Type = "1" });
+                    landing.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData close = new LineData();
+                    close.TextOptions.Add("CLOSE TRANSMISSION");
+                    close.IsPlayerLine = true;
+                    close.Actions.Add(new LineActionData() { Type = "1" });
+                    close.Actions.Add(new LineActionData() { Type = "10" });
+
+                    LineData back = new LineData();
+                    back.TextOptions.Add("BACK");
+                    back.Actions.Add(new LineActionData() { Type = "1" });
+                    back.IsPlayerLine = true;
+                    back.Actions.Add(new LineActionData() { Type = "0" });
+                    back.Actions.Add(new LineActionData() { Type = "2", Parameter = "1" });
+
+                    LineData optionAbout = new LineData();
+                    optionAbout.TextOptions.Add("ABOUT THE RIFT");
+                    optionAbout.IsPlayerLine = true;
+                    optionAbout.Actions.Add(new LineActionData() { Type = "1" });
+                    optionAbout.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData aboutText = new LineData();
+                    aboutText.TextOptions.Add("The rift has been an ongoing project for 3 Union-Standard years, though many experts claim that the rift is older than the Union itself. The rift leads to a cluster of sectors not present in any charts on record. These sectors reside in a reflection of this galaxy... well, the current theory is that it is this galaxy. The rift is rather unstable; all the drones we've sent with equipment to handle the reflection had their components fried and were later found floating in a random sector back in this galaxy. If any of your crew were to be using any form of anti-reflection technology I would advise them to deactivate it while inside the rift.");
+                    aboutText.Actions.Add(new LineActionData() { Type = "1" });
+                    aboutText.Actions.Add(new LineActionData() { Type = "0" });
+
+                    optionAbout.ChildLines.Add(aboutText);
+                    aboutText.ParentLineData = landing;
+                    aboutText.ChildLines.Add(back);
+                    aboutText.ChildLines.Add(close);
+
+                    LineData optionNavigation = new LineData();
+                    optionNavigation.TextOptions.Add("NAVIGATION");
+                    optionNavigation.IsPlayerLine = true;
+                    optionNavigation.Actions.Add(new LineActionData() { Type = "1" });
+                    optionNavigation.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData navigationText = new LineData();
+                    navigationText.TextOptions.Add("Navigating the rift is very simple; your jump computer should be able to do most of the heavy lifting. You won't have a map to help you find your way so you'll need to explore the old-fashioned way. The main challenge is keeping track of where you've been. I would have something to note what sectors you've visited handy, but that's just me.");
+                    navigationText.Actions.Add(new LineActionData() { Type = "1" });
+                    navigationText.Actions.Add(new LineActionData() { Type = "0" });
+
+                    optionNavigation.ChildLines.Add(navigationText);
+                    navigationText.ParentLineData = landing;
+                    navigationText.ChildLines.Add(back);
+                    navigationText.ChildLines.Add(close);
+
+                    LineData optionExiting = new LineData();
+                    optionExiting.TextOptions.Add("EXITING THE RIFT");
+                    optionExiting.IsPlayerLine = true;
+                    optionExiting.Actions.Add(new LineActionData() { Type = "1" });
+                    optionExiting.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData exitingText = new LineData();
+                    exitingText.TextOptions.Add("The rift is only a smooth trip going in. To get out of the rift just activate your blind jump and you'll be spit out somewhere in this galaxy. It is very important to keep a close eye on your jump fuel. If you run out of capsules in the rift you will be stuck there forever. Also keep an eye on your hull's integrity, blind jumps are very taxing on the ship and it is your ONLY way out. We'd like you to return in one piece and not several scattered throughout the galaxy.");
+                    exitingText.Actions.Add(new LineActionData() { Type = "1" });
+                    exitingText.Actions.Add(new LineActionData() { Type = "0" });
+
+                    optionExiting.ChildLines.Add(exitingText);
+                    exitingText.ParentLineData = landing;
+                    exitingText.ChildLines.Add(back);
+                    exitingText.ChildLines.Add(close);
+
+                    LineData optionSignals = new LineData();
+                    optionSignals.TextOptions.Add("STRANGE SIGNALS");
+                    optionSignals.IsPlayerLine = true;
+                    optionSignals.Actions.Add(new LineActionData() { Type = "1" });
+                    optionSignals.Actions.Add(new LineActionData() { Type = "0" });
+
+                    LineData signalsText = new LineData();
+                    signalsText.TextOptions.Add("While our scout drones were in the rift they picked up some very peculiar signals before their components got fried. We're still unsure of where the signals are originating from but that's what you're here for. There are still some drones in the rift that carry what they could decode from the signals with them. These drones have been corrupted and WILL be hostile. You have the Union's full authority to engage and destroy these drones. Don't worry about destroying the data they have, it'll be stored on a hard-drive in a blast-proof container. Destroy the drones, retrieve the containers, and upload the data to your ship's computer and see if you can make anything of it.");
+                    signalsText.Actions.Add(new LineActionData() { Type = "1" });
+                    signalsText.Actions.Add(new LineActionData() { Type = "0" });
+
+                    optionSignals.ChildLines.Add(signalsText);
+                    signalsText.ParentLineData = landing;
+                    signalsText.ChildLines.Add(back);
+                    signalsText.ChildLines.Add(close);
+
+                    opener.ChildLines.Add(optionAbout);
+                    opener.ChildLines.Add(optionNavigation);
+                    opener.ChildLines.Add(optionExiting);
+                    opener.ChildLines.Add(optionSignals);
+                    opener.ChildLines.Add(close);
+
+                    landing.ChildLines.Add(optionAbout);
+                    landing.ChildLines.Add(optionNavigation);
+                    landing.ChildLines.Add(optionExiting);
+                    landing.ChildLines.Add(optionSignals);
+                    landing.ChildLines.Add(close);
+
+                    data.OpeningLines.Add(opener);
+                    data.OpeningLines.Add(landing);
 
                     __result = data;
                 }

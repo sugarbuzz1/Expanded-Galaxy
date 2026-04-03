@@ -13,6 +13,7 @@ using PulsarModLoader.Content.Components.MissionShipComponent;
 using PulsarModLoader.Content.Components.Reactor;
 using PulsarModLoader.Content.Components.Shield;
 using PulsarModLoader.Content.Components.Turret;
+using PulsarModLoader.Content.Components.WarpDrive;
 using PulsarModLoader.Content.Components.WarpDriveProgram;
 using System;
 using System.Collections;
@@ -20,8 +21,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static ExpandedGalaxy.DistressSignal;
+using static ExpandedGalaxy.Missions.TreasureFleetPatches;
 
 namespace ExpandedGalaxy
 {
@@ -101,37 +104,27 @@ namespace ExpandedGalaxy
             return (RelicData & (1U << relicType)) > 0U;
         }
 
-        [HarmonyPatch(typeof(PLPersistantEncounterInstance), "OnEndWarp")]
+        [HarmonyPatch(typeof(PLPersistantEncounterInstance), "InitGame")]
         internal class PlanetCompPickups
         {
-            private static void Postfix(PLPersistantEncounterInstance __instance)
+            private static Exception Finalizer(Exception __exception, PLPersistantEncounterInstance __instance, int inHubID)
             {
                 if (!PhotonNetwork.isMasterClient)
-                    return;
-                if (PLServer.Instance == null)
-                    return;
-                if (__instance is PLWastedWingEncounter || __instance is PLAOGFactionMission_MadmansMansion || __instance.LevelID == (ObscuredInt)113)
                 {
-                    if (PLServer.GetCurrentSector() != null && (!PLServer.GetCurrentSector().Visited || PickupQueue.ContainsKey(PLServer.GetCurrentSector().ID)) && PhotonNetwork.isMasterClient)
+                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ClientRequestPickupQueue", PhotonTargets.MasterClient, new object[1]
                     {
-                        int[] hashes;
-                        if (PickupQueue.ContainsKey(PLServer.GetCurrentSector().ID))
-                        {
-                            hashes = PickupQueue[PLServer.GetCurrentSector().ID].ToArray();
-                        }
-                        else
-                        {
-                            hashes = new int[1]
-                        {
-                            (int)Relic.GenerateRelic(PLServer.Instance.GalaxySeed).getHash()
-                        };
-                            PickupQueue.Add(PLServer.GetCurrentSector().ID, hashes.ToList<int>());
-                        }
-                        if (hashes.Length > 0)
-                            Relic.AddCompToPlanet(__instance, hashes, true, true);
-                    }
+                        inHubID
+                    });
+                    return __exception;
                 }
-                else if (__instance is PLCanyonPlanetEncounter)
+                if (PLServer.Instance == null)
+                    return __exception;
+                if (PickupQueue.ContainsKey(inHubID) && PickupQueue[inHubID].Count > 0)
+                {
+                    Relic.AddCompToPlanet(__instance, inHubID, PickupQueue[inHubID].ToArray());
+                }
+
+                /*if (__instance is PLCanyonPlanetEncounter)
                 {
                     if (PLServer.GetCurrentSector() != null && (!PLServer.GetCurrentSector().Visited || PickupQueue.ContainsKey(PLServer.GetCurrentSector().ID) && PLServer.GetCurrentSector().MissionSpecificID == 8000002 && PhotonNetwork.isMasterClient))
                     {
@@ -151,9 +144,40 @@ namespace ExpandedGalaxy
                         if (hashes.Length > 0)
                             Relic.AddCompToPlanet(__instance, hashes, true, true, true);
                     }
-                }
+                }*/
+                return __exception;
             }
         }
+
+        private class ClientRequestPickupQueue : ModMessage
+        {
+            public override void HandleRPC(object[] arguments, PhotonMessageInfo sender)
+            {
+                if (PLEncounterManager.Instance != null && PLEncounterManager.Instance.GetCPEI() != null && PLEncounterManager.Instance.GetCPEI().GetSectorID() == (int)arguments[0])
+                    DelaySendPickupQueue(sender.sender, (int)arguments[0]);
+                else
+                {
+                    PLPlayer player = Systems.GetPlayerFromPhotonPlayer(sender.sender);
+                    if (player != null)
+                        PulsarModLoader.Utilities.Logger.Info(string.Format("Could not send PickupQueue to {0}! (Sent Sector: {1})", player.GetPlayerName(), ((int)arguments[0]).ToString()));
+                }
+            }
+
+            private async void DelaySendPickupQueue(PhotonPlayer sender, int inHubID)
+            {
+                await Task.Delay(100);
+                while (PLEncounterManager.Instance == null || PLEncounterManager.Instance.GetCPEI() == null || !PLEncounterManager.Instance.GetCPEI().GameInitWithHubID)
+                    await Task.Yield();
+                if (PLEncounterManager.Instance.GetCPEI().GetSectorID() == inHubID && PickupQueue.ContainsKey(inHubID) && PickupQueue[inHubID].Count > 0)
+                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.AddCompToPlanetRPC", sender, new object[4]
+                    {
+                    PLEncounterManager.Instance.GetCPEI().GetSectorID(),
+                    inHubID,
+                    PickupQueue[inHubID].ToArray(),
+                    true
+                    });
+            }
+        }       
 
         private class AddCompToPlanetRPC : ModMessage
         {
@@ -163,25 +187,25 @@ namespace ExpandedGalaxy
                     return;
                 if (PLEncounterManager.Instance == null || PLEncounterManager.Instance.GetPersistantEncounterInstanceAtID((int)arguments[0]) == null)
                     return;
-                Relic.AddCompToPlanet(PLEncounterManager.Instance.GetPersistantEncounterInstanceAtID((int)arguments[0]), (int[])arguments[1], (bool)arguments[2], (bool)arguments[3], (bool)arguments[4]);
+                Relic.AddCompToPlanet(PLEncounterManager.Instance.GetPersistantEncounterInstanceAtID((int)arguments[0]), (int)arguments[1], (int[])arguments[2], (bool)arguments[3]);
             }
         }
 
-        public static async void AddCompToPlanet(PLPersistantEncounterInstance pei, int[] compHashes, bool replace = true, bool randomPlacing = true, bool checkParent = false)
+        public static async void AddCompToPlanet(PLPersistantEncounterInstance pei, int inHubID, int[] compHashes, bool replace = true)
         {
             await Task.Delay(100);
             while (PLNetworkManager.Instance.CurrentGame == null || !pei.GameInitWithHubID || PLEncounterManager.Instance.GetCPEI() != pei)
                 await Task.Delay(100);
             await Task.Delay(100);
             if (PhotonNetwork.isMasterClient)
-                ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.AddCompToPlanetRPC", PhotonTargets.Others, new object[5]
+                ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.AddCompToPlanetRPC", PhotonTargets.Others, new object[4]
                 {
                     pei.GetSectorID(),
+                    inHubID,
                     compHashes,
-                    replace,
-                    randomPlacing,
-                    checkParent
+                    replace
                 });
+            PLSectorInfo sector = PLServer.GetSectorWithID(inHubID);
             PLGamePlanet current = PLNetworkManager.Instance.CurrentGame as PLGamePlanet;
             Transform[] objects = current.PlanetRoot.GetComponentsInChildren<Transform>(true);
             List<Transform> cargoBaseTransforms = new List<Transform>();
@@ -242,66 +266,41 @@ namespace ExpandedGalaxy
             await Task.Delay(100);
             if (!(cargoBaseTransforms.Count > 0))
             {
-                PulsarModLoader.Utilities.Logger.Info(string.Format("Could not find open cargo base at sector {0}! ({1})", PLServer.GetCurrentSector().ID.ToString(), PLServer.GetCurrentSector().VisualIndication.ToString()));
+                PulsarModLoader.Utilities.Logger.Info(string.Format("Could not find open cargo base at sector {0}! ({1})", inHubID.ToString(), sector.VisualIndication.ToString()));
                 return;
             }
             int minimumFreePickupID = 0;
             foreach (int key in pei.MyPersistantData.PickupRandomComponentPersistantData.Keys)
                 if (key > minimumFreePickupID)
                     minimumFreePickupID = key;
-            if (randomPlacing)
+            PLRand rand = new PLRand(inHubID + PLServer.Instance.GalaxySeed);
+            int num = 0;
+            while (cargoBaseTransforms.Count > 0 && compHashes.Length > num)
             {
-                PLRand rand = new PLRand(PLServer.GetCurrentSector().ID + PLServer.Instance.GalaxySeed);
-                int num = 0;
-                while (cargoBaseTransforms.Count > 0 && compHashes.Length > num)
+                int num1 = rand.Next(0, cargoBaseTransforms.Count);
+                if (compHashes[num] != -1)
                 {
-                    if (compHashes[num] != -1)
-                    {
-                        int num1 = rand.Next(0, cargoBaseTransforms.Count);
-                        PLPickupRandomComponent pLPickupRandom = cargoBaseTransforms[num1].gameObject.AddComponent<PLPickupRandomComponent>();
-                        Traverse traverse = Traverse.Create(pLPickupRandom);
-                        pLPickupRandom.MyPEI = pei;
-                        pLPickupRandom.PickedUp = false;
-                        pLPickupRandom.RandComp = compHashes[num];
-                        pLPickupRandom.RandCompSetup = true;
-                        traverse.Field("m_InternalComp").SetValue(PLShipComponent.CreateShipComponentFromHash(pLPickupRandom.RandComp));
-                        PLShipComponent shipComponent = traverse.Field("m_InternalComp").GetValue<PLShipComponent>();
-                        if (shipComponent != null && shipComponent.CargoVisualPrefabID > PLGlobal.Instance.CargoVisualPrefabs.Length)
-                            shipComponent.CargoVisualPrefabID = 1;
-                        pLPickupRandom.PickupID = ++minimumFreePickupID;
-                        pei.MyPersistantData.PickupRandomComponentPersistantData.Add((ObscuredInt)pLPickupRandom.PickupID, (ObscuredBool)pLPickupRandom.PickedUp);
-                        pLPickupRandom.MyInterior = pLPickupRandom.GetComponentInParent<PLInterior>();
-                        PLGameStatic.Instance.m_AllPickupRandomComponents.Add(pLPickupRandom);
-                        cargoBaseTransforms.Remove(cargoBaseTransforms[num1]);
-                    }
-                    ++num;
+                    
+                    PLPickupRandomComponent pLPickupRandom = cargoBaseTransforms[num1].gameObject.AddComponent<PLPickupRandomComponent>();
+                    Traverse traverse = Traverse.Create(pLPickupRandom);
+                    pLPickupRandom.MyPEI = pei;
+                    pLPickupRandom.PickedUp = false;
+                    pLPickupRandom.RandComp = compHashes[num];
+                    pLPickupRandom.RandCompSetup = true;
+                    traverse.Field("m_InternalComp").SetValue(PLShipComponent.CreateShipComponentFromHash(pLPickupRandom.RandComp));
+                    PLShipComponent shipComponent = traverse.Field("m_InternalComp").GetValue<PLShipComponent>();
+                    if (shipComponent != null && shipComponent.CargoVisualPrefabID > PLGlobal.Instance.CargoVisualPrefabs.Length)
+                        shipComponent.CargoVisualPrefabID = 1;
+                    pLPickupRandom.PickupID = ++minimumFreePickupID;
+                    pei.MyPersistantData.PickupRandomComponentPersistantData.Add((ObscuredInt)pLPickupRandom.PickupID, (ObscuredBool)pLPickupRandom.PickedUp);
+                    pLPickupRandom.MyInterior = pLPickupRandom.GetComponentInParent<PLInterior>();
+                    PLGameStatic.Instance.m_AllPickupRandomComponents.Add(pLPickupRandom);                    
                 }
-                if (compHashes.Length > num)
-                    PulsarModLoader.Utilities.Logger.Info(string.Format("Could not place {0} components at sector {1}! ({2})", (compHashes.Length - num).ToString(), PLServer.GetCurrentSector().ID.ToString(), PLServer.GetCurrentSector().VisualIndication.ToString()));
+                cargoBaseTransforms.Remove(cargoBaseTransforms[num1]);
+                ++num;
             }
-            else
-            {
-                int num = 0;
-                while (cargoBaseTransforms.Count > 0 && compHashes.Length > num)
-                {
-                    if (compHashes[num] != -1)
-                    {
-                        PLPickupRandomComponent pLPickupRandom = cargoBaseTransforms[num].gameObject.AddComponent<PLPickupRandomComponent>();
-                        pLPickupRandom.MyPEI = pei;
-                        pLPickupRandom.PickedUp = false;
-                        pLPickupRandom.RandComp = compHashes[num];
-                        pLPickupRandom.RandCompSetup = true;
-                        pLPickupRandom.PickupID = ++minimumFreePickupID;
-                        pei.MyPersistantData.PickupRandomComponentPersistantData.Add((ObscuredInt)pLPickupRandom.PickupID, (ObscuredBool)pLPickupRandom.PickedUp);
-                        pLPickupRandom.MyInterior = pLPickupRandom.GetComponentInParent<PLInterior>();
-                        PLGameStatic.Instance.m_AllPickupRandomComponents.Add(pLPickupRandom);
-                        cargoBaseTransforms.Remove(cargoBaseTransforms[num]);
-                    }
-                    ++num;
-                }
-                if (compHashes.Length > num)
-                    PulsarModLoader.Utilities.Logger.Info(string.Format("Could not place {0} components at sector {1}!", (compHashes.Length - num).ToString(), PLServer.GetCurrentSector().ID.ToString()));
-            }
+            if (compHashes.Length > num)
+                PulsarModLoader.Utilities.Logger.Info(string.Format("Could not place {0} components at sector {1}! ({2})", (compHashes.Length - num).ToString(), inHubID.ToString(), sector.VisualIndication.ToString()));
         }
 
         [HarmonyPatch(typeof(PLPlayer), "AttemptToPickupRandomComponentAtID")]
@@ -317,7 +316,7 @@ namespace ExpandedGalaxy
                     if (randomComponentAtId == null || randomComponentAtId.PickedUp)
                         return false;
                     if (PickupQueue[PLServer.GetCurrentSector().ID].Contains(randomComponentAtId.RandComp))
-                        PickupQueue[PLServer.GetCurrentSector().ID].Remove(randomComponentAtId.RandComp);
+                        PickupQueue[PLServer.GetCurrentSector().ID][PickupQueue[PLServer.GetCurrentSector().ID].IndexOf(randomComponentAtId.RandComp)] = -1;
                 }
                 return true;
             }
@@ -412,6 +411,12 @@ namespace ExpandedGalaxy
                 {
                     return true;
                 }
+            }
+            PLSensor sensor = ware as PLSensor;
+            if (sensor != null)
+            {
+                if (sensor.SubType == 5)
+                    return true;
             }
             return false;
         }
@@ -607,6 +612,15 @@ namespace ExpandedGalaxy
                         {
                             if (component is MiningDroneSignal)
                             {
+                                /*
+                                if (inShip is StarterInfo.AsteroidInfo)
+                                {
+                                    __result = false;
+                                    if (__instance.HostileShips.Contains(inShip.ShipID))
+                                        __instance.HostileShips.Remove(inShip.ShipID);
+                                    return;
+                                }
+                                */
                                 if (!__instance.PersistantShipInfo.ForcedHostile && (component.Level < 4 && __instance.LastTookDamageTime() == float.MinValue) || !Relic.MiningDroneQuest.dronesActive)
                                 {
                                     flag = true;
@@ -698,12 +712,14 @@ namespace ExpandedGalaxy
                 {
                     if (!Relic.MiningDroneQuest.dronesActive || !PhotonNetwork.isMasterClient)
                         return;
+                    if (PLEncounterManager.Instance == null || PLEncounterManager.Instance.GetCPEI() == null)
+                        return;
                     if (__instance.DistressSignalActive)
                     {
                         bool flag = false;
                         if (__instance.GetIsPlayerShip())
                         {
-                            if (PhotonNetwork.isMasterClient && PLEncounterManager.Instance != null && PLEncounterManager.Instance.GetCPEI() != null && PLServer.Instance != null && !__instance.InWarp && PLServer.GetCurrentSector() != null && PLServer.Instance.GetCurrentHubID() > 0 && PLServer.GetCurrentSector().VisualIndication != ESectorVisualIndication.LCWBATTLE && PLServer.GetCurrentSector().VisualIndication != ESectorVisualIndication.TOPSEC && PLServer.GetCurrentSector().VisualIndication != ESectorVisualIndication.LAVA2)
+                            if (PhotonNetwork.isMasterClient && PLServer.Instance != null && !__instance.InWarp && PLServer.GetCurrentSector() != null && PLServer.Instance.GetCurrentHubID() > 0 && PLServer.GetCurrentSector().VisualIndication != ESectorVisualIndication.LCWBATTLE && PLServer.GetCurrentSector().VisualIndication != ESectorVisualIndication.TOPSEC && PLServer.GetCurrentSector().VisualIndication != ESectorVisualIndication.LAVA2)
                             {
                                 PLDistressSignal component = __instance.MyStats.GetComponentFromNetID<PLDistressSignal>(__instance.SelectedDistressSignalNetID);
                                 if (component != null && (component is MiningDroneSignal))
@@ -752,21 +768,30 @@ namespace ExpandedGalaxy
                                     Vector3 pos = GetEmptyLocationForEscortDrone(PLEncounterManager.Instance.GetCPEI(), pLPersistantShipInfo, out Quaternion entryDir);
                                     if (pos != Vector3.zero)
                                     {
-                                        PLServer.Instance.StartCoroutine(TimedShipWarpInDirectional(pLPersistantShipInfo, pos, entryDir));
+                                        PLServer.Instance.StartCoroutine(TimedShipWarpInDirectional(pLPersistantShipInfo, PLEncounterManager.Instance.GetCPEI(), pos, entryDir));
                                     }
                                 }
                             }
                         }
                     }
+                    if (__instance.IsDrone && __instance.CaptainTargetedSpaceTargetID != -1)
+                    {
+                        __instance.TargetSpaceTarget = PLEncounterManager.Instance.GetSpaceTargetFromID(__instance.CaptainTargetedSpaceTargetID);
+                    }
                 }
             }
 
-            private static IEnumerator TimedShipWarpInDirectional(PLPersistantShipInfo newPSI, Vector3 spawnPos, Quaternion spawnRot)
+            private static IEnumerator TimedShipWarpInDirectional(PLPersistantShipInfo newPSI, PLPersistantEncounterInstance pei, Vector3 spawnPos, Quaternion spawnRot)
             {
                 PLServer.Instance.photonView.RPC("WarpInEffect", PhotonTargets.All, (object)spawnPos, (object)spawnRot);
                 yield return new WaitForSeconds(0.5f);
                 PLServer.Instance.AllPSIs.Add(newPSI);
-                newPSI.ShipInstance = PLEncounterManager.Instance.GetCPEI().SpawnEnemyShip(newPSI.Type, newPSI, spawnPos);
+                newPSI.CreateShipInstance(pei);
+                if (newPSI.ShipInstance != null)
+                {
+                    newPSI.ShipInstance.Exterior.transform.position = spawnPos;
+                    newPSI.ShipInstance.Exterior.transform.rotation = spawnRot;
+                }
             }
 
             [HarmonyPatch(typeof(PLShipInfoBase), "Ship_WarpOutNow")]
@@ -794,15 +819,17 @@ namespace ExpandedGalaxy
                 }
             }
 
-            [HarmonyPatch(typeof(PLPersistantEncounterInstance), "OnEndWarp")]
+            [HarmonyPatch(typeof(PLPersistantEncounterInstance), "InitGame")]
             internal class MiningHubSetupCall
             {
-                private static void Postfix(PLPersistantEncounterInstance __instance)
+                private static bool Prefix(PLPersistantEncounterInstance __instance, int inHubID)
                 {
                     if (__instance is PLLavaPlanet2Encounter)
                     {
-                        Relic.MiningDroneQuest.SetupMiningHubPlanet(__instance, PLServer.GetCurrentSector().Visited);
-                        if (PLServer.GetCurrentSector() != null && !PLServer.GetCurrentSector().Visited && PhotonNetwork.isMasterClient)
+                        PLSectorInfo sector = PLServer.GetSectorWithID(inHubID);
+                        if (sector == null) return true;
+                        Relic.MiningDroneQuest.SetupMiningHubPlanet(__instance, sector.Visited);
+                        if (!sector.Visited && PhotonNetwork.isMasterClient)
                         {
                             int[] hashes = new int[4]
                             {
@@ -811,9 +838,10 @@ namespace ExpandedGalaxy
                             (int)new PLScrapCargo(9).getHash(),
                             (int)Relic.GenerateRelic(PLServer.Instance.GalaxySeed).getHash(),
                             };
-                            Relic.AddCompToPlanet(__instance, hashes, true, true);
+                            PickupQueue.Add(inHubID, hashes.ToList());
                         }
                     }
+                    return true;
                 }
             }
 
@@ -844,6 +872,11 @@ namespace ExpandedGalaxy
                                 case "Factory_Structure_01":
                                     obj.gameObject.SetActive(false);
                                     break;
+                                case "LogScreen1":
+                                    obj.transform.localPosition = new Vector3(18.8f, -21.4f, -24f);
+                                    obj.transform.rotation = Quaternion.Euler(0f, 45f, 0f);
+                                    obj.gameObject.SetActive(true);
+                                    break;
                             }
                             if (!visited)
                             {
@@ -856,6 +889,12 @@ namespace ExpandedGalaxy
                         }
                     }
                 }
+                GameObject volumeObj = new GameObject();
+                volumeObj.transform.position = new Vector3(132.5f, -188f, -29f);
+                volumeObj.transform.SetParent(current.PlanetRoot.transform);
+                PLObjectiveVolume volume = volumeObj.AddComponent<PLObjectiveVolume>();                
+                volume.Dimensions = new Vector3(3f, 1f, 4f);
+                volume.VolumeName = "ExGal_MiningDrone_Volume";
             }
 
             [HarmonyPatch(typeof(PLPersistantPlanetEncounterInstance), "Update")]
@@ -870,7 +909,7 @@ namespace ExpandedGalaxy
                     if (PLNetworkManager.Instance.CurrentGame == null || !__instance.GameInitWithHubID || PLEncounterManager.Instance.GetCPEI() != __instance)
                         return;
                     bool flag = false;
-                    foreach (PLShipInfoBase plShipInfoBase in UnityEngine.Object.FindObjectsOfType(typeof(PLShipInfoBase)))
+                    foreach (PLShipInfoBase plShipInfoBase in PLEncounterManager.Instance.GetCPEI().MyCreatedShipInfos)
                     {
                         if (plShipInfoBase != null && plShipInfoBase.ShipTypeID == EShipType.E_WDDRONE2)
                         {
@@ -907,6 +946,7 @@ namespace ExpandedGalaxy
                             }
                         }
                     }
+                    interior.RootObj.transform.GetChild(163).gameObject.SetActive(dronesActive);
                     if (Relic.MiningDroneQuest.dronesActive && interior.AmbienceSFX == "")
                     {
                         interior.AmbienceSFX = "sx_planet_terra_station_hum";
@@ -1128,6 +1168,19 @@ namespace ExpandedGalaxy
                             Relic.MiningDroneQuest.dronesActive = (bool)arguments[0];
                         Relic.MiningDroneQuest.MiningHubScreen.UpdateScreen.click = (int)arguments[1];
                     }
+                }
+            }
+
+            [HarmonyPatch(typeof(PLLogScreen), "SetupUI")]
+            internal class TerminalScreen
+            {
+                private static void Postfix(PLLogScreen __instance, ref UILabel ___LogPanelTitleLabel, ref UILabel ___ContentLabel)
+                {
+                    ___LogPanelTitleLabel.text = "Terminal";
+                    if (PLServer.Instance != null && PLServer.Instance.HasCompletedMissionWithID(8000014))
+                        ___ContentLabel.text = "Insert Warp Key:";
+                    else
+                        ___ContentLabel.text = "ERROR: No Valid Stargate Found.\nError Code: D-846-SG-Z4495\"";
                 }
             }
             private static List<ComponentOverrideData> GetComponentsFromDroneType(int type, PLRand rand)
@@ -2069,8 +2122,14 @@ namespace ExpandedGalaxy
                 if (sectorInfo.VisualIndication == ESectorVisualIndication.LAVA2 && PLEncounterManager.Instance != null && PLEncounterManager.Instance.PlayerShip != null && !PLEncounterManager.Instance.PlayerShip.InWarp && PLEncounterManager.Instance.GetCPEI() != null)
                 {
                     bool flag = false;
+                    List<PLShipInfoBase> shipInfoBasesToDelete = new List<PLShipInfoBase>();
                     foreach (PLShipInfoBase plShipInfoBase in PLEncounterManager.Instance.GetCPEI().MyCreatedShipInfos)
                     {
+                        if (plShipInfoBase.HasBeenDestroyed)
+                        {
+                            shipInfoBasesToDelete.Add(plShipInfoBase);
+                            continue;
+                        }
                         if (plShipInfoBase.ShipTypeID == EShipType.E_WDDRONE2)
                         {
                             foreach (PLShipComponent component in plShipInfoBase.MyStats.GetComponentsOfType(ESlotType.E_COMP_DISTRESS_SIGNAL))
@@ -2085,6 +2144,11 @@ namespace ExpandedGalaxy
                         if (flag)
                             break;
                     }
+                    foreach (PLShipInfoBase shipInfoBase in shipInfoBasesToDelete)
+                    {
+                        PLEncounterManager.Instance.GetCPEI().MyCreatedShipInfos.Remove(shipInfoBase);
+                    }
+                    shipInfoBasesToDelete.Clear();
                     return !flag;
                 }
                 return true;
@@ -2428,6 +2492,7 @@ namespace ExpandedGalaxy
                             caravanInfo.CompOverrides.AddRange(CaravanComponents(__instance.Seed));
                             PLServer.Instance.AllPSIs.Add(caravanInfo);
                             CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 120000;
+                            UpdateCaravan.persistantCaravanInfo = caravanInfo;
                         }
                     }
                 }
@@ -2759,42 +2824,31 @@ namespace ExpandedGalaxy
             [HarmonyPatch(typeof(PLStarmap), "Update")]
             internal class CaravanIcon
             {
-                public static Image CaravanLocImage;
-                public static Image CaravanLocBG;
                 private static void Postfix(PLStarmap __instance)
                 {
-                    if (CaravanLocImage == null)
-                    {
-                        CaravanLocImage = UnityEngine.Object.Instantiate(__instance.HunterLocImage, __instance.HunterLocImage.transform.parent);
-                        CaravanLocImage.GetComponent<Image>().color = getRelicColor();
-                        Image[] image = CaravanLocImage.GetComponentsInChildren<Image>();
-                        image[1].color = new Color(0.1383f, 0f, 0.415f, 0.5f);
-                        CaravanLocBG = image[1];
-                        image[2].color = getRelicColor();
-                        CaravanLocImage.GetComponentInChildren<Text>().text = "CARAVAN";
-                        CaravanLocImage.GetComponentInChildren<Text>().color = getRelicColor();
-                    }
-                    if (__instance.IsActive && CaravanLocImage != null && CaravanLocBG != null && RelicCaravan.CaravanCurrentSector != -1)
+                    if (__instance.IsActive && RelicCaravan.CaravanCurrentSector != -1)
                     {
                         if (PLServer.Instance != null)
                         {
                             PLSectorInfo sectorWithId = PLServer.GetSectorWithID(RelicCaravan.CaravanCurrentSector);
                             if (sectorWithId != null)
                             {
-                                bool flag = sectorWithId.IsThisSectorWithinPlayerWarpRange();
-                                CaravanLocImage.gameObject.SetActive(flag);
-                                CaravanLocBG.gameObject.SetActive(flag);
-                                if (CaravanLocImage.gameObject.activeSelf)
+                                bool flag = sectorWithId.IsThisSectorWithinPlayerWarpRange() || (bool)PLNetworkManager.Instance.IsInternalBuild;
+                                if (flag)
                                 {
-                                    CaravanLocImage.transform.localPosition = sectorWithId.Position * 2000f + new Vector3(0.0f, -15f, 0.0f);
-                                    CaravanLocImage.transform.localPosition = new Vector3(CaravanLocImage.transform.localPosition.x, CaravanLocImage.transform.localPosition.y, 0.0f);
+                                    int sectorId;
+                                    CrewLogManager.Instance.GetPinOfName("CARAVAN", out sectorId);
+                                    if (sectorId == -1)
+                                        CrewLogManager.Instance.AddPin("CARAVAN", RelicCaravan.CaravanCurrentSector, getRelicColor(), 1);
+                                    else if (sectorId != RelicCaravan.CaravanCurrentSector)
+                                        CrewLogManager.Instance.MovePin("CARAVAN", sectorId, CaravanCurrentSector);
+                                    return;
                                 }
                             }
 
                         }
-                        else
-                            PLGlobal.SafeGameObjectSetActive(CaravanLocImage.gameObject, false);
                     }
+                    CrewLogManager.Instance.RemovePinOfName("CARAVAN");
                 }
             }
 
@@ -2820,7 +2874,7 @@ namespace ExpandedGalaxy
             [HarmonyPatch(typeof(PLServer), "Update")]
             internal class UpdateCaravan
             {
-                private static PLPersistantShipInfo persistantCaravanInfo = null;
+                internal static PLPersistantShipInfo persistantCaravanInfo = null;
                 private static void Postfix()
                 {
                     if (PLServer.Instance == null)
@@ -2857,14 +2911,15 @@ namespace ExpandedGalaxy
                         CaravanCurrentSector = persistantCaravanInfo.MyCurrentSector.ID;
                         flag = true;
                         CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 120000;
-                        goto _L1;
                     }
-                    if (CaravanCurrentSector != -1 && PLServer.GetCurrentSector() != null)
+                    if ((CaravanCurrentSector != -1 && PLServer.GetCurrentSector() != null) || flag)
                     {
-                        if (PLServer.GetCurrentSector().ID != CaravanCurrentSector)
+                        if ((PLServer.GetCurrentSector().ID != CaravanCurrentSector) || flag)
                         {
-                            if (PLServer.Instance.GetEstimatedServerMs() - CaravanUpdateTime > 0)
+                            if ((PLServer.Instance.GetEstimatedServerMs() - CaravanUpdateTime > 0) || flag)
                             {
+                                if (flag)
+                                    goto _L1;
                                 CaravanUpdateTime = PLServer.Instance.GetEstimatedServerMs() + 120000;
                                 if (CaravanTargetSector != -1)
                                 {
@@ -2960,7 +3015,7 @@ namespace ExpandedGalaxy
                                     flag = true;
                                     flag1 = true;
                                 }
-                                _L1:
+                            _L1:
                                 if (flag)
                                 {
                                     int targetID = CaravanTargetSector;
@@ -3001,6 +3056,61 @@ namespace ExpandedGalaxy
                                 persistantCaravanInfo.CreateShipInstance(PLEncounterManager.Instance.GetCPEI());
                         }
                     }
+                }
+            }
+
+            [HarmonyPatch(typeof(PLPersistantEncounterInstance), "ClearPSIs")]
+            internal class MoveCaravan
+            {
+                private static bool Prefix(PLSectorInfo currentSector)
+                {
+                    if (PLServer.Instance == null || currentSector == null)
+                        return false;
+                    foreach (PLPersistantShipInfo pLPersistantShipInfo in PLServer.Instance.AllPSIs)
+                    {
+                        if (pLPersistantShipInfo.ShipName == "Wandering Caravan" && pLPersistantShipInfo.Type == EShipType.E_ROLAND && pLPersistantShipInfo.SelectedActorID == "ExGal_RelicCaravan")
+                        {
+                            if (pLPersistantShipInfo.MyCurrentSector != null && pLPersistantShipInfo.MyCurrentSector.ID == currentSector.ID)
+                            {
+                                float num1 = float.MaxValue;
+                                PLSectorInfo plSectorInfo = (PLSectorInfo)null;
+                                foreach (PLSectorInfo currentSector1 in PLGlobal.Instance.Galaxy.AllSectorInfos.Values)
+                                {
+                                    if (currentSector1 != null && currentSector1 != currentSector && currentSector1.VisualIndication == ESectorVisualIndication.NONE && currentSector1.MySPI.Faction != 4)
+                                    {
+                                        float num2 = Vector3.SqrMagnitude(currentSector1.Position - currentSector.Position);
+                                        if ((double)num2 < (double)num1)
+                                        {
+                                            num1 = num2;
+                                            plSectorInfo = currentSector1;
+                                        }
+                                    }
+                                }
+                                if (plSectorInfo != null)
+                                {
+                                    pLPersistantShipInfo.MyCurrentSector = plSectorInfo;
+                                    CaravanCurrentSector = plSectorInfo.ID;
+                                    CaravanPath.Clear();
+                                    CaravanPathIndex = 0;
+                                }
+                                else
+                                {
+                                    PLSectorInfo colonialHubSector = PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(ESectorVisualIndication.COLONIAL_HUB);
+                                    if (colonialHubSector != null)
+                                    {
+                                        pLPersistantShipInfo.MyCurrentSector = colonialHubSector;
+                                        CaravanCurrentSector = colonialHubSector.ID;
+                                        CaravanPath.Clear();
+                                        CaravanPathIndex = 0;
+                                    }
+                                    else
+                                        PLServer.Instance.AllPSIs.Remove(pLPersistantShipInfo);
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    return true;
                 }
             }
 
@@ -3390,7 +3500,7 @@ namespace ExpandedGalaxy
                 new ComponentOverrideData()
                 {
                     CompType = (int)ESlotType.E_COMP_TURRET,
-                    CompSubType = (int)ETurretType.LIGHTNING,
+                    CompSubType = (int)ETurretType.RAILGUN,
                     ReplaceExistingComp = true,
                     CompLevel = 3 + num,
                     IsCargo = false,
@@ -3404,7 +3514,7 @@ namespace ExpandedGalaxy
                 new ComponentOverrideData()
                 {
                     CompType = (int)ESlotType.E_COMP_TURRET,
-                    CompSubType = TurretModManager.Instance.GetTurretIDFromName("Particle Lance"),
+                    CompSubType = TurretModManager.Instance.GetTurretIDFromName("Sylvassi Turret"),
                     ReplaceExistingComp = true,
                     CompLevel = 6 + num,
                     IsCargo = false,
@@ -3725,6 +3835,1022 @@ namespace ExpandedGalaxy
                 }
                 );
                 return caravanParts;
+            }
+        }
+        
+        internal class ReflectedRift
+        {
+            internal static bool inRift
+            {
+                get
+                {
+                    return (riftData & 1U) > 0;
+                }
+            }
+
+            internal static bool GetRiftData(int index)
+            {
+                return (riftData & (byte)1U << index) > 0;
+            }
+
+            internal static void SetRiftData(int index, bool toggleState)
+            {
+                if (toggleState)
+                    riftData |= (byte)(1U << index);
+                else
+                    riftData &= (byte)~(1U << index);
+            }
+            internal static byte riftData = 0;
+
+            [HarmonyPatch(typeof(PLPickupMissionBase), "Start")]
+            internal class StartReflectedRift
+            {
+                private static IEnumerator SetupReflectedRift()
+                {
+                    yield return new WaitForSeconds(2);
+                    if (PLGlobal.Instance.Galaxy != null && PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication((ESectorVisualIndication)145) == null)
+                    {
+                        int freeSectorNum = PLGlobal.Instance.Galaxy.GetMinimumFreeSectorNumber();
+                        PLRand rand = new PLRand((int)PLServer.Instance.GalaxySeed);
+                        PLSectorInfo startSector = new PLSectorInfo();
+                        startSector.ID = freeSectorNum;
+                        startSector.Discovered = false;
+                        startSector.Visited = false;
+                        startSector.MySPI = SectorProceduralInfo.Create(PLGlobal.Instance.Galaxy, ref startSector, startSector.ID);
+                        startSector.FactionStrength = 0.5f;
+                        startSector.MySPI.Faction = 6;
+                        startSector.VisualIndication = (ESectorVisualIndication)145;
+                        startSector.Position = new Vector3(-20f, -20f, (float)rand.NextDouble() * 0.0225f);
+                        PLGlobal.Instance.Galaxy.AllSectorInfos.Add(freeSectorNum, startSector);
+
+                        freeSectorNum = PLGlobal.Instance.Galaxy.GetMinimumFreeSectorNumber();
+                        PLSectorInfo centerSector = new PLSectorInfo();
+                        centerSector.ID = freeSectorNum;
+                        centerSector.Discovered = false;
+                        centerSector.Visited = false;
+                        centerSector.MySPI = SectorProceduralInfo.Create(PLGlobal.Instance.Galaxy, ref centerSector, centerSector.ID);
+                        centerSector.FactionStrength = 0.5f;
+                        centerSector.MySPI.Faction = 6;
+                        centerSector.VisualIndication = ESectorVisualIndication.NONE;
+                        centerSector.Position = new Vector3(-20.1f, -20.1f, (float)rand.NextDouble() * 0.0225f);
+                        PLGlobal.Instance.Galaxy.AllSectorInfos.Add(freeSectorNum, centerSector);
+
+                        freeSectorNum = PLGlobal.Instance.Galaxy.GetMinimumFreeSectorNumber();
+                        PLSectorInfo endSector = new PLSectorInfo();
+                        endSector.ID = freeSectorNum;
+                        endSector.Discovered = false;
+                        endSector.Visited = false;
+                        endSector.MySPI = SectorProceduralInfo.Create(PLGlobal.Instance.Galaxy, ref endSector, endSector.ID);
+                        endSector.FactionStrength = 0.5f;
+                        endSector.MySPI.Faction = 6;
+                        endSector.VisualIndication = ESectorVisualIndication.GREY_PLAINS;
+                        endSector.Position = new Vector3(-40f, -40f, (float)rand.NextDouble() * 0.0225f);
+                        PLGlobal.Instance.Galaxy.AllSectorInfos.Add(freeSectorNum, endSector);
+
+                        List<int> visualsToAdd = new List<int> { 0, 0, 0, 0, 0, 0, 0, 0, 60, 15 };
+                        List<PLSectorInfo> sectorsToAdd = new List<PLSectorInfo>();
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            freeSectorNum = PLGlobal.Instance.Galaxy.GetMinimumFreeSectorNumber();
+                            PLSectorInfo newSector = new PLSectorInfo();
+                            newSector.ID = freeSectorNum;
+                            newSector.Discovered = false;
+                            newSector.Visited = false;
+                            newSector.MySPI = SectorProceduralInfo.Create(PLGlobal.Instance.Galaxy, ref newSector, newSector.ID);
+                            newSector.FactionStrength = 0.5f;
+                            newSector.MySPI.Faction = 6;
+                            int visual = visualsToAdd[rand.Next(visualsToAdd.Count)];
+                            newSector.VisualIndication = (ESectorVisualIndication)visual;
+                            visualsToAdd.Remove(visual);
+                            newSector.Position = new Vector3(-20.1f - 0.06f + (float)(rand.NextDouble() * 0.12), -20.1f - 0.06f + (float)(rand.NextDouble() * 0.12), (float)rand.NextDouble() * 0.0225f);
+                            if (visual == 0)
+                            {
+                                sectorsToAdd.Add(newSector);
+                                PLGlobal.Instance.Galaxy.AllSectorInfos.Add(newSector.ID, newSector);
+                            }
+                            else
+                                PLGlobal.Instance.Galaxy.AllSectorInfos.Add(newSector.ID, newSector);
+                        }
+
+                        for (int i = 0; i < 5; i++)
+                        {
+                            PLSectorInfo sector = sectorsToAdd[rand.Next(sectorsToAdd.Count)];
+                            PLPersistantShipInfo pLPersistantShipInfo = new PLPersistantShipInfo(EShipType.E_WDDRONE2, 0, sector)
+                            {
+                                HullPercent = rand.Next(0.85f, 1f),
+                                ShldPercent = 1f,
+                                IsFlagged = true,
+                                Modifiers = 2048
+                            };
+                            PLServer.Instance.AllPSIs.Add(pLPersistantShipInfo);
+                            sectorsToAdd.Remove(sector);
+                        }
+                    }
+                }
+                private static void Postfix(PLPickupMissionBase __instance)
+                {
+                    if (!PhotonNetwork.isMasterClient)
+                        return;
+                    if (__instance.MissionTypeID == 8000014 && PLServer.Instance != null && PLGlobal.Instance.Galaxy != null && PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication((ESectorVisualIndication)145) == null)
+                    {
+                        PLServer.Instance.StartCoroutine(SetupReflectedRift());
+                    }
+                }
+            }
+
+            [HarmonyPatch(typeof(PLPersistantEncounterInstance), "InitGame")]
+            internal class RiftSectorSetupCall
+            {
+                private static bool Prefix(PLPersistantEncounterInstance __instance, int inHubID)
+                {
+                    if (__instance is PLPlanetLevelEncounter && (int)__instance.LevelID == 80)
+                    {
+                        PLSectorInfo sector = PLServer.GetSectorWithID(inHubID);
+                        if (sector != null && sector.MySPI.Faction == 6)
+                        {
+                            SetupRiftSector(__instance);
+                        }
+                    }
+                    return true;
+                }
+            }
+
+            private static async void SetupRiftSector(PLPersistantEncounterInstance pei)
+            {
+                while (PLNetworkManager.Instance.CurrentGame == null || !pei.GameInitWithHubID || PLEncounterManager.Instance.GetCPEI() != pei)
+                    await Task.Yield();
+                Scene myScene = SceneManager.GetActiveScene();
+                if (myScene == null)
+                    return;
+                GameObject[] objects = myScene.GetRootGameObjects();
+                for (int i = 0; i < objects[0].transform.childCount; i++)
+                {
+                    Transform transform = objects[0].transform.GetChild(i);
+                    if (transform.name.Contains("ProbePickup"))
+                        transform.gameObject.GetComponent<PLProbePickup>().PickedUp = true;
+                    else if (transform.name != "Particle System" && transform.name != "Rift_Animation_01" && transform.name != "Rift_Animation_02" && transform.name != "InteriorLight" && transform.name != "ExteriorLight")
+                        transform.gameObject.SetActive(false);
+                }
+                for (int i = 0; i < PLTeleportationLocationInstance.GetAllTLIs().Count; i++)
+                {
+                    if (PLTeleportationLocationInstance.GetAllTLIs()[i] != null && PLTeleportationLocationInstance.GetAllTLIs()[i].transform.name == "PLGamePlanet")
+                    {
+                        UnityEngine.Object.Destroy(PLTeleportationLocationInstance.GetAllTLIs()[i]);
+                        break;
+                    }
+                }
+            }
+
+            [HarmonyPatch(typeof(PLShipInfoBase), "ShouldBeHostileToShip")]
+            internal class RiftNPCBePassive
+            {
+                private static void Postfix(PLShipInfoBase __instance, PLShipInfoBase inShip, ref bool __result)
+                {
+                    if (__instance.SelectedActorID == "ExGal_ReflectedRift_NPC" || inShip.SelectedActorID == "ExGal_ReflectedRift_NPC")
+                        __result = false;
+                }
+            }
+
+            [HarmonyPatch(typeof(PLPersistantPlanetEncounterInstance), "Update")]
+            internal class SendToRift
+            {
+                private static void Postfix(PLPersistantPlanetEncounterInstance __instance)
+                {
+                    if (!inRift && PhotonNetwork.isMasterClient && __instance is PLPlanetLevelEncounter && (int)__instance.LevelID == 80 && PLEncounterManager.Instance != null && PLEncounterManager.Instance.PlayerShip != null && !PLEncounterManager.Instance.PlayerShip.InWarp)
+                    {
+                        if (PLServer.GetCurrentSector() != null && PLServer.GetCurrentSector().MySPI.Faction == 6)
+                        {
+                            float f = Vector3.SqrMagnitude(PLEncounterManager.Instance.PlayerShip.Exterior.transform.position - new Vector3(347.6f, 136.5f, -62.5f));
+                            if ((double)f < 1225.0)
+                            {
+                                PLSectorInfo sectorInfo = PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication((ESectorVisualIndication)145);
+                                if (sectorInfo != null)
+                                {
+
+                                    PLServer.Instance.photonView.RPC("NetworkBeginWarp", PhotonTargets.All, (object)PLEncounterManager.Instance.PlayerShip.ShipID, (object)sectorInfo.ID, (object)PLServer.Instance.GetEstimatedServerMs(), (object)-1);
+                                    PLMissionObjective_Custom.OnCustomObjEvent("ExGal_ReflectedRift_Enter");
+                                    SetRiftData(0, true);
+                                    PLServer.Instance.IsReflection = !PLServer.Instance.IsReflection;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            [HarmonyPatch(typeof(PLServer), "AttemptToAddPickupMission")]
+            internal class RiftNoPickupMissions
+            {
+                private static bool Prefix()
+                {
+                    return !inRift;
+                }
+            }
+
+            [HarmonyPatch(typeof(PLPersistantEncounterInstance), "PlayerEnter")]
+            internal class RiftSectorNoPSIClear
+            {
+                private static bool Prefix(PLPersistantEncounterInstance __instance, int inHubID, ref ObscuredBool ___PlayerInEncounter)
+                {
+                    if (inRift)
+                    {
+                        PLServer.Instance.LongRangeCommsDisabled = (ObscuredBool)true;
+                        ___PlayerInEncounter = (ObscuredBool)true;
+                        return false;
+                    }
+                    return true;
+                }
+            }
+
+            [HarmonyPatch(typeof(PLServer), "Internal_AttemptBlindJump")]
+            internal class RiftBlindJump
+            {
+                private static bool Prefix(PLServer __instance, int inShipID, int playerID)
+                {
+                    if (inRift)
+                    {
+                        double damage = (double)PLEncounterManager.Instance.PlayerShip.TakeDamage((float)(((double)PLEncounterManager.Instance.PlayerShip.MyStats.HullCurrent + (double)PLEncounterManager.Instance.PlayerShip.MyStats.ShieldsCurrent) * (double)UnityEngine.Random.Range(0.8f, 1.25f) * (double)UnityEngine.Random.Range(0.4f, 1f) * (double)UnityEngine.Random.Range(0.5f, 1f) + 100.0 + (double)PLEncounterManager.Instance.PlayerShip.MyStats.HullArmor * 190.0), false, EDamageType.E_PHYSICAL, UnityEngine.Random.Range(0.0f, 1f), -1, (PLShipInfoBase)null, -1);
+                        PLShipInfoBase shipFromId = PLEncounterManager.Instance.GetShipFromID(inShipID);
+                        if ((UnityEngine.Object)shipFromId == (UnityEngine.Object)null || shipFromId.InWarp)
+                            return false;
+                        PLShipInfo plShipInfo1 = shipFromId as PLShipInfo;
+                        if (!((UnityEngine.Object)plShipInfo1 != (UnityEngine.Object)null) || !plShipInfo1.BlindJumpUnlocked)
+                            return false;
+
+                        int num = -1;
+                        for (int i = 0; i < 200; i++)
+                        {
+                            int num1 = UnityEngine.Random.Range(0, PLGlobal.Instance.Galaxy.AllSectorInfos.Keys.Count);
+                            if (PLGlobal.Instance.Galaxy.AllSectorInfos.ContainsKey(num1))
+                            {
+                                PLSectorInfo info = PLGlobal.Instance.Galaxy.AllSectorInfos[num1];
+                                if (info != null && info != PLServer.GetCurrentSector() && info.MissionSpecificID == -1 && info.MySPI != null && info.MySPI.Faction != 6 && info.VisualIndication != ESectorVisualIndication.LCWBATTLE && info.VisualIndication != ESectorVisualIndication.TOPSEC)
+                                {
+                                    num = num1;
+                                    break;
+                                }
+                            }
+                        }
+                        if (num != -1)
+                        {
+                            plShipInfo1.LastBeginBlindWarpServerTime = PLServer.Instance.GetEstimatedServerMs();
+                            PLServer.Instance.photonView.RPC("NetworkBeginWarp", PhotonTargets.All, (object)inShipID, (object)num, (object)PLServer.Instance.GetEstimatedServerMs(), (object)-1);
+                            SetRiftData(0, false);
+                            PLServer.Instance.IsReflection = !PLServer.Instance.IsReflection;
+                            if (PLServer.Instance.HasCompletedMissionWithID(8000014))
+                            {
+                                foreach (PLSectorInfo sector in PLGlobal.Instance.Galaxy.AllSectorInfos.Values)
+                                {
+                                    if (sector != null && sector.VisualIndication == ESectorVisualIndication.DIMENSION_STATION && sector.MySPI.Faction == 6)
+                                    {
+                                        sector.VisualIndication = ESectorVisualIndication.WARP_NETWORK_STATION;
+                                        sector.MissionSpecificID = -1;
+                                        sector.Name = "Ancient Stargate";
+                                        PLEncounterManager.Instance.AllPersistantEncounterInstances.Remove(sector.ID);
+                                        if (PhotonNetwork.isMasterClient)
+                                        {
+                                            List<PLPersistantShipInfo> shipInfos = new List<PLPersistantShipInfo>();
+                                            foreach(PLPersistantShipInfo allPSI in PLServer.Instance.AllPSIs)
+                                            {
+                                                if (allPSI.MyCurrentSector != null && allPSI.MyCurrentSector == sector)
+                                                    shipInfos.Add(allPSI);
+                                            }
+                                            foreach (PLPersistantShipInfo psi in shipInfos)
+                                                PLServer.Instance.AllPSIs.Remove(psi);
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        return false;
+                    }
+                    return true;
+                }
+            }
+
+            internal class DataCache : MissionShipComponentMod
+            {
+                public override string Name => "Data Cache";
+
+                public override string Description => "A blast-proof box with a hard drive inside.";
+
+                public override int MarketPrice => 1;
+
+                public override int CargoVisualID => 27;
+
+                public override float Price_LevelMultiplierExponent => 1f;
+            }
+
+            [HarmonyPatch(typeof(PLShipInfoBase), "LeaveExtraScrap")]
+            internal class DropDataCache
+            {
+                private static void Postfix(PLShipInfoBase __instance, ref List<PLShipComponent> droppedShipComponents)
+                {
+                    if (__instance.GetIsPlayerShip())
+                        return;
+                    if (inRift && __instance.ShipTypeID == EShipType.E_WDDRONE2 && __instance.HasModifier(EShipModifierType.CORRUPTED))
+                    {
+                        int compHash = (int)PLShipComponent.createHashFromInfo(23, MissionShipComponentModManager.Instance.GetMissionShipComponentIDFromName("Data Cache"), 0, 0, (int)ESlotType.E_COMP_NONE);
+                        PLServer.Instance.photonView.RPC("CreateSpecificShipScrapAtLocation", PhotonTargets.All, __instance.Exterior.transform.position + UnityEngine.Random.onUnitSphere * 20f, __instance.Exterior.transform.position, (int)compHash, true);
+                    }
+                }
+            }
+
+            [HarmonyPatch(typeof(PLPersistantEncounterInstance), "PlayMusicBasedOnShipType")]
+            internal class RiftMusic
+            {
+                private static bool Prefix(PLPersistantEncounterInstance __instance, EShipType inType, bool combat)
+                {
+                    if (inRift && !combat)
+                    {
+                        PLMusic.Instance.PlayMusic("mx_ivm_tooquiet01", false, false, isLoopingTrack: true);
+                        return false;
+                    }
+                    return true;
+                }
+            }
+            internal class SetupStargateScreen
+            {
+                internal static int inputLabel;
+                internal static int targetLabel;
+                internal static int statusLabel;
+                internal static string currentSolution;
+                internal static void Setup(PLWarpStationScreen __instance)
+                {
+                    Traverse traverse = Traverse.Create(__instance);
+                    object[] params1;
+                    params1 = new object[6]
+                    {
+                            "Stargate Controls",
+                            new Vector3(0f, 0.5f, 0f),
+                            new Vector2(512f, 512f),
+                            new Color(0.65f, 0.65f, 0.65f),
+                            null,
+                            UIWidget.Pivot.TopLeft
+                    };
+                    UISprite panel = traverse.Method("CreatePanel", new Type[6] { typeof(string), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UISprite>(params1);
+                    panel.transform.position = new Vector3(-1f, 1024.5f, 0f);
+                    float x = 152f;
+                    float y = -60f;
+                    for (int i = 0; i < 5; i++)
+                    {
+                        x = 152f;
+                        for (int j = 0; j < 5; j++)
+                        {
+                            string name = "inputOption_" + (j + 5 * i).ToString();
+                            params1 = new object[7]
+                            {
+                                    name,
+                                    StargatePuzzle.SubLetters[j + 5 * i].ToString(),
+                                    new Vector3(x, y),
+                                    new Vector2(40f, 40f),
+                                    new Color(0.65f, 0.65f, 0.65f),
+                                    panel.transform,
+                                    UIWidget.Pivot.TopLeft
+                            };
+                            traverse.Method("CreateButton", new Type[7] { typeof(string), typeof(string), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UISprite>(params1);
+                            x += 42f;
+                        }
+                        y -= 42f;
+                    }
+                    params1 = new object[7]
+                    {
+                                    "backspace",
+                                    "<-",
+                                    new Vector3(152f, -270),
+                                    new Vector2(82f, 40f),
+                                    new Color(0.65f, 0.65f, 0.65f),
+                                    panel.transform,
+                                    UIWidget.Pivot.TopLeft
+                    };
+                    traverse.Method("CreateButton", new Type[7] { typeof(string), typeof(string), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UISprite>(params1);
+                    params1 = new object[7]
+                    {
+                                    "enter",
+                                    ">>",
+                                    new Vector3(236, -270),
+                                    new Vector2(124f, 40f),
+                                    new Color(0.65f, 0.65f, 0.65f),
+                                    panel.transform,
+                                    UIWidget.Pivot.TopLeft
+                    };
+                    traverse.Method("CreateButton", new Type[7] { typeof(string), typeof(string), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UISprite>(params1);
+                    params1 = new object[6]
+                    {
+                                string.Empty,
+                                new Vector3(185f, -330f),
+                                20,
+                                Color.white,
+                                panel.transform,
+                                UIWidget.Pivot.Left
+                    };
+                    traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1);
+                    inputLabel = traverse.Field("AllLabels").GetValue<List<UILabel>>().Count - 1;
+                    params1 = new object[6]
+                    {
+                                "TARGET:",
+                                new Vector3(20f, -430f),
+                                18,
+                                Color.white,
+                                panel.transform,
+                                UIWidget.Pivot.Left
+                    };
+                    traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1);
+                    targetLabel = traverse.Field("AllLabels").GetValue<List<UILabel>>().Count - 1;
+                    params1 = new object[6]
+                    {
+                                "STATUS:",
+                                new Vector3(20f, -470f),
+                                18,
+                                Color.white,
+                                panel.transform,
+                                UIWidget.Pivot.Left
+                    };
+                    traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1);
+                    statusLabel = traverse.Field("AllLabels").GetValue<List<UILabel>>().Count - 1;
+                    ClickStargateScreen.currentInput.Clear();
+                    
+                    panel.gameObject.SetActive(false);
+                }
+            }
+
+            [HarmonyPatch(typeof(PLWarpStationScreen), "OnButtonClick")]
+            internal class ClickStargateScreen
+            {
+                internal static List<char> currentInput = new List<char>();
+                private static bool Prefix(PLWarpStationScreen __instance, UIWidget inButton, ref List<UILabel> ___AllLabels, ref List<UIWidget> ___AllButtons)
+                {
+                    if (PLServer.GetCurrentSector() != null && PLServer.GetCurrentSector().VisualIndication == ESectorVisualIndication.WARP_NETWORK_STATION && PLServer.GetCurrentSector().MySPI != null && PLServer.GetCurrentSector().MySPI.Faction == 6)
+                    {
+                        if (inButton.name.Contains("inputOption") && currentInput.Count < 5)
+                        {
+                            int chIndex = Int32.Parse(inButton.name.Split('_')[1]);
+                            if (currentInput.Count == 0 && chIndex > 19)
+                                return false;
+                            __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
+                            currentInput.Add(StargatePuzzle.SubLetters[chIndex]);
+                            string input = string.Empty;
+                            for (int i = 0; i < currentInput.Count; i++)
+                            {
+                                input += currentInput[i];
+                                if (i + 1 < currentInput.Count)
+                                    input += " ";
+                            }
+                            ___AllLabels[SetupStargateScreen.inputLabel].text = input;
+                        }
+                        else if (inButton.name == "backspace" && currentInput.Count > 0)
+                        {
+                            __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_keypad");
+                            currentInput.RemoveAt(currentInput.Count - 1);
+                            string input = string.Empty;
+                            for (int i = 0; i < currentInput.Count; i++)
+                            {
+                                input += currentInput[i];
+                                if (i + 1 < currentInput.Count)
+                                    input += " ";
+                            }
+                            ___AllLabels[SetupStargateScreen.inputLabel].text = input;
+                        }
+                        else if (inButton.name == "enter")
+                        {
+                            __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
+                            if (currentInput.Count < 5)
+                            {
+                                ___AllLabels[SetupStargateScreen.targetLabel].text = "TARGET: INVALID INPUT";
+                                ___AllLabels[SetupStargateScreen.targetLabel].color = Color.red;
+                                ___AllLabels[SetupStargateScreen.statusLabel].text = "STATUS:";
+                                __instance.MyWarpStation.photonView.RPC("SetTargetedSectorID", PhotonTargets.MasterClient, (object)-1, (object)false);
+                            }
+                            else
+                            {
+                                string input = string.Empty;
+                                for (int i = 0; i < currentInput.Count; i++)
+                                {
+                                    input += currentInput[i];
+                                }
+                                Vector3 vector3 = StargatePuzzle.VectorFromCode(input);
+                                ___AllLabels[SetupStargateScreen.targetLabel].text = "TARGET: <" + vector3.x.ToString("0.####") + ", " + vector3.y.ToString("0.####") + ", " + vector3.z.ToString("0.####") + ">";
+                                if (input == SetupStargateScreen.currentSolution)
+                                {
+                                    ___AllLabels[SetupStargateScreen.statusLabel].text = "STATUS: VALID PATH FOUND";
+                                    ___AllLabels[SetupStargateScreen.statusLabel].color = Color.green;
+                                    PLSectorInfo info = PLGlobal.Instance.Galaxy.GetSectorOfVisualIndication(ESectorVisualIndication.GREY_PLAINS);
+                                    if (info != null)
+                                        __instance.MyWarpStation.photonView.RPC("SetTargetedSectorID", PhotonTargets.MasterClient, (object)info.ID, (object)false);
+                                }
+                                else
+                                {
+                                    ___AllLabels[SetupStargateScreen.statusLabel].text = "STATUS: INVALID PATH";
+                                    ___AllLabels[SetupStargateScreen.statusLabel].color = Color.red;
+                                    __instance.MyWarpStation.photonView.RPC("SetTargetedSectorID", PhotonTargets.MasterClient, (object)-1, (object)false);
+                                }
+                            }
+                        }
+                        return false;
+                    }
+                    return true;
+                }
+            }
+
+            [HarmonyPatch(typeof(PLWarpStationScreen), "Update")]
+            internal class UpdateStargateScreen
+            {
+                private static void Postfix(PLWarpStationScreen __instance, ref List<UILabel> ___AllLabels, ref UISprite ___WarpPanel, ref List<UISprite> ___AllStylizedElements)
+                {
+                    if (!(__instance.MyWarpStation != null) || !__instance.UIIsSetup())
+                        return;
+                    if (PLServer.GetCurrentSector() != null && PLServer.GetCurrentSector().VisualIndication == ESectorVisualIndication.WARP_NETWORK_STATION && PLServer.GetCurrentSector().MySPI != null && PLServer.GetCurrentSector().MySPI.Faction == 6)
+                    {
+                        if (___WarpPanel.gameObject.activeSelf)
+                        {
+                            ___WarpPanel.gameObject.SetActive(false);
+                            foreach (UISprite element in ___AllStylizedElements)
+                            {
+                                if (element.name == "Panel_Stargate Controls")
+                                {
+                                    element.gameObject.SetActive(true);
+                                    StargatePuzzle.GeneratePuzzleVector(out SetupStargateScreen.currentSolution, ((int)PLServer.Instance.GalaxySeed) + (inRift ? 0 : 1));
+                                    break;
+                                }
+                            }
+                        }
+                        if (___AllLabels.Count < SetupStargateScreen.statusLabel)
+                            return;
+                        ___AllLabels[SetupStargateScreen.targetLabel].color = Color.Lerp(___AllLabels[SetupStargateScreen.targetLabel].color, Color.white, Time.deltaTime);
+                        ___AllLabels[SetupStargateScreen.statusLabel].color = Color.Lerp(___AllLabels[SetupStargateScreen.statusLabel].color, Color.white, Time.deltaTime);
+                    }
+                }
+            }
+
+            [HarmonyPatch(typeof(PLWarpStationScreen), "OnButtonHover")]
+            internal class OnHoverStargateScreen
+            {
+                private static bool Prefix(PLWarpStationScreen __instance, UIWidget inButton)
+                {
+                    if (PLServer.GetCurrentSector() != null && PLServer.GetCurrentSector().VisualIndication == ESectorVisualIndication.WARP_NETWORK_STATION && PLServer.GetCurrentSector().MySPI != null && PLServer.GetCurrentSector().MySPI.Faction == 6)
+                    {
+                        if (ClickStargateScreen.currentInput.Count == 0 && inButton.name.Contains("inputOption"))
+                        {
+                            int index = Int32.Parse(inButton.name.Split('_')[1]);
+                            if (index > 19)
+                                return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+
+            [HarmonyPatch(typeof(PLPersistantEncounterInstance), "InitGame")]
+            internal class StargateSetupCall
+            {
+                private static bool Prefix(PLPersistantEncounterInstance __instance, int inHubID)
+                {
+                    if (__instance is PLWarpStationEncounter)
+                    {
+                        PLSectorInfo sector = PLServer.GetSectorWithID(inHubID);
+                        if (sector != null & sector.MySPI.Faction == 6)
+                        {
+                            Relic.ReflectedRift.SetupStargateSector(__instance);
+                            if (PhotonNetwork.isMasterClient && inRift)
+                            {
+                                PLPersistantShipInfo pLPersistantShipInfo = new PLPersistantShipInfo(EShipType.OLDWARS_HUMAN, 6, PLServer.GetCurrentSector(), ensureNoCrew: true);
+                                pLPersistantShipInfo.CompOverrides.Add(new ComponentOverrideData()
+                                {
+                                    CompType = (int)ESlotType.E_COMP_WARP,
+                                    CompSubType = (int)WarpDriveModManager.Instance.GetWarpDriveIDFromName("Broken Warp Drive"),
+                                    ReplaceExistingComp = true,
+                                    CompLevel = 0,
+                                    IsCargo = false,
+                                    CompTypeToReplace = (int)ESlotType.E_COMP_WARP,
+                                    SlotNumberToReplace = 0
+                                });
+                                pLPersistantShipInfo.CompOverrides.Add(new ComponentOverrideData()
+                                {
+                                    CompType = (int)ESlotType.E_COMP_DISTRESS_SIGNAL,
+                                    CompSubType = 7,
+                                    CompLevel = 0,
+                                    IsCargo = false,
+                                });
+                                pLPersistantShipInfo.HullPercent = 0.13f;
+                                pLPersistantShipInfo.ShipName = "Derilect Ship";
+                                pLPersistantShipInfo.CreateShipInstance(__instance);
+                            }
+                        }
+                    }
+                    return true;
+                }
+            }
+
+            private static async void SetupStargateSector(PLPersistantEncounterInstance pei)
+            {
+                while (PLNetworkManager.Instance.CurrentGame == null || !pei.GameInitWithHubID || PLEncounterManager.Instance.GetCPEI() != pei)
+                    await Task.Yield();
+                Scene myScene = SceneManager.GetActiveScene();
+                if (myScene == null)
+                    return;
+                GameObject[] objects = myScene.GetRootGameObjects();
+                for (int i = 0; i < objects[5].transform.GetChild(0).childCount; i++)
+                {
+                    Transform transform = objects[5].transform.GetChild(0).GetChild(i);
+                    switch (transform.name)
+                    {
+                        case "Flag_small":
+                        case "MetalChair_01":
+                        case "DecorativeCarpet_01":
+                        case "CargoCrate_02-2":
+                        case "CargoCrate_02-2 (1)":
+                        case "CargoCrate_01-2":
+                        case "CargoCrate_01-2 (1)":
+                        case "CargoCrate_01-2 (2)":
+                        case "Toilet_01":
+                        case "Kictchen_Attachment_02":
+                        case "Shower_02_Controls":
+                        case "Shower_02_Top":
+                        case "Shower_02_Base":
+                        case "Bed_01":
+                            transform.gameObject.SetActive(false);
+                            break;
+                    }
+                    if (transform.name.Contains("Carrier_Exterior_Light_01"))
+                    {
+                        for (int j = 0; j < transform.childCount; j++)
+                        {
+                            transform.GetChild(j).gameObject.SetActive(false);
+                        }
+                    }
+                }
+                while (PLScreenHubBase.GetAllScreenHubs().Count < 2 || PLScreenHubBase.GetAllScreenHubs()[1].name != "WarpStation_Exterior" || PLScreenHubBase.GetAllScreenHubs()[1].AllScreens.Count < 2)
+                    await Task.Yield();
+                SetupStargateScreen.Setup((PLWarpStationScreen)PLScreenHubBase.GetAllScreenHubs()[1].AllScreens[0]);
+            }
+
+            [HarmonyPatch(typeof(PLPersistantEncounterInstance), "InitGame")]
+            internal class GreyPlainsSetupCall
+            {
+                private static bool Prefix(PLPersistantEncounterInstance __instance, int inHubID)
+                {
+                    if (__instance is PLPlanetLevelEncounter && (int)__instance.LevelID == 85 && PLGlobal.Instance.Galaxy.AllSectorInfos.ContainsKey(inHubID) && PLGlobal.Instance.Galaxy.AllSectorInfos[inHubID] != null && PLGlobal.Instance.Galaxy.AllSectorInfos[inHubID].MySPI != null && PLGlobal.Instance.Galaxy.AllSectorInfos[inHubID].MySPI.Faction == 6)
+                    {
+                        Relic.ReflectedRift.SetupGreyPlainsSector(__instance);
+                        if (PhotonNetwork.isMasterClient && inRift)
+                        {
+                            int[] compHash = new int[1]
+                            {
+                                (int)Relic.GenerateRelic((int)PLServer.Instance.GalaxySeed).getHash(),
+                            };
+                            PickupQueue.Add(inHubID, compHash.ToList());
+                        }
+                    }
+                    return true;
+                }
+            }
+
+            private static async void SetupGreyPlainsSector(PLPersistantEncounterInstance pei)
+            {
+                while (PLNetworkManager.Instance.CurrentGame == null || !pei.GameInitWithHubID || PLEncounterManager.Instance.GetCPEI() != pei)
+                    await Task.Yield();
+                Scene myScene = SceneManager.GetActiveScene();
+                if (myScene == null)
+                    return;
+                GameObject[] objects = myScene.GetRootGameObjects();
+                for (int i = 0; i < objects[2].transform.childCount; i++)
+                {
+                    Transform transform = objects[2].transform.GetChild(i);
+                    switch (transform.name)
+                    {
+                        case "Lounge_Bed2-2":
+                            transform.gameObject.SetActive(false);
+                            break;
+                        case "DehydratedSandwichPickup":
+                            GameObject.Destroy(transform.gameObject);
+                            break;
+                        case "SmallStation_01":
+                            transform.GetChild(13).GetChild(5).GetChild(0).gameObject.SetActive(false);
+                            transform.GetChild(13).GetChild(5).GetChild(1).gameObject.SetActive(true);
+
+                            GameObject.Destroy(transform.GetChild(13).GetChild(8).gameObject);
+                            GameObject.Destroy(transform.GetChild(13).GetChild(9).gameObject);
+                            GameObject.Destroy(transform.GetChild(13).GetChild(10).gameObject);
+                            GameObject.Destroy(transform.GetChild(13).GetChild(12).gameObject);
+                            break;
+                    }
+
+                    if (transform.name.Contains("CU_Weeler"))
+                    {
+                        transform.gameObject.AddComponent<PLDamageablePlanetObject>();
+                        PLDamageablePlanetObject pLDamageablePlanetObject = transform.GetComponent<PLDamageablePlanetObject>();
+                        pLDamageablePlanetObject.ShowDamageVisualEffectOnHit = false;
+                        pLDamageablePlanetObject.MaxHealth = (ObscuredFloat)40f;
+                        pLDamageablePlanetObject.Health = (ObscuredFloat)40f;
+                        pLDamageablePlanetObject.Destroyable = true;
+                        pLDamageablePlanetObject.MyCollisionSpheres = new PLPawnCollisionSphere[1];
+                        transform.gameObject.AddComponent<PLPawnCollisionSphere>();
+                        pLDamageablePlanetObject.MyCollisionSpheres[0] = transform.gameObject.GetComponent<PLPawnCollisionSphere>();
+                        pLDamageablePlanetObject.MyCollisionSpheres[0].Radius = 2f;
+                        pLDamageablePlanetObject.ScriptName = "ExGal_ReflectedRift_Finsh";
+                    }
+                }
+            }
+
+            [HarmonyPatch(typeof(PLServer), "Update")]
+            internal class EnsureReflectedRift
+            {
+                private static float lastCheckTime = float.MinValue;
+                private static void Postfix(PLServer __instance)
+                {
+                    if (PhotonNetwork.isMasterClient && inRift)
+                    {
+                        if (PLServer.Instance != null && inRift && PLEncounterManager.Instance != null && PLEncounterManager.Instance.PlayerShip != null && !PLEncounterManager.Instance.PlayerShip.InWarp && PLServer.GetCurrentSector() != null && PLServer.GetCurrentSector().VisualIndication != ESectorVisualIndication.DIMENSION_STATION && PLEncounterManager.Instance != null && PLEncounterManager.Instance.GetCPEI() != null && (double)PLEncounterManager.Instance.GetCPEI().GetTimePlayerInEncounterAfterWarp() > 10.0 && Time.time - lastCheckTime > 5f)
+                        {
+                            lastCheckTime = Time.time;
+                            ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendReflectionCheck", PhotonTargets.All, new object[1]
+                            {
+                            PLServer.Instance.IsReflection.GetDecrypted()
+                            });
+                        }
+                    }
+                    else
+                    {
+                        lastCheckTime = float.MinValue;
+                    }
+                }
+            }
+
+            internal class ServerSendReflectionCheck : ModMessage
+            {
+                public override void HandleRPC(object[] arguments, PhotonMessageInfo sender)
+                {
+                    if (PLNetworkManager.Instance == null || PLNetworkManager.Instance.MyLocalPawn == null)
+                        return;
+                    bool reflectionState = (bool)arguments[0];
+                    if (PLCameraSystem.Instance != null)
+                    {
+                        PLPostProcessReflection[] obj = PLCameraSystem.Instance.gameObject.GetComponentsInChildren<PLPostProcessReflection>();
+                        foreach (PLPostProcessReflection processReflection in obj)
+                        {
+                            if (!processReflection.isActiveAndEnabled)
+                                continue;
+                            else
+                            {
+                                float num = (float)AccessTools.Field(typeof(PLPostProcessReflection), "SmoothReflectionPercent").GetValue(processReflection);
+                                if (reflectionState)
+                                {
+                                    if (num < 0.5f)
+                                        ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.FailReflectionCheck", PhotonTargets.MasterClient, new object[0]);
+                                }
+                                else
+                                {
+                                    if (num > 0.5f)
+                                        ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.FailReflectionCheck", PhotonTargets.MasterClient, new object[0]);
+                                }
+                                break;
+                            }
+                        }                   
+                    }
+                }
+            }
+
+            internal class FailReflectionCheck : ModMessage
+            {
+                public override void HandleRPC(object[] arguments, PhotonMessageInfo sender)
+                {
+                    if (PLServer.Instance != null && inRift && PLEncounterManager.Instance != null && PLEncounterManager.Instance.PlayerShip != null && !PLEncounterManager.Instance.PlayerShip.InWarp)
+                    {
+                        PLEncounterManager.Instance.PlayerShip.BlindJumpUnlocked = true;
+                        PLServer.Instance.Internal_AttemptBlindJump(PLEncounterManager.Instance.PlayerShip.ShipID, -1);
+                        PLServer.Instance.photonView.RPC("AddCrewWarning", PhotonTargets.All, new object[4]
+                        {
+                            "The Rift Became Unstable!",
+                            Color.blue,
+                            0,
+                            "WRN"
+                        });
+                    }
+                }
+            }
+        }
+
+        public static class StargatePuzzle
+        {
+            static readonly float PHI = (1f + Mathf.Sqrt(5f)) / 2f;
+            static readonly char[] FaceLetters = "αβγδεζηθικλμ§νξοπρστ".ToCharArray();
+            internal static readonly char[] SubLetters = "αβγδεζηθικλμ§νξοπρστυφχψω".ToCharArray();
+
+            public struct Face
+            {
+                public Vector3 A, B, C;
+                public Vector3 Normal;
+                public char Letter;
+            }
+
+            static readonly List<Face> Faces = BuildIcosahedron();
+
+            public static Vector3 GeneratePuzzleVector(out string solution, int seed)
+            {
+                PLRand rng = new PLRand(seed);
+
+                Face face = Faces[rng.Next(0, Faces.Count)];
+                solution = face.Letter.ToString();
+
+                Vector3 A = face.A;
+                Vector3 B = face.B;
+                Vector3 C = face.C;
+
+                for (int depth = 0; depth < 4; depth++)
+                {
+                    int triIndex = rng.Next(0, 25);
+                    solution += SubLetters[triIndex];
+
+                    GetSubTriangle(A, B, C, triIndex, out A, out B, out C);
+                }
+
+                return Vector3.Normalize((A + B + C) / 3f);
+            }
+
+            public static string Solve(Vector3 direction)
+            {
+                direction = direction.normalized;
+                Face face = FindFace(direction);
+
+                string code = face.Letter.ToString();
+
+                Vector3 P = RayPlaneHit(direction, face);
+                Vector3 A = face.A, B = face.B, C = face.C;
+
+                for (int depth = 0; depth < 4; depth++)
+                {
+                    int triIndex = FindSubTriangleIndex(A, B, C, P);
+                    code += SubLetters[triIndex];
+
+                    GetSubTriangle(A, B, C, triIndex, out A, out B, out C);
+                }
+
+                return code;
+            }
+
+            public static Vector3 VectorFromCode(string code)
+            {
+                if (code == null || code.Length != 5)
+                    return Vector3.zero;
+
+                int faceIndex = Array.IndexOf(FaceLetters, code[0]);
+                if (faceIndex < 0)
+                    return Vector3.zero;
+
+                Face face = Faces[faceIndex];
+                Vector3 A = face.A, B = face.B, C = face.C;
+
+                for (int depth = 1; depth < 5; depth++)
+                {
+                    int triIndex = Array.IndexOf(SubLetters, code[depth]);
+                    if (triIndex < 0)
+                        return Vector3.zero;
+
+                    GetSubTriangle(A, B, C, triIndex, out A, out B, out C);
+                }
+
+                return Vector3.Normalize((A + B + C) / 3f);
+            }
+
+            static void GetSubTriangle(
+                Vector3 A, Vector3 B, Vector3 C,
+                int index,
+                out Vector3 tA, out Vector3 tB, out Vector3 tC)
+            {
+                int count = 0;
+
+                Vector3 AB = (B - A) / 5f;
+                Vector3 AC = (C - A) / 5f;
+
+                for (int i = 0; i < 5; i++)
+                {
+                    for (int j = 0; j < 5 - i; j++)
+                    {
+                        Vector3 P = A + i * AB + j * AC;
+
+                        if (count == index)
+                        {
+                            tA = P;
+                            tB = P + AB;
+                            tC = P + AC;
+                            return;
+                        }
+                        count++;
+
+                        if (i + j < 4)
+                        {
+                            if (count == index)
+                            {
+                                tA = P + AB;
+                                tB = P + AB + AC;
+                                tC = P + AC;
+                                return;
+                            }
+                            count++;
+                        }
+                    }
+                }
+
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+
+            static int FindSubTriangleIndex(Vector3 A, Vector3 B, Vector3 C, Vector3 P)
+            {
+                Vector3 AB = B - A;
+                Vector3 AC = C - A;
+                Vector3 AP = P - A;
+
+                float d00 = Vector3.Dot(AB, AB);
+                float d01 = Vector3.Dot(AB, AC);
+                float d11 = Vector3.Dot(AC, AC);
+                float d20 = Vector3.Dot(AP, AB);
+                float d21 = Vector3.Dot(AP, AC);
+
+                float denom = d00 * d11 - d01 * d01;
+                float u = (d11 * d20 - d01 * d21) / denom;
+                float v = (d00 * d21 - d01 * d20) / denom;
+
+                int i = Mathf.Clamp((int)(u * 5f), 0, 4);
+                int j = Mathf.Clamp((int)(v * 5f), 0, 4 - i);
+
+                float fu = u * 5f - i;
+                float fv = v * 5f - j;
+
+                bool inverted = (fu + fv) > 1f;
+
+                int index = 0;
+                for (int ii = 0; ii < i; ii++)
+                    index += 2 * (5 - ii) - 1;
+
+                index += 2 * j;
+                if (inverted) index++;
+
+                return index;
+            }
+
+            static Face FindFace(Vector3 v)
+            {
+                Face best = Faces[0];
+                float bestDot = -1f;
+
+                foreach (var f in Faces)
+                {
+                    float d = Vector3.Dot(f.Normal, v);
+                    if (d > bestDot)
+                    {
+                        bestDot = d;
+                        best = f;
+                    }
+                }
+                return best;
+            }
+
+            static Vector3 RayPlaneHit(Vector3 dir, Face f)
+            {
+                float t = Vector3.Dot(f.A, f.Normal) / Vector3.Dot(dir, f.Normal);
+                return dir * t;
+            }
+
+            static List<Face> BuildIcosahedron()
+            {
+                var v = new List<Vector3>();
+                void add(float x, float y, float z) => v.Add(Vector3.Normalize(new Vector3(x, y, z)));
+
+                add(0, 1, PHI); add(0, -1, PHI); add(0, 1, -PHI); add(0, -1, -PHI);
+                add(1, PHI, 0); add(-1, PHI, 0); add(1, -PHI, 0); add(-1, -PHI, 0);
+                add(PHI, 0, 1); add(-PHI, 0, 1); add(PHI, 0, -1); add(-PHI, 0, -1);
+
+                int[][] faces = {
+            new[]{0,1,8}, new[]{0,1,9}, new[]{0,4,5}, new[]{0,4,8}, new[]{0,5,9},
+            new[]{1,6,7}, new[]{1,6,8}, new[]{1,7,9}, new[]{2,3,10}, new[]{2,3,11},
+            new[]{2,4,5}, new[]{2,4,10}, new[]{2,5,11}, new[]{3,6,7}, new[]{3,6,10},
+            new[]{3,7,11}, new[]{4,8,10}, new[]{5,9,11}, new[]{6,8,10}, new[]{7,9,11}
+        };
+
+                var result = new List<Face>();
+
+                for (int i = 0; i < 20; i++)
+                {
+                    Vector3 A = v[faces[i][0]];
+                    Vector3 B = v[faces[i][1]];
+                    Vector3 C = v[faces[i][2]];
+
+                    Vector3 n = Vector3.Normalize(Vector3.Cross(B - A, C - A));
+                    if (Vector3.Dot(n, (A + B + C) / 3f) < 0) n = -n;
+
+                    result.Add(new Face
+                    {
+                        A = A,
+                        B = B,
+                        C = C,
+                        Normal = n,
+                        Letter = FaceLetters[i]
+                    });
+                }
+
+                return result;
             }
         }
     }

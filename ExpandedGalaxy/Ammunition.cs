@@ -3,7 +3,9 @@ using HarmonyLib;
 using PulsarModLoader;
 using PulsarModLoader.Content.Components.MissionShipComponent;
 using PulsarModLoader.Patches;
+using PulsarModLoader.Utilities;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -206,6 +208,88 @@ namespace ExpandedGalaxy
                         shipFromId.MyStats.AddShipComponent(Relic.GenerateRelic(PLGlobal.Instance.Galaxy.Seed), visualSlot: ESlotType.E_COMP_CARGO);
                     return false;
                 }
+                else if (component is PLMissionShipComponent && component.SubType == MissionShipComponentModManager.Instance.GetMissionShipComponentIDFromName("Data Cache"))
+                {
+                    shipFromId.MyStats.RemoveShipComponentByNetID(inNetID);
+                    if (PhotonNetwork.isMasterClient)
+                    {
+                        PLRand rand = new PLRand((int)PLServer.Instance.GalaxySeed);
+                        int a = 0;
+                        for (int i = 0; i < 200; i++)
+                        {
+                            a = 1 + rand.Next(5);
+                            if (!Relic.ReflectedRift.GetRiftData(a))
+                                break;
+                        }
+                        Relic.ReflectedRift.SetRiftData(a, true);
+                        if (a < 4)
+                        {
+                            if ((Relic.ReflectedRift.GetRiftData(1) ? 1 : 0) + (Relic.ReflectedRift.GetRiftData(2) ? 1 : 0) + (Relic.ReflectedRift.GetRiftData(3) ? 1 : 0) == 1)
+                            {
+                                CrewLogData data = new CrewLogData
+                                {
+                                    optionalSectorID = -1,
+                                    timeStamp = (float)PLServer.Instance.Playtime,
+                                    optionalColor = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f)),
+                                    Text = string.Empty,
+                                    specialData = 0
+                                };
+                                CrewLogManager.Instance.AddLog(data);
+                                List<object> sendArgumentList = new List<object>();
+                                int logCount = CrewLogManager.Instance.GetLogs().Count;
+                                sendArgumentList.Add(logCount);
+                                foreach (CrewLogData sendLogData in CrewLogManager.Instance.GetLogs())
+                                {
+                                    sendArgumentList.Add(sendLogData.Text);
+                                    sendArgumentList.Add(sendLogData.timeStamp);
+                                    sendArgumentList.Add(sendLogData.optionalSectorID);
+                                    sendArgumentList.Add(sendLogData.optionalColor.r);
+                                    sendArgumentList.Add(sendLogData.optionalColor.g);
+                                    sendArgumentList.Add(sendLogData.optionalColor.b);
+                                    sendArgumentList.Add(sendLogData.optionalColor.a);
+                                    sendArgumentList.Add(sendLogData.specialData);
+                                }
+                                ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendLog", PhotonTargets.Others, sendArgumentList.ToArray());
+                                Messaging.Notification("Crew log added", PhotonTargets.All, durationMs: 10000);
+                                return false;
+                            }
+                        }
+                        else
+                        {
+                            if ((Relic.ReflectedRift.GetRiftData(4) ? 1 : 0) + (Relic.ReflectedRift.GetRiftData(5) ? 1 : 0) == 1)
+                            {
+                                CrewLogData data = new CrewLogData
+                                {
+                                    optionalSectorID = -1,
+                                    timeStamp = (float)PLServer.Instance.Playtime,
+                                    optionalColor = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f)),
+                                    Text = string.Empty,
+                                    specialData = 1
+                                };
+                                CrewLogManager.Instance.AddLog(data);
+                                List<object> sendArgumentList = new List<object>();
+                                int logCount = CrewLogManager.Instance.GetLogs().Count;
+                                sendArgumentList.Add(logCount);
+                                foreach (CrewLogData sendLogData in CrewLogManager.Instance.GetLogs())
+                                {
+                                    sendArgumentList.Add(sendLogData.Text);
+                                    sendArgumentList.Add(sendLogData.timeStamp);
+                                    sendArgumentList.Add(sendLogData.optionalSectorID);
+                                    sendArgumentList.Add(sendLogData.optionalColor.r);
+                                    sendArgumentList.Add(sendLogData.optionalColor.g);
+                                    sendArgumentList.Add(sendLogData.optionalColor.b);
+                                    sendArgumentList.Add(sendLogData.optionalColor.a);
+                                    sendArgumentList.Add(sendLogData.specialData);
+                                }
+                                ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendLog", PhotonTargets.Others, sendArgumentList.ToArray());
+                                Messaging.Notification("Crew log added", PhotonTargets.All, durationMs: 10000);
+                                return false;
+                            }
+                        }
+                        Messaging.Notification("Crew log updated", PhotonTargets.All, durationMs: 10000);
+                    }
+                    return false;
+                }
                 else if (component is PLWarpDriveProgram)
                 {
                     PLServer.Instance.CurrentUpgradeMats++;
@@ -223,9 +307,38 @@ namespace ExpandedGalaxy
             }
         }
 
+        [HarmonyPatch(typeof(PLPawnItem_Gun), "OnFire_ChanceForAmmo")]
+        internal class BotAmmoRebate
+        {
+            private static bool Prefix(PLPawnItem_Gun __instance, ref PLPawnItemInstance ___MyGunInstance, ref PLPawn ___MySetupPawn)
+            {
+                if (__instance.UsesAmmo && ___MyGunInstance != null && ___MySetupPawn != null && ___MySetupPawn != PLNetworkManager.Instance.MyLocalPawn && ___MySetupPawn.GetPlayer() != null && ___MySetupPawn.GetPlayer() != PLNetworkManager.Instance.LocalPlayer)
+                {
+                    float num = (float)(int)___MySetupPawn.GetPlayer().Talents[49] * 0.01f;
+                    if ((double)num > 0.0 && (double)UnityEngine.Random.value < (double)num)
+                        ___MyGunInstance.StartCoroutine(LateExtraAmmoReloadBot(__instance));
+
+                }
+                return true;
+            }
+
+            private static IEnumerator LateExtraAmmoReloadBot(PLPawnItem_Gun plPawnItemGun)
+            {
+                yield return (object)new WaitForSeconds(0.25f);
+                plPawnItemGun.AmmoCurrent += Mathf.CeilToInt((float)plPawnItemGun.AmmoMax * 0.2f);
+                plPawnItemGun.AmmoCurrent = Mathf.Clamp(plPawnItemGun.AmmoCurrent, 0, plPawnItemGun.AmmoMax);
+            }
+        }
+
         [HarmonyPatch(typeof(PLSpawner), "DoSpawnStatic")]
         internal class ExGalSpawn
         {
+            private static bool Prefix(PLPersistantEncounterInstance pei, string spawnType, Transform childTransform, PLSpawner spawner, PLTeleportationLocationInstance optionalTLI, PLInterior optionalInterior, PLCombatTarget combatTargetWhoSpawnedMe)
+            {
+                if (pei != null && PLServer.Instance != null && ((pei is PLLavaPlanet2Encounter && string.Equals(spawnType, "BanditSpawn", StringComparison.OrdinalIgnoreCase) && PLServer.Instance.HasCompletedMissionWithID(8000015)) || (pei is PLWarpStationEncounter && PLServer.GetSectorWithID(pei.GetSectorID()).MySPI.Faction == 6)))
+                    return false;
+                return true;
+            }
             private static void Postfix(PLPersistantEncounterInstance pei, string spawnType, Transform childTransform, PLSpawner spawner, PLTeleportationLocationInstance optionalTLI, PLInterior optionalInterior, PLCombatTarget combatTargetWhoSpawnedMe)
             {
                 if (pei == null)
@@ -249,14 +362,46 @@ namespace ExpandedGalaxy
                                 allPlayer.MyInventory.UpdateItem(netID, 9, 0, 4, 1);
                             else
                                 allPlayer.MyInventory.UpdateItem(netID, 12, 0, 4, 1);
-                            allPlayer.Talents[(int)ETalents.HEALTH_BOOST] = (ObscuredInt)5;
-                            allPlayer.Talents[(int)ETalents.ARMOR_BOOST] = (ObscuredInt)7;
-                            allPlayer.Talents[(int)ETalents.PISTOL_DMG_BOOST] = (ObscuredInt)3;
+                            allPlayer.Talents[(int)ETalents.HEALTH_BOOST] = (ObscuredInt)15;
+                            allPlayer.Talents[(int)ETalents.ARMOR_BOOST] = (ObscuredInt)12;
+                            allPlayer.Talents[(int)ETalents.PISTOL_DMG_BOOST] = (ObscuredInt)5;
                             allPlayer.gameObject.name += " Lava2";
                             allPlayer.SetPlayerName("Guard");
                         }
+                        Dictionary<int, int> talentMap = new Dictionary<int, int>();
+                        for (int i = 0; i < allPlayer.Talents.Length; i++)
+                        {
+                            if ((int)allPlayer.Talents[i] > 0)
+                                talentMap.Add(i, (int)allPlayer.Talents[i]);
+                        }
+                        if (talentMap.Keys.Count > 0)
+                            allPlayer.StartCoroutine(EnsureCorrectTalents(allPlayer, talentMap));
                     }                    
                 }
+            }
+
+            private static IEnumerator EnsureCorrectTalents(PLPlayer player, Dictionary<int, int> talentMap)
+            {
+                bool corrected = false;
+                int tries = 0;
+
+                yield return new WaitForEndOfFrame();
+                do
+                {
+                    foreach (int talentID in talentMap.Keys)
+                    {
+                        if ((int)player.Talents[talentID] != talentMap[talentID])
+                        {
+                            player.Talents[talentID] = (ObscuredInt)talentMap[talentID];
+                            corrected = true;
+                        }
+                    }
+                    if (corrected)
+                        ++tries;
+                    yield return new WaitForEndOfFrame();
+                }
+                while (!corrected);
+                Debug.Log(String.Format("[ExGal] Player {0} talents corrected in {1} tries.", player.GetPlayerID(), tries));
             }
         }
 

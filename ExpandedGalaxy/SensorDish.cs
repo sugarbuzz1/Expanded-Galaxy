@@ -15,9 +15,7 @@ namespace ExpandedGalaxy
         internal static PLPlayer lastToInteract;
 
         internal static Dictionary<PLScientistSensorScreen, int> screenInfos = new Dictionary<PLScientistSensorScreen, int>();
-        private static Dictionary<PLScientistSensorScreen, UITexture[]> buttons = new Dictionary<PLScientistSensorScreen, UITexture[]>();
-        private static Dictionary<PLScientistSensorScreen, UITexture[]> buttonsCustom = new Dictionary<PLScientistSensorScreen, UITexture[]>();
-
+        internal static Dictionary<PLScientistSensorScreen, Dictionary<int, UITexture[]>> buttons = new Dictionary<PLScientistSensorScreen, Dictionary<int, UITexture[]>>();
         private static List<int> turretMissileTick = new List<int>();
 
         public class AncientSensorDish : PLSensorDish
@@ -136,6 +134,9 @@ namespace ExpandedGalaxy
                 };
                 uITextures[5] = traverse.Method("CreateButtonEditable", new Type[7] { typeof(string), typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1);
 
+                uITextures[3].type = UISprite.Type.Filled;
+                uITextures[4].type = UISprite.Type.Filled;
+                uITextures[5].type = UISprite.Type.Filled;
             }
             return uITextures;
         }
@@ -240,68 +241,28 @@ namespace ExpandedGalaxy
         }
 
         [HarmonyPatch(typeof(PLScientistSensorScreen), "Update")]
-        internal class updateSensorScreen
+        internal class UpdateSensorScreen
         {
             private static bool Prefix(PLScientistSensorScreen __instance)
             {
                 if (!__instance.UIIsSetup() || !__instance.LocalPlayerInSameLocation())
                     return true;
                 if (__instance.MyScreenHubBase.OptionalShipInfo != null)
-                {
-                    Traverse traverse = Traverse.Create(__instance);
-                    if (__instance.MyScreenHubBase.OptionalShipInfo.MyStats.GetShipComponent<PLSensorDish>(ESlotType.E_COMP_SENSORDISH) == null && SensorDish.screenInfos.ContainsKey(__instance))
+                {                   
+                    int sensorDishSubtype = 0;
+                    if (__instance.MyScreenHubBase.OptionalShipInfo.MyStats.GetShipComponent<PLSensorDish>(ESlotType.E_COMP_SENSORDISH) != null)
+                        sensorDishSubtype = __instance.MyScreenHubBase.OptionalShipInfo.MyStats.GetShipComponent<PLSensorDish>(ESlotType.E_COMP_SENSORDISH).SubType;
+                    int screenAbilityMode = 0;
+                    if (SensorDish.screenInfos.ContainsKey(__instance))
+                        screenAbilityMode = SensorDish.screenInfos[__instance];
+                    if (screenAbilityMode != sensorDishSubtype)
                     {
-                        if (SensorDish.screenInfos[__instance] != 0)
-                        {
-                            foreach (UITexture texture1 in SensorDish.buttonsCustom[__instance])
-                            {
-                                PLGlobal.SafeGameObjectSetActive(texture1.gameObject, false);
-                            }
-                            foreach (UITexture texture in SensorDish.buttons[__instance])
-                            {
-                                PLGlobal.SafeGameObjectSetActive(texture.gameObject, true);
-                            }
-                            SensorDish.screenInfos.Remove(__instance);
-                            traverse.Field("weaknessScanCyberDefBG").SetValue(buttons[__instance][0]);
-                            traverse.Field("weaknessScanShieldsWeakPointBG").SetValue(buttons[__instance][1]);
-                            traverse.Field("weaknessScanReactorWeakPointBG").SetValue(buttons[__instance][2]);
-                            traverse.Field("weaknessScanCyberDef").SetValue(buttons[__instance][3]);
-                            traverse.Field("weaknessScanShieldsWeakPoint").SetValue(buttons[__instance][4]);
-                            traverse.Field("weaknessScanReactorWeakPoint").SetValue(buttons[__instance][5]);
-                        }
-                    }
-                    else if (__instance.MyScreenHubBase.OptionalShipInfo.MyStats.GetShipComponent<PLSensorDish>(ESlotType.E_COMP_SENSORDISH) != null && SensorDish.screenInfos.ContainsKey(__instance))
-                    {
-                        if (__instance.MyScreenHubBase.OptionalShipInfo.MyStats.GetShipComponent<PLSensorDish>(ESlotType.E_COMP_SENSORDISH).SubType != SensorDish.screenInfos[__instance])
-                        {
-                            if (SensorDish.screenInfos[__instance] != 0)
-                            {
-                                foreach (UITexture texture1 in SensorDish.buttonsCustom[__instance])
-                                {
-                                    PLGlobal.SafeGameObjectSetActive(texture1.gameObject, false);
-                                }
-                                foreach (UITexture texture in SensorDish.buttons[__instance])
-                                {
-                                    PLGlobal.SafeGameObjectSetActive(texture.gameObject, true);
-                                }
-                                SensorDish.screenInfos.Remove(__instance);
-                                traverse.Field("weaknessScanCyberDefBG").SetValue(buttons[__instance][0]);
-                                traverse.Field("weaknessScanShieldsWeakPointBG").SetValue(buttons[__instance][1]);
-                                traverse.Field("weaknessScanReactorWeakPointBG").SetValue(buttons[__instance][2]);
-                                traverse.Field("weaknessScanCyberDef").SetValue(buttons[__instance][3]);
-                                traverse.Field("weaknessScanShieldsWeakPoint").SetValue(buttons[__instance][4]);
-                                traverse.Field("weaknessScanReactorWeakPoint").SetValue(buttons[__instance][5]);
-                            }
-                        }
-                    }
-                    else if (__instance.MyScreenHubBase.OptionalShipInfo.MyStats.GetShipComponent<PLSensorDish>(ESlotType.E_COMP_SENSORDISH) != null && !SensorDish.screenInfos.ContainsKey(__instance))
-                    {
-                        if (__instance.MyScreenHubBase.OptionalShipInfo.MyStats.GetShipComponent<PLSensorDish>(ESlotType.E_COMP_SENSORDISH).SubType != 0)
-                        {
-                            SensorDish.screenInfos.Add(__instance, __instance.MyScreenHubBase.OptionalShipInfo.MyStats.GetShipComponent<PLSensorDish>(ESlotType.E_COMP_SENSORDISH).SubType);
-                            if (!buttons.ContainsKey(__instance))
-                            {
-                                SensorDish.buttons.Add(__instance, new UITexture[6]
+                        Traverse traverse = Traverse.Create(__instance);
+                        if (!SensorDish.buttons.ContainsKey(__instance))
+                            SensorDish.buttons[__instance] = new Dictionary<int, UITexture[]>();
+                        if (screenAbilityMode == 0 && !SensorDish.buttons[__instance].ContainsKey(0))
+                        {                          
+                            SensorDish.buttons[__instance].Add(0, new UITexture[6]
                                 {
                                 traverse.Field("weaknessScanCyberDefBG").GetValue<UITexture>(),
                                 traverse.Field("weaknessScanShieldsWeakPointBG").GetValue<UITexture>(),
@@ -310,26 +271,34 @@ namespace ExpandedGalaxy
                                 traverse.Field("weaknessScanShieldsWeakPoint").GetValue<UITexture>(),
                                 traverse.Field("weaknessScanReactorWeakPoint").GetValue<UITexture>()
                             });
-                            }
-                            if (!buttonsCustom.ContainsKey(__instance))
-                            {
-                                SensorDish.buttonsCustom.Add(__instance, SensorDish.createButtonsFromSubType(__instance, __instance.MyScreenHubBase.OptionalShipInfo.MyStats.GetShipComponent<PLSensorDish>(ESlotType.E_COMP_SENSORDISH).SubType));
-                            }
-                            traverse.Field("weaknessScanCyberDefBG").SetValue(buttonsCustom[__instance][0]);
-                            traverse.Field("weaknessScanShieldsWeakPointBG").SetValue(buttonsCustom[__instance][1]);
-                            traverse.Field("weaknessScanReactorWeakPointBG").SetValue(buttonsCustom[__instance][2]);
-                            traverse.Field("weaknessScanCyberDef").SetValue(buttonsCustom[__instance][3]);
-                            traverse.Field("weaknessScanShieldsWeakPoint").SetValue(buttonsCustom[__instance][4]);
-                            traverse.Field("weaknessScanReactorWeakPoint").SetValue(buttonsCustom[__instance][5]);
-                            foreach (UITexture texture1 in SensorDish.buttonsCustom[__instance])
-                            {
-                                PLGlobal.SafeGameObjectSetActive(texture1.gameObject, true);
-                            }
-                            foreach (UITexture texture in SensorDish.buttons[__instance])
-                            {
-                                PLGlobal.SafeGameObjectSetActive(texture.gameObject, false);
-                            }
                         }
+                        if (!SensorDish.buttons[__instance].ContainsKey(sensorDishSubtype))
+                            SensorDish.buttons[__instance].Add(sensorDishSubtype, createButtonsFromSubType(__instance, sensorDishSubtype));
+                        List<UIWidget> AllButtons = traverse.Field("AllButtons").GetValue<List<UIWidget>>();
+                        for (int i = 0; i < 6; i++)
+                        {
+                            UITexture texture = SensorDish.buttons[__instance][screenAbilityMode][i];
+                            if (i >= 3 && AllButtons.Contains(texture))
+                                AllButtons.Remove(texture);
+                            PLGlobal.SafeGameObjectSetActive(texture.gameObject, false);
+                        }
+                        for (int i = 0; i < 6; i++)
+                        {
+                            UITexture texture = SensorDish.buttons[__instance][sensorDishSubtype][i];
+                            if (i >= 3 && !AllButtons.Contains(texture))
+                                AllButtons.Add(texture);
+                            PLGlobal.SafeGameObjectSetActive(texture.gameObject, true);
+                        }
+                        traverse.Field("weaknessScanCyberDefBG").SetValue(SensorDish.buttons[__instance][sensorDishSubtype][0]);
+                        traverse.Field("weaknessScanShieldsWeakPointBG").SetValue(SensorDish.buttons[__instance][sensorDishSubtype][1]);
+                        traverse.Field("weaknessScanReactorWeakPointBG").SetValue(SensorDish.buttons[__instance][sensorDishSubtype][2]);
+                        traverse.Field("weaknessScanCyberDef").SetValue(SensorDish.buttons[__instance][sensorDishSubtype][3]);
+                        traverse.Field("weaknessScanShieldsWeakPoint").SetValue(SensorDish.buttons[__instance][sensorDishSubtype][4]);
+                        traverse.Field("weaknessScanReactorWeakPoint").SetValue(SensorDish.buttons[__instance][sensorDishSubtype][5]);
+                        if (SensorDish.screenInfos.ContainsKey(__instance))
+                            SensorDish.screenInfos[__instance] = sensorDishSubtype;
+                        else
+                            SensorDish.screenInfos.Add(__instance, sensorDishSubtype);
                     }
                 }
                 return true;
@@ -337,7 +306,7 @@ namespace ExpandedGalaxy
         }
 
         [HarmonyPatch(typeof(PLScientistSensorScreen), "OnButtonHover")]
-        internal class updateTooltip
+        internal class UpdateTooltip
         {
             private static void Postfix(PLScientistSensorScreen __instance, UIWidget inButton)
             {

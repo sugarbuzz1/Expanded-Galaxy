@@ -12,6 +12,8 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
+using static ExpandedGalaxy.Relic;
 
 namespace ExpandedGalaxy
 {
@@ -212,7 +214,7 @@ namespace ExpandedGalaxy
 
         internal static bool IsCargoScrappable(CargoObjectDisplay cargo)
         {
-            if (cargo.DisplayedItem.ActualSlotType == ESlotType.E_COMP_MISSION_COMPONENT && (cargo.DisplayedItem.SubType == MissionShipComponentModManager.Instance.GetMissionShipComponentIDFromName("Ammunition Cache") || cargo.DisplayedItem.SubType == MissionShipComponentModManager.Instance.GetMissionShipComponentIDFromName("Reward")))
+            if (cargo.DisplayedItem.ActualSlotType == ESlotType.E_COMP_MISSION_COMPONENT && (cargo.DisplayedItem.SubType == MissionShipComponentModManager.Instance.GetMissionShipComponentIDFromName("Ammunition Cache") || cargo.DisplayedItem.SubType == MissionShipComponentModManager.Instance.GetMissionShipComponentIDFromName("Reward") || cargo.DisplayedItem.SubType == MissionShipComponentModManager.Instance.GetMissionShipComponentIDFromName("Data Cache")))
                 return true;
             if (cargo.DisplayedItem.ActualSlotType == ESlotType.E_COMP_SCRAP)
                 return true;
@@ -527,6 +529,7 @@ namespace ExpandedGalaxy
             {
                 m_CachedUpgradableComponents.AddRange((IEnumerable<PLShipComponent>)instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_AUTO_TURRET, false));
                 m_CachedUpgradableComponents.AddRange((IEnumerable<PLShipComponent>)instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_HULLPLATING, false));
+                m_CachedUpgradableComponents.AddRange((IEnumerable<PLShipComponent>)instance.MyStats.GetComponentsOfType(ESlotType.E_COMP_CAPTAINS_CHAIR, false));
             }
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
@@ -670,11 +673,11 @@ namespace ExpandedGalaxy
             {
                 if (currentSector.VisualIndication == ESectorVisualIndication.DESERT_HUB && !PLNetworkManager.Instance.LocalPlayer.GetPawn().SpawnedInArena)
                 {
-                    PLMusic.Instance.PlayMusic("mx_AllGent_ExploreLP", false, true);
+                    PLMusic.Instance.PlayMusic("mx_AllGent_AmbientLP", false, true);
                     return true;
                 }
-                return false;
-            } 
+            }
+            return false;
         }
 
         [HarmonyPatch(typeof(PLPersistantEncounterInstance), "MusicUpdate")]

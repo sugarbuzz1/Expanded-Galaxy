@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
 using PulsarModLoader.Patches;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -27,6 +29,7 @@ namespace ExpandedGalaxy
                             {
                                 PLServer.Instance.SetChaosEventAsActive((int)e);
                                 PLServer.Instance.OnChaosEventActivate(e);
+                                CreateLRDAForChaosEvent(e);
                                 break;
                             }
                         }
@@ -57,40 +60,13 @@ namespace ExpandedGalaxy
             private static bool Prefix(PLServer __instance, EChaosEvent chaosEvent)
             {
                 bool flag = false;
-                string actorName = "";
                 switch(chaosEvent)
                 {
-                    case EChaosEvent.E_FUEL_SHORTAGE:
-                        actorName = "ExGal_ChaosEvent_FuelShortage";
-                        break;
-                    case EChaosEvent.E_COOLANT_SHORTAGE:
-                        actorName = "ExGal_ChaosEvent_CoolantShortage";
-                        break;
-                    case EChaosEvent.E_CALM:
-                        actorName = "ExGal_ChaosEvent_Contraband";
-                        break;
-                    case EChaosEvent.E_SHOP_STRIKE:
-                        actorName = "ExGal_ChaosEvent_ShopStrike";
-                        break;
                     case EChaosEvent.E_INFECTION_BOOST:
-                        flag = true;
-                        actorName = "ExGal_ChaosEvent_InfectionBoost";
-                        break;
                     case EChaosEvent.E_WD_OFFENSIVE:
                         flag = true;
-                        actorName = "ExGal_ChaosEvent_WDOffensive";
-                        break;
-                    case EChaosEvent.E_SHOCK_DRONE_INVASION:
-                        actorName = "ExGal_ChaosEvent_ShockDrones";
-                        break;
-                    case EChaosEvent.E_DEATHSEEKER_DRONE_INVASION:
-                        actorName = "ExGal_ChaosEvent_Deathseekers";
-                        break;
-                    case EChaosEvent.E_PHASE_DRONE_INVASION:
-                        actorName = "ExGal_ChaosEvent_PhaseDrones";
                         break;
                     case EChaosEvent.E_LONG_RANGE_PRICE_HIKE:
-                        actorName = "ExGal_ChaosEvent_LongRangeDisable";
                         foreach (PLSectorInfo pLSectorInfo in PLGlobal.Instance.Galaxy.AllSectorInfos.Values)
                         {
                             if (pLSectorInfo.VisualIndication == ESectorVisualIndication.WARP_NETWORK_STATION && pLSectorInfo.MySPI.Faction == 0 && pLSectorInfo.IsPartOfLongRangeWarpNetwork)
@@ -103,8 +79,6 @@ namespace ExpandedGalaxy
                         }
                         break;
                 }
-                if (actorName != "")
-                    PLServer.CreateBasicLongRangeDialogueActor(actorName, "CU Information Desk");
                 return flag;
             }
         }
@@ -150,6 +124,46 @@ namespace ExpandedGalaxy
                     }
                     break;
             }
+        }
+
+        internal static void CreateLRDAForChaosEvent(EChaosEvent chaosEvent)
+        {
+            string actorName = "";
+            switch (chaosEvent)
+            {
+                case EChaosEvent.E_FUEL_SHORTAGE:
+                    actorName = "ExGal_ChaosEvent_FuelShortage";
+                    break;
+                case EChaosEvent.E_COOLANT_SHORTAGE:
+                    actorName = "ExGal_ChaosEvent_CoolantShortage";
+                    break;
+                case EChaosEvent.E_CALM:
+                    actorName = "ExGal_ChaosEvent_Contraband";
+                    break;
+                case EChaosEvent.E_SHOP_STRIKE:
+                    actorName = "ExGal_ChaosEvent_ShopStrike";
+                    break;
+                case EChaosEvent.E_INFECTION_BOOST:
+                    actorName = "ExGal_ChaosEvent_InfectionBoost";
+                    break;
+                case EChaosEvent.E_WD_OFFENSIVE:
+                    actorName = "ExGal_ChaosEvent_WDOffensive";
+                    break;
+                case EChaosEvent.E_SHOCK_DRONE_INVASION:
+                    actorName = "ExGal_ChaosEvent_ShockDrones";
+                    break;
+                case EChaosEvent.E_DEATHSEEKER_DRONE_INVASION:
+                    actorName = "ExGal_ChaosEvent_Deathseekers";
+                    break;
+                case EChaosEvent.E_PHASE_DRONE_INVASION:
+                    actorName = "ExGal_ChaosEvent_PhaseDrones";
+                    break;
+                case EChaosEvent.E_LONG_RANGE_PRICE_HIKE:
+                    actorName = "ExGal_ChaosEvent_LongRangeDisable";
+                    break;
+            }
+            if (actorName != "")
+                PLServer.CreateBasicLongRangeDialogueActor(actorName, "CU Information Desk");
         }
 
         private static bool CanActivateChaosEvent(EChaosEvent chaosEvent)
@@ -265,7 +279,38 @@ namespace ExpandedGalaxy
                 if (!__instance.IsChaosEventActive(EChaosEvent.E_CALM) || __instance.HasActiveMissionWithID(8000013) || PLEncounterManager.Instance == null || PLEncounterManager.Instance.PlayerShip == null)
                     return true;
                 PickupMissionData pickupMission = (PickupMissionData)PLCampaignIO.Instance.GetMissionOfTypeID(8000013);
-                if (pickupMission == null || !__instance.DoesRequirementListPass(pickupMission.StartingRequirements))
+                if (pickupMission == null)
+                    return true;
+                int num4 = 0;
+                float num5 = 5f * PLServer.CampaignEditorDistanceToGalaxyDistance;
+                float num6 = 50f;
+                int num7 = 0;
+                int num8 = 0;
+                PLSectorInfo plSectorInfo1 = PLServer.GetCurrentSector();
+                if ((UnityEngine.Object)PLEncounterManager.Instance.PlayerShip != (UnityEngine.Object)null && PLEncounterManager.Instance.PlayerShip.InWarp && PLEncounterManager.Instance.PlayerShip.WarpTargetID != -1 && PLGlobal.Instance.Galaxy.AllSectorInfos.ContainsKey(PLEncounterManager.Instance.PlayerShip.WarpTargetID))
+                    plSectorInfo1 = PLGlobal.Instance.Galaxy.AllSectorInfos[PLEncounterManager.Instance.PlayerShip.WarpTargetID];
+                if (plSectorInfo1 != null)
+                {
+                    IEnumerator<PLSectorInfo> enumerator = (IEnumerator<PLSectorInfo>)PLGlobal.Instance.Galaxy.AllSectorInfos.Values.GetEnumerator();
+                    while (enumerator.MoveNext())
+                    {
+                        if (enumerator.Current != null && (double)(plSectorInfo1.Position - enumerator.Current.Position).sqrMagnitude < (double)num5 * (double)num5)
+                        {
+                            if (enumerator.Current.MySPI.Faction == num4)
+                                ++num8;
+                            ++num7;
+                        }
+                    }
+                }
+                if (num7 > 0)
+                {
+                    float num9 = (float)num8 / (float)num7;
+                    if ((UnityEngine.Object)PLEncounterManager.Instance.PlayerShip == (UnityEngine.Object)null || (double)num9 < (double)num6 * 0.01)
+                    {
+                        return true;
+                    }
+                }
+                else
                     return true;
                 bool flag = false;
                 foreach (PLShipComponent component in PLEncounterManager.Instance.PlayerShip.MyStats.AllComponents)

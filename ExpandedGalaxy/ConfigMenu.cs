@@ -27,6 +27,14 @@ namespace ExpandedGalaxy
             }
             if (PhotonNetwork.isMasterClient || PLNetworkManager.Instance.CurrentGame == null)
             {
+                Exosuit.BetterExosuit = GUILayout.Toggle(Exosuit.BetterExosuit, "Better Exosuit");
+            }
+            else
+            {
+                GUILayout.Label("Better Exosuit: " + (Exosuit.BetterExosuit ? "True" : "False"));
+            }
+            if (PhotonNetwork.isMasterClient || PLNetworkManager.Instance.CurrentGame == null)
+            {
                 Missions.slowMissionPickups = GUILayout.Toggle(Missions.slowMissionPickups, "Slower Comms Missions");
             }
             else

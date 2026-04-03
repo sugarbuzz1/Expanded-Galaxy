@@ -2,6 +2,7 @@
 using PulsarModLoader.Content.Components.CaptainsChair;
 using PulsarModLoader.Content.Components.Extractor;
 using PulsarModLoader.Content.Components.Hull;
+using PulsarModLoader.Content.Components.WarpDrive;
 
 namespace ExpandedGalaxy
 {
@@ -15,6 +16,11 @@ namespace ExpandedGalaxy
                 PLCaptainsChair chair = __instance as PLCaptainsChair;
                 if (chair == null)
                     return;
+                if (chair.SubType < 3)
+                {
+                    __result = "+" + (8 + chair.Level).ToString() + "%\n";
+                    return;
+                }
                 int index = chair.SubType - CaptainsChairModManager.Instance.VanillaCaptainsChairMaxType;
                 if (index <= -1 || index >= CaptainsChairModManager.Instance.CaptainsChairTypes.Count || chair.ShipStats == null)
                     return;
@@ -30,6 +36,11 @@ namespace ExpandedGalaxy
                 PLCaptainsChair chair = __instance as PLCaptainsChair;
                 if (chair == null)
                     return;
+                if (chair.SubType < 3)
+                {
+                    __result = "Boost\n";
+                    return;
+                }
                 int index = chair.SubType - CaptainsChairModManager.Instance.VanillaCaptainsChairMaxType;
                 if (index <= -1 || index >= CaptainsChairModManager.Instance.CaptainsChairTypes.Count || chair.ShipStats == null)
                     return;
@@ -91,6 +102,21 @@ namespace ExpandedGalaxy
                     return;
                 if (extractor.SubType == ExtractorModManager.Instance.GetExtractorIDFromName("P.T. Extractor Prototype"))
                     extractor.SubTypeData = 0;
+            }
+        }
+
+        [HarmonyPatch(typeof(PLShipComponent), "Tick")]
+        private class WarpDriveTickPatch
+        {
+            private static void Postfix(PLShipComponent __instance)
+            {
+                PLWarpDrive drive = __instance as PLWarpDrive;
+                if (drive == null)
+                    return;
+                int index = drive.SubType - WarpDriveModManager.Instance.VanillaWarpDriveMaxType;
+                if (index <= -1 || index >= WarpDriveModManager.Instance.WarpDriveTypes.Count || drive.ShipStats == null)
+                    return;
+                WarpDriveModManager.Instance.WarpDriveTypes[index].Tick((PLShipComponent)drive);
             }
         }
     }

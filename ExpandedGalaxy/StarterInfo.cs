@@ -497,5 +497,55 @@ namespace ExpandedGalaxy
                 __instance.DropScrap = false;
             }
         }
+
+        [HarmonyPatch(typeof(PLShipInfoBase), "SetupShipStats")]
+        internal class SetupFlagSlot
+        {
+            private static void Postfix(PLShipInfoBase __instance, bool previewStats, bool startingPlayerShip)
+            {
+                __instance.MyStats.SetGlobalSlotLimit(ESlotType.E_COMP_ID_MAX, 12);
+                __instance.MyStats.SetSlotLimit(ESlotType.E_COMP_ID_MAX, 12);
+            }
+        }
+
+        /*
+        public class AsteroidInfo : PLShipInfoBase
+        {
+            public override void SetupShipStats(bool previewStats = false, bool startingPlayerShip = false)
+            {
+                base.SetupShipStats(previewStats, startingPlayerShip);
+                this.ShipTypeID = (EShipType)69;
+                this.IsDrone = true;
+                this.MyStats.SetSlotLimit(ESlotType.E_COMP_HULL, 1);
+                this.MyStats.Mass = 1000f;
+                this.m_VisibleToPlayersInUI = true;
+                this.DropScrap = false;
+                this.CanFireProbes = false;
+                this.ShipNameValue = "Asteroid";
+                this.Thrusters = new GameObject[0];
+                this.ThrusterRenderers = new GameObject[0];
+                this.ReverseThrusters = new GameObject[0];
+                this.ReverseThrusterRenderers = new GameObject[0];
+                this.AmbientThrusters = new GameObject[0];
+                this.DirectionalThrusters = new GameObject[0];
+                this.ExteriorCollider = this.Exterior.GetComponent<MeshCollider>();
+                this.ExteriorMeshCollider = this.Exterior.GetComponent<MeshCollider>();
+                if (!PhotonNetwork.isMasterClient)
+                    return;
+                this.MyStats.AddShipComponent(PLHull.CreateHullFromHash((int)EHullType.E_WARP_GUARDIAN_HULL, 10, 0));
+            }
+
+            public override void ShipFinalCalculateStats(ref PLShipStats inStats)
+            {
+                base.ShipFinalCalculateStats(ref inStats);
+                inStats.EMSignature += 100f;
+                this.DischargeAmount = 0f;
+            }
+
+            public override void TakeDamage(float damage)
+            {
+            }
+        }
+        */
     }
 }

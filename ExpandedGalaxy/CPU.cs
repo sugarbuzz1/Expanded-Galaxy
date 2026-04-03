@@ -142,7 +142,7 @@ namespace ExpandedGalaxy
         {
             public override string Name => "Super Shield";
 
-            public override string Description => "If you're reading this, I fucked up :(";
+            public override string Description => "Overclocks the ship's shields to make them impervious to any attack. This component is particularly vunerable to electromagnetic pulses...";
 
             public override int MarketPrice => 9999999;
 
@@ -342,6 +342,7 @@ namespace ExpandedGalaxy
             {
                 List<CodeInstruction> list = instructions.ToList();
 
+                /*
                 List<CodeInstruction> targetSequence = new List<CodeInstruction>() {
                     new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(PLCPU), "get_Speed")),
                     new CodeInstruction(OpCodes.Ldarg_0),
@@ -356,8 +357,9 @@ namespace ExpandedGalaxy
                     new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(PLPoweredShipComponent), "GetPowerPercentInput")),
                     new CodeInstruction(OpCodes.Mul),
                 };
+                */
 
-                List<CodeInstruction> list2 = HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.AFTER, HarmonyHelpers.CheckMode.NONNULL, false).ToList<CodeInstruction>();
+                //List<CodeInstruction> list2 = HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence, patchSequence, HarmonyHelpers.PatchMode.AFTER, HarmonyHelpers.CheckMode.NONNULL, false).ToList<CodeInstruction>();
 
                 List<CodeInstruction> targetSequence2 = new List<CodeInstruction>() {
                     new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(typeof(PLShipStats), "get_CyberAttackRating")),
@@ -375,7 +377,7 @@ namespace ExpandedGalaxy
                     new CodeInstruction(OpCodes.Mul),
                 };
 
-                return HarmonyHelpers.PatchBySequence(list2.AsEnumerable<CodeInstruction>(), targetSequence2, patchSequence2, HarmonyHelpers.PatchMode.AFTER, HarmonyHelpers.CheckMode.NONNULL, false);
+                return HarmonyHelpers.PatchBySequence(list.AsEnumerable<CodeInstruction>(), targetSequence2, patchSequence2, HarmonyHelpers.PatchMode.AFTER, HarmonyHelpers.CheckMode.NONNULL, false);
             }
         }
 

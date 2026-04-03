@@ -5,7 +5,9 @@ using PulsarModLoader.Content.Components.Hull;
 using PulsarModLoader.Content.Components.Virus;
 using PulsarModLoader.Content.Components.WarpDriveProgram;
 using PulsarModLoader.Patches;
+using PulsarModLoader.Utilities;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -260,7 +262,7 @@ namespace ExpandedGalaxy
                 PLShipInfoBase pLShipInfoBase = InComp.ShipStats.Ship;
                 if (pLShipInfoBase != null)
                 {
-                    pLShipInfoBase.AcidicAtmoBoostAlpha += 0.2f * Time.deltaTime;
+                    pLShipInfoBase.AcidicAtmoBoostAlpha += 20f * Time.deltaTime;
                     pLShipInfoBase.AuxConfig &= (byte) 251U;
                 }
             }
@@ -351,6 +353,7 @@ namespace ExpandedGalaxy
         [HarmonyPatch(typeof(PLWarpDriveProgram), "ExecuteBasedOnType")]
         internal class ExShieldsBuff
         {
+            internal static int FramesToWait = 10;
             private static bool Prefix(PLWarpDriveProgram __instance)
             {
                 if (__instance.SubType != (int)EWarpDriveProgramType.EXTENDED_SHIELDS)
@@ -362,10 +365,29 @@ namespace ExpandedGalaxy
                 {
                     if (__instance.ShipStats.Ship.MyHull != null && __instance.ShipStats.Ship.MyHull.SubType == HullModManager.Instance.GetHullIDFromName("Juggernaut Hull"))
                         return true;
-                    __instance.ShipStats.Ship.MyShieldGenerator.Current += 100f;
-                    __instance.ShipStats.Ship.MyShieldGenerator.Current = Mathf.Clamp(__instance.ShipStats.Ship.MyShieldGenerator.Current, 0f, __instance.ShipStats.ShieldsMax + 100f);
+                    __instance.ShipStats.Ship.StartCoroutine(LateChargeShields(__instance.ShipStats.Ship));
                 }
                 return true;
+            }
+
+            private static IEnumerator LateChargeShields(PLShipInfoBase shipInfoBase)
+            {
+                if (shipInfoBase == null || shipInfoBase.MyShieldGenerator == null)
+                    yield break;
+                float shieldAmount = shipInfoBase.MyShieldGenerator.Current + 99f;
+                shieldAmount = Mathf.Clamp(shieldAmount, 0f, shipInfoBase.MyStats.ShieldsMax + 100f);
+                for (int i = 0; i < FramesToWait; i++)
+                    yield return new WaitForEndOfFrame();
+                if (shipInfoBase != null && shipInfoBase.MyShieldGenerator != null)
+                {   
+                    do
+                    {
+                        shipInfoBase.MyShieldGenerator.Current += 100f;
+                        shipInfoBase.MyShieldGenerator.Current = Mathf.Clamp(shipInfoBase.MyShieldGenerator.Current, 0f, shipInfoBase.MyStats.ShieldsMax);
+                        yield return new WaitForEndOfFrame();
+                    }
+                    while (shipInfoBase.MyShieldGenerator.Current < shieldAmount);
+                }
             }
         }
 

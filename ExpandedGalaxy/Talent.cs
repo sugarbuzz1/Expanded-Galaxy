@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using CodeStage.AntiCheat.ObscuredTypes;
+using HarmonyLib;
 using PulsarModLoader;
 using PulsarModLoader.Patches;
 using System;
@@ -310,6 +311,8 @@ namespace ExpandedGalaxy
             private static void Postfix(PLUIOutsideWorldUI __instance)
             {
                 if (!(PLCameraSystem.Instance.GetModeString() == "SensorDish"))
+                    return;
+                if (PLEncounterManager.Instance.PlayerShip == null || PLEncounterManager.Instance.PlayerShip.InWarp)
                     return;
                 if ((int)PLNetworkManager.Instance.LocalPlayer.Talents[TalentModManager.Instance.GetTalentIDFromName("Probe Specialty: Locator")] > 0)
                 {
@@ -724,6 +727,30 @@ namespace ExpandedGalaxy
             TalentModManager.Instance.UnHideTalent((int)ETalents.INC_JETPACK);
             TalentModManager.Instance.UnHideTalent((int)ETalents.SCI_RESEARCH_SPECIALTY);
             TalentModManager.Instance.UnHideTalent((int)ETalents.WPN_AMMO_BOOST);
+        }
+
+        [HarmonyPatch(typeof(PLPlayer), "Start")]
+        internal class TalentsFixFix
+        {
+            private static bool Prefix(PLPlayer __instance, out Dictionary<int, int> __state)
+            {
+                __state = new Dictionary<int, int>();
+                for (int i = 0; i < __instance.Talents.Length; i++)
+                {
+                    if ((int)__instance.Talents[i] != 0)
+                        __state.Add(i, (int)__instance.Talents[i]);
+                }
+                return true;
+            }
+
+            private static Exception Finalizer(Exception __exception, PLPlayer __instance, Dictionary<int, int> __state)
+            {
+                foreach (int talentID in __state.Keys)
+                {
+                    __instance.Talents[talentID] = (ObscuredInt)__state[talentID];
+                }
+                return __exception;
+            }
         }
     }
 }

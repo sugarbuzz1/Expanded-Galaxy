@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
+using static ExpandedGalaxy.StarterInfo;
 
 namespace ExpandedGalaxy
 {
@@ -578,6 +579,7 @@ namespace ExpandedGalaxy
                 protected int HitComboCountMax = 0;
                 protected float HitComboMultiplier = 1f;
                 private bool ColorCorrected;
+                protected bool isMiningLaser = false;
 
                 public ProjBeamCounter GetCounterForProjID(int inProjID)
                 {
@@ -866,9 +868,22 @@ namespace ExpandedGalaxy
                             return;
                         this.TurretInstance.OptionalGameObjects[0].SetActive(false);
                     }
+                }
 
-
-
+                private Vector3 ClampTurretLocalRotEulerAngles(Vector3 localRotEuler)
+                {
+                    if ((double)localRotEuler.y < -180.0)
+                        localRotEuler.y += 359.99f;
+                    if ((double)localRotEuler.x < -180.0)
+                        localRotEuler.x += 359.99f;
+                    if ((double)localRotEuler.y > 180.0)
+                        localRotEuler.y -= 359.99f;
+                    if ((double)localRotEuler.x > 180.0)
+                        localRotEuler.x -= 359.99f;
+                    localRotEuler.x = Mathf.Clamp(localRotEuler.x, this.minimumY, this.maximumY);
+                    localRotEuler.y = Mathf.Clamp(localRotEuler.y, this.minimumX, this.maximumX);
+                    localRotEuler.z = 0.0f;
+                    return localRotEuler;
                 }
 
                 public override void Unequip()
@@ -935,6 +950,7 @@ namespace ExpandedGalaxy
                     this.HitComboCountMax = 5;
                     this.HitComboMultiplier = 0.2f;
                     this.CanBeDroppedOnShipDeath = false;
+                    this.isMiningLaser = true;
                 }
 
                 protected override void CorrectColors()
@@ -953,7 +969,7 @@ namespace ExpandedGalaxy
                 {
                     base.Tick();
                     if (this.ShipStats.Ship.IsDrone)
-                        this.HeatGeneratedOnFire = 0.2f;
+                        this.HeatGeneratedOnFire = 0f;
                 }
             }
 
@@ -1097,14 +1113,49 @@ namespace ExpandedGalaxy
                     this.TrackerMissileReloadTime = 0f;
                 }
 
-                private float UpdateBaseDamage()
+                private void UpdateBaseDamage()
                 {
-                    PLTrackerMissile missile = this.ShipStats.GetComponentFromNetID<PLTrackerMissile>(this.ShipStats.Ship.SelectedMissileLauncher.NetID);
+                    PLTrackerMissile missile = this.ShipStats.Ship.SelectedMissileLauncher;
                     if (missile != null)
                     {
-                        return missile.Damage;
+                        this.m_Damage = missile.Damage;
+                        return;
                     }
-                    return 0f;
+                    this.m_Damage = 0f;
+                }
+
+                protected override string GetDamageTypeString()
+                {
+                    PLTrackerMissile missile = this.ShipStats.Ship.SelectedMissileLauncher;
+                    if (missile != null)
+                    {
+                        switch (missile.DamageType)
+                        {
+                            case EDamageType.E_ENERGY:
+                                return "ENERGY";
+                            case EDamageType.E_PHYSICAL:
+                            case EDamageType.E_COLLISION:
+                            case EDamageType.E_ARMOR_PIERCE_PHYS:
+                                return "PHYSICAL";
+                            case EDamageType.E_SHIELD_PIERCE_PHYS:
+                            case EDamageType.E_REACTOR_TARGETED_PHYS:
+                                return "PHYSICAL (TGT)";
+                            case EDamageType.E_INFECTED:
+                                return "INFECTED";
+                            case EDamageType.E_LIGHTNING:
+                                return "ENERGY (LTNG)";
+                            case EDamageType.E_PHASE:
+                            case EDamageType.E_ALL_SYSTEM_DMG:
+                                return "ENERGY (PHASE)";
+                            case EDamageType.E_SYSTEM_DAMAGE:
+                                return "PHYSICAL (PHASE)";
+                            case EDamageType.E_FIRE:
+                                return "PHYSICAL (FIRE)";
+                            case EDamageType.E_BIOHAZARD:
+                                return "PHYSICAL (ACID)";
+                        }
+                    }
+                    return "NONE";
                 }
 
                 private void SetFireDelay()
@@ -1160,6 +1211,13 @@ namespace ExpandedGalaxy
                         currentTargetShip = this.ShipStats.Ship.TargetShip;
                     if (this.LockedOnAmount > 0f)
                         this.LockedOnAmount = 0f;
+                }
+
+                public override string GetStatLineRight()
+                {
+                    float num1 = this.m_Damage;
+                    float num2 = this.FireDelay / (this.ShipStats != null ? this.ShipStats.TurretChargeFactor : 1f);
+                    return num1.ToString("0") + "\n" + num2.ToString("0.0") + "\n" + this.GetDamageTypeString() + "\n";
                 }
 
                 protected override void OnTurretInstanceCreated()

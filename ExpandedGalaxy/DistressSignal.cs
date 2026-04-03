@@ -1,5 +1,7 @@
 ﻿using HarmonyLib;
+using System.Collections.Generic;
 using UnityEngine;
+using static ExpandedGalaxy.StarterInfo;
 
 namespace ExpandedGalaxy
 {
@@ -8,6 +10,8 @@ namespace ExpandedGalaxy
         public class MiningDroneSignal : PLDistressSignal
         {
             private float LastVirusTime = float.MinValue;
+            private GameObject currentAsteroid;
+            private static bool GaveMission = false;
             public MiningDroneSignal(int inType, int inLevel = 0) : base(EDistressSignalType.UNION, inLevel)
             {
                 this.SubType = 4;
@@ -15,6 +19,7 @@ namespace ExpandedGalaxy
                 this.Desc = "A distress signal recovered from the wreckage of a mining drone.\n\nPerhaps using it can give insight on where they originated from...";
                 this.CanBeDroppedOnShipDeath = false;
                 this.Level = inLevel;
+                GaveMission = false;
             }
 
             private void UpdateDescription()
@@ -34,6 +39,12 @@ namespace ExpandedGalaxy
                 if (this.ShipStats.Ship.MyShieldGenerator != null && this.ShipStats.Ship.MyShieldGenerator.CanBeDroppedOnShipDeath)
                     this.ShipStats.Ship.MyShieldGenerator.CanBeDroppedOnShipDeath = false;
                 this.ShipStats.Ship.ClearModifiers();
+                if (PhotonNetwork.isMasterClient && !GaveMission && PLServer.Instance != null && !PLEncounterManager.Instance.PlayerShip.InWarp && (double)PLEncounterManager.Instance.GetCPEI().GetTimePlayerInEncounter() > 10.0)
+                {
+                    if (!PLServer.Instance.HasActiveMissionWithID(8000015) && !PLServer.Instance.HasCompletedMissionWithID(8000015) && PLServer.Instance.HasYetToStartMissionWithID(8000015))
+                        PLServer.Instance.AttemptStartMissionOfTypeID(8000015, true, new PhotonMessageInfo());
+                    GaveMission = true;
+                }
                 if (this.Level == 0)
                 {
                     this.ShipStats.Ship.ShipNameValue = "Mining Drone";
@@ -48,8 +59,6 @@ namespace ExpandedGalaxy
                             0,
                             "GX"
                         });
-
-
                     }
                 }
                 else if (this.Level < 4)
@@ -90,17 +99,131 @@ namespace ExpandedGalaxy
                 {
                     traverse.Field("CanFireProbes").SetValue(true);
                     this.ShipStats.Ship.SetAbandoned(false);
-                    if (PhotonNetwork.isMasterClient && this.ShipStats.Ship.LastTookDamageTime() == float.MinValue && !this.ShipStats.Ship.PersistantShipInfo.ForcedHostile)
+                    /*if (PhotonNetwork.isMasterClient && this.ShipStats.Ship.LastTookDamageTime() == float.MinValue && !this.ShipStats.Ship.PersistantShipInfo.ForcedHostile && this.Level == 0)
                     {
-                        this.ShipStats.Ship.AlertLevel = 0;
-                        this.ShipStats.Ship.Captain_SetTargetShip(-1);
+                        if (this.IsEquipped && this.ShipStats.Ship.IsDrone && this.ShipStats.Ship.AlertLevel == 0 && this.currentAsteroid == null && PLEncounterManager.Instance.PlayerShip != null && !PLEncounterManager.Instance.PlayerShip.InWarp)
+                        {
+                            if (PLEncounterManager.Instance.GetCPEI() != null)
+                            {
+                                foreach (GameObject levelObject in PLEncounterManager.Instance.GetCPEI().LevelObjects)
+                                {
+                                    if (levelObject.name.ToLower().Contains("asteroid"))
+                                    {
+                                        if (levelObject.TryGetComponent(typeof(PLRandomChildItem), out Component child))
+                                        {
+                                            for (int i = 0; i < levelObject.transform.childCount; i++)
+                                            {
+                                                GameObject asteroidChoice = levelObject.transform.GetChild(i).gameObject;
+                                                if (asteroidChoice.activeSelf)
+                                                {
+                                                    if (currentAsteroid == null)
+                                                        currentAsteroid = asteroidChoice;
+                                                    else
+                                                    {
+                                                        if (Vector3.SqrMagnitude(currentAsteroid.transform.position - this.ShipStats.Ship.Exterior.transform.position) > Vector3.SqrMagnitude(asteroidChoice.transform.position - this.ShipStats.Ship.Exterior.transform.position))
+                                                            currentAsteroid = asteroidChoice;
+                                                    }
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (currentAsteroid == null)
+                                                currentAsteroid = levelObject;
+                                            else
+                                            {
+                                                if (Vector3.SqrMagnitude(currentAsteroid.transform.position - this.ShipStats.Ship.Exterior.transform.position) > Vector3.SqrMagnitude(levelObject.transform.position - this.ShipStats.Ship.Exterior.transform.position))
+                                                    currentAsteroid = levelObject;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (currentAsteroid != null)
+                        {
+                            if (this.ShipStats.Ship.TargetSpaceTarget == null && this.ShipStats.Ship.AlertLevel < 2)
+                            {
+                                if (currentAsteroid.TryGetComponent<PLDamageableSpaceObject>(out PLDamageableSpaceObject component) || currentAsteroid.GetComponentInChildren<PLDamageableSpaceObject>() != null)
+                                {
+                                    if (component != null)
+                                        this.ShipStats.Ship.Captain_SetTargetShip(component.SpaceTargetID);
+                                    else
+                                        this.ShipStats.Ship.Captain_SetTargetShip(currentAsteroid.GetComponentInChildren<PLDamageableSpaceObject>().SpaceTargetID);
+                                    this.ShipStats.Ship.AlertLevel = 1;
+                                    this.ShipStats.Ship.ShipTypeID = EShipType.E_ACADEMY;
+                                }
+                                else
+                                {
+                                    GameObject attachPoint;
+                                    List<MeshCollider> colliders = new List<MeshCollider>();
+                                    if (currentAsteroid.TryGetComponent<MeshCollider>(out MeshCollider meshCollider))
+                                    {
+                                        attachPoint = currentAsteroid;
+                                        colliders.Add(meshCollider);
+                                    }
+                                    else
+                                    {
+                                        attachPoint = currentAsteroid.GetComponentInChildren<MeshCollider>().gameObject;
+                                        colliders.AddRange(currentAsteroid.GetComponentsInChildren<MeshCollider>());
+                                    }
+                                    if (attachPoint == null)
+                                    {
+                                        currentAsteroid = null;
+                                        return;
+                                    }
+                                    PLDamageableSpaceObject spaceObject = attachPoint.AddComponent<PLDamageableSpaceObject>();
+                                    spaceObject.MaxHealth = 1000000f;
+                                    spaceObject.Health = 1000000f;
+                                    spaceObject.SlowHealth = 1000000;
+                                    spaceObject.ShowDamageVisualEffectOnHit = false;
+                                    spaceObject.Visuals = new GameObject[1];
+                                    spaceObject.Visuals[0] = attachPoint;
+                                    spaceObject.Destroyable = false;
+                                    spaceObject.DisplayName = "Asteroid";
+
+                                    foreach (MeshCollider collider1 in colliders)
+                                    {
+                                        PLDamageableSpaceObject_Collider DSO_Collider = collider1.gameObject.AddComponent<PLDamageableSpaceObject_Collider>();
+                                        DSO_Collider.MyDSO = spaceObject;
+                                    }
+
+                                    AsteroidInfo info = attachPoint.AddComponent<AsteroidInfo>();
+                                    PLSensorObjectShip objectShip = attachPoint.AddComponent<PLSensorObjectShip>();
+                                    objectShip.ManualSensorStrings = new PLSensorObjectString[0];
+                                    info.MySensorObjectShip = objectShip;
+                                    objectShip.MyShipInfo = info;
+                                    info.TeamID = 1;
+                                    info.Exterior = attachPoint;
+                                    info.SetShipID(PLServer.ServerSpaceTargetIDCounter++);
+                                    info.SetupShipStats();
+                                    if (PLEncounterManager.Instance != null && PLEncounterManager.Instance.GetCPEI() != null)
+                                        PLEncounterManager.Instance.GetCPEI().MyCreatedShipInfos.Add(info);
+                                    spaceObject.Ship = info;
+
+                                }
+                            }
+                        }
                     }
-                    if (PhotonNetwork.isMasterClient && this.ShipStats.Ship.AlertLevel > 0 && PLEncounterManager.Instance.GetCPEI() != null)
+                    if (this.ShipStats.Ship.TargetSpaceTarget != null)
+                    {
+                        this.ShipStats.Ship.PowerPercent_SysIntConduits[5] = 0.1f;
+                        this.ShipStats.Ship.PowerPercent_SysIntConduits[6] = 0.1f;
+                        this.ShipStats.Ship.PowerPercent_SysIntConduits[7] = 0.1f;
+                        for (int i = 0; i < 2; i++)
+                        {
+                            PLTurret turret = this.ShipStats.GetRegularTurretAtIndex(i);
+                            if (!(turret is Turrets.AuxTurrets.MiningLaser))
+                                turret.ChargeAmount = 0f;
+                        }
+                    }*/
+                    if (PhotonNetwork.isMasterClient && this.ShipStats.Ship.AlertLevel > 1 && PLEncounterManager.Instance.GetCPEI() != null)
                     {
                         this.ShipStats.Ship.PersistantShipInfo.ForcedHostile = true;
                         foreach (PLShipInfoBase plShipInfoBase in PLEncounterManager.Instance.GetCPEI().MyCreatedShipInfos)
                         {
-                            if (!plShipInfoBase.PersistantShipInfo.ForcedHostile)
+                            if (plShipInfoBase != null && plShipInfoBase.PersistantShipInfo != null && !plShipInfoBase.PersistantShipInfo.ForcedHostile)
                             {
                                 if (plShipInfoBase.ShipTypeID == EShipType.E_WDDRONE2)
                                 {
@@ -118,7 +241,7 @@ namespace ExpandedGalaxy
                             }
                         }
                     }
-                    if (!(this.Level > 0 && PhotonNetwork.isMasterClient && this.ShipStats.Ship.AlertLevel > 0 && this.ShipStats.Ship.TargetShip != null))
+                    if (!(this.Level > 0 && PhotonNetwork.isMasterClient && this.ShipStats.Ship.AlertLevel > 1 && this.ShipStats.Ship.TargetShip != null))
                         return;
                     double cooldown;
                     EVirusType virusType;

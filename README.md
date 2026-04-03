@@ -2,9 +2,9 @@
 
 ## Information
 - Developer: sugarbuzz1
-- Game Version: 1.2.08
+- Game Version: 1.2.10
 - PML Version: 0.12.3.31
-- Mod Version: 1.1.1
+- Mod Version: 1.2.0
 - MP Requirements: Host & Clients need the mod
 
 ## Installation
@@ -21,7 +21,21 @@
 - Aquired from:
   - A trader wandering between trading hubs
   - Mysterious drones throughout the galaxy
-  - The main faction questline
+  - An anomaly hailing from the pre-old wars era
+
+### New Missions
+- Each major faction has a new mission available past chaos 2.0
+- CU
+  - In the apartments at Outpost 448
+- WD
+  - At the WD Hub
+  - Available after "Planatary Bombardment"
+- AOG
+  - Located at the Hideout
+- FB
+  - Found at the Burrow
+  - Available after "Salvaging Parts"
+  - Requires special training to be "completed"
 
 ### Sector Commanders
 - A new P.F. Sector Boss with its own unique mechanics
@@ -51,6 +65,13 @@
 - This feature is toggleable by the host
   - Must be toggled before starting a new game
 
+### Better Exosuit
+- Exosuits reduce damage taken and prevent fire damage
+- Exosuits no longer grant a speed penalty
+- You cannot sprint while wearing an exosuit
+- Robots are always "wearing" an exosuit
+- This feature is toggleable by the host
+
 ### General Additions
 - Cloaking Systems now reduce EM signature instead of setting it to 0
 - Cloaking Systems also buff turret damage or shield recharge when active
@@ -62,7 +83,7 @@
 - Projectile Aim Assist on Aux Reactor has been replaced with Turret Autofire
   - This controls if turrets can automatically fire without crew control
   - Does not affect bot firing capabilities
-- Auto Turrets and Hull Plating are now upgradeable
+- Auto Turrets, Hull Plating, and Captain's Chairs are now upgradeable
 - The W.D. Cruiser and Destroyer start with a new main turret
 - Beam-based turrets are now capped at the range listed on the item card instead of 100,000 km
 - Auto Turrets are less likely to get stuck

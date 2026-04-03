@@ -41,7 +41,8 @@
     <Reference Include="ACTk.Runtime">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\ACTk.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp">
+    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="AstarPathfindingProject">
@@ -94,6 +95,9 @@
     <Compile Include="CaptainChair.cs" />
     <Compile Include="Ammunition.cs" />
     <Compile Include="ChaosEvents.cs" />
+    <Compile Include="Senor.cs" />
+    <Compile Include="SensorScreen.cs" />
+    <Compile Include="Exosuit.cs" />
     <Compile Include="Extractor.cs" />
     <Compile Include="NPCData.cs" />
     <Compile Include="CrewAI.cs" />

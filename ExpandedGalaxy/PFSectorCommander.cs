@@ -51,7 +51,8 @@ namespace ExpandedGalaxy
                     };
                     bossInfo.CompOverrides.AddRange((IEnumerable<ComponentOverrideData>)PFSectorCommander.GetComponentsFromIteration(0));
                     PLServer.Instance.AllPSIs.Add(bossInfo);
-                    PLShipInfo info = (PLShipInfo)__instance.SpawnEnemyShip(bossInfo.Type, bossInfo);
+                    bossInfo.CreateShipInstance(__instance);
+                    PLShipInfo info = (PLShipInfo)bossInfo.ShipInstance;
                     info.MyStats.RemoveShipComponent(info.MyStats.GetShipComponent<PLShipComponent>(ESlotType.E_COMP_MAINTURRET));
                     info.DropScrap = false;
                     info.CreditsLeftBehind = 0;
@@ -126,7 +127,10 @@ namespace ExpandedGalaxy
                             };
                             boss2.CompOverrides.AddRange((IEnumerable<ComponentOverrideData>)PFSectorCommander.GetComponentsFromIteration(1));
                             PLServer.Instance.AllPSIs.Add(boss2);
-                            info = (PLShipInfo)encounter.SpawnEnemyShip(boss2.Type, boss2, spawnPos: __instance.Exterior.transform.position);
+                            boss2.CreateShipInstance(encounter);
+                            info = (PLShipInfo)boss2.ShipInstance;
+                            info.Exterior.transform.position = __instance.Exterior.transform.position;
+                            info.Exterior.transform.rotation = __instance.Exterior.transform.rotation;
                             info.DropScrap = false;
                             info.CreditsLeftBehind = 0;
                             if (bossFlag < 2)
@@ -145,7 +149,10 @@ namespace ExpandedGalaxy
                             };
                             boss3.CompOverrides.AddRange((IEnumerable<ComponentOverrideData>)PFSectorCommander.GetComponentsFromIteration(2));
                             PLServer.Instance.AllPSIs.Add(boss3);
-                            info = (PLShipInfo)encounter.SpawnEnemyShip(boss3.Type, boss3, spawnPos: __instance.Exterior.transform.position);
+                            boss3.CreateShipInstance(encounter);
+                            info = (PLShipInfo)boss3.ShipInstance;
+                            info.Exterior.transform.position = __instance.Exterior.transform.position;
+                            info.Exterior.transform.rotation = __instance.Exterior.transform.rotation;
                             info.DropScrap = false;
                             info.CreditsLeftBehind = 0;
                             if (bossFlag < 3)
@@ -164,7 +171,10 @@ namespace ExpandedGalaxy
                             };
                             boss4.CompOverrides.AddRange((IEnumerable<ComponentOverrideData>)PFSectorCommander.GetComponentsFromIteration(3));
                             PLServer.Instance.AllPSIs.Add(boss4);
-                            info = (PLShipInfo)encounter.SpawnEnemyShip(boss4.Type, boss4, spawnPos: __instance.Exterior.transform.position);
+                            boss4.CreateShipInstance(encounter);
+                            info = (PLShipInfo)boss4.ShipInstance;
+                            info.Exterior.transform.position = __instance.Exterior.transform.position;
+                            info.Exterior.transform.rotation = __instance.Exterior.transform.rotation;
                             info.DropScrap = false;
                             info.CreditsLeftBehind = 0;
                             Systems.PhaseAway(info);
@@ -183,7 +193,10 @@ namespace ExpandedGalaxy
                             };
                             boss5.CompOverrides.AddRange((IEnumerable<ComponentOverrideData>)PFSectorCommander.GetComponentsFromIteration(4));
                             PLServer.Instance.AllPSIs.Add(boss5);
-                            info = (PLShipInfo)encounter.SpawnEnemyShip(boss5.Type, boss5, spawnPos: __instance.Exterior.transform.position);
+                            boss5.CreateShipInstance(encounter);
+                            info = (PLShipInfo)boss5.ShipInstance;
+                            info.Exterior.transform.position = __instance.Exterior.transform.position;
+                            info.Exterior.transform.rotation = __instance.Exterior.transform.rotation;
                             info.DropScrap = false;
                             info.CreditsLeftBehind = 20000;
                             Systems.PhaseAway(info);

@@ -3,11 +3,114 @@ using PulsarModLoader;
 using PulsarModLoader.Content.Components.CaptainsChair;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace ExpandedGalaxy
 {
     internal class CaptainChair
     {
+        [HarmonyPatch(typeof(PLCaptainsChair), "CreateRandom")]
+        internal class ModdedRandomChair
+        {
+            private static bool Prefix(float inRarity, int inSeed, ref PLShipComponent __result)
+            {
+                List<int> subTypes = new List<int>();
+                subTypes.Add(0);
+                subTypes.Add(1);
+                subTypes.Add(2);
+                subTypes.Add(CaptainsChairModManager.Instance.GetCaptainsChairIDFromName("W.D. Modern Captain's Chair"));
+                __result = PLCaptainsChair.CreateCaptainsChairFromHash(subTypes[new PLRand(inSeed).Next() % subTypes.Count], 0, 0);
+                return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(PLCaptainsChair), MethodType.Constructor, new Type[3] { typeof(ECaptainsChairType), typeof(int), typeof(short) })]
+        internal class ChairDesc
+        {
+            private static void Postfix(PLCaptainsChair __instance, ECaptainsChairType inType, int inLevel, short inSubTypeData)
+            {
+                switch (inType)
+                {
+                    case ECaptainsChairType.E_COLONIAL_MODERN:
+                        __instance.Desc = "A new chair designed for Colonial Union ships. Though stiffer than the classic chairs used by the Colonial Union Fleet, this chair offers wonderful lumbar support. \n\nBoosts Shield Charge Rate";
+                        break;
+                    case ECaptainsChairType.E_WD_CLASSIC:
+                        __instance.Desc = "Like everything produced by the W.D. Corporation, this chair is hard and uncomfortable. It instills an aggressiveness in any captain who sits in it. \n\nBoosts Turret Charge Rate";
+                        break;
+                    case ECaptainsChairType.E_COLONIAL_CLASSIC:
+                        __instance.Desc = "A design of chair that has been installed in Colonial Union ships for many decades. It is quite comfortable. \n\nBoosts EM Detection";
+                        break;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(PLCaptainsChair), "LateAddStats")]
+        internal class ChairLateAddStats
+        {
+            private static bool Prefix(PLCaptainsChair __instance, PLShipStats inStats)
+            {
+                switch (__instance.SubType)
+                {
+                    case 0:
+                        inStats.EMDetection *= 1 + ((8 + __instance.Level) / 100f);
+                        return false;
+                    case 1:
+                        inStats.ShieldsChargeRate *= 1 + ((8 + __instance.Level) / 100f);
+                        inStats.ShieldsChargeRateMax *= 1 + ((8 + __instance.Level) / 100f);
+                        return false;
+                    case 2:
+                        inStats.TurretChargeFactor *= 1 + ((8 + __instance.Level) / 100f);
+                        return false;
+                }
+                if (__instance.SubType == CaptainsChairModManager.Instance.GetCaptainsChairIDFromName("W.D. Modern Captain's Chair"))
+                {
+                    inStats.HullArmor *= 1 + ((8 + __instance.Level) / 100f);
+                    return false;
+                }
+                return false;
+            }
+        }
+
+        public class WDModernChair : CaptainsChairMod
+        {
+            public override string Name => "W.D. Modern Captain's Chair";
+
+            public override string Description => "Similar to its classic counterpart, this chair is not very comfortable to sit on. It has a tendancy to make any captain who sits in it staunchly defensive of thier plotted courses.\n\nBoosts Ship Armor";
+
+            public override int MarketPrice => 1200;
+
+            public override string GetStatLineLeft(PLShipComponent InComp)
+            {
+                return "Boost\n";
+            }
+
+            public override string GetStatLineRight(PLShipComponent InComp)
+            {
+                return "+" + (8 + InComp.Level).ToString() + "%\n";
+            }
+
+            public override void FinalLateAddStats(PLShipComponent InComp)
+            {
+                if (InComp.ShipStats == null || !InComp.IsEquipped)
+                    return;
+                InComp.ShipStats.HullArmor *= 1 + ((8 + InComp.Level) / 100f);
+            }
+
+            [HarmonyPatch(typeof(PLCaptainsChair), "GetChairPrefabName")]
+            internal class WDModernChairPrefab
+            {
+                private static bool Prefix(PLCaptainsChair __instance, ref string __result)
+                {
+                    if (__instance.SubType == CaptainsChairModManager.Instance.GetCaptainsChairIDFromName("W.D. Modern Captain's Chair"))
+                    {
+                        __result = "WDClassicChair";
+                        return false;
+                    }
+                    return true;
+                }
+            }
+
+        }
         public class RelicChair : CaptainsChairMod
         {
             public override string Name => "Seat of the Surveyor";
@@ -152,67 +255,32 @@ namespace ExpandedGalaxy
                     }
                 }
             }
-        }
 
-        public class ControlDrone : ModMessage
-        {
-            public override void HandleRPC(object[] arguments, PhotonMessageInfo sender)
+            public class ControlDrone : ModMessage
             {
-                PLCaptainsChair chair = PLEncounterManager.Instance.GetShipFromID((int)arguments[0]).MyStats.GetShipComponent<PLCaptainsChair>(ESlotType.E_COMP_CAPTAINS_CHAIR);
-                if (chair.SubTypeData == 0)
+                public override void HandleRPC(object[] arguments, PhotonMessageInfo sender)
                 {
-                    PLPersistantShipInfo droneInfo = new PLPersistantShipInfo(EShipType.E_WDDRONE1, PLNetworkManager.Instance.LocalPlayer.StartingShip.FactionID, PLServer.GetCurrentSector(), isFlagged: false)
+                    PLCaptainsChair chair = PLEncounterManager.Instance.GetShipFromID((int)arguments[0]).MyStats.GetShipComponent<PLCaptainsChair>(ESlotType.E_COMP_CAPTAINS_CHAIR);
+                    if (chair.SubTypeData == 0)
                     {
-                        ShipName = "Surveyor Drone",
-                        HullPercent = 1f,
-                        ShldPercent = 1f,
-                    };
-                    droneInfo.CompOverrides.AddRange((IEnumerable<ComponentOverrideData>)CaptainChair.DroneData(PLEncounterManager.Instance.GetShipFromID((int)arguments[0])));
-                    PLServer.Instance.AllPSIs.Add(droneInfo);
-
-                    PLShipInfoBase info = PLEncounterManager.Instance.GetCurrentPersistantEncounterInstance().SpawnEnemyShip(droneInfo.Type, droneInfo, spawnPos: PLEncounterManager.Instance.GetShipFromID((int)arguments[0]).transform.position + PLEncounterManager.Instance.GetShipFromID((int)arguments[0]).transform.forward * 200f);
-                    info.DropScrap = false;
-                    info.CreditsLeftBehind = 0;
-                    info.NoRepLossOnKilled = true;
-                    if ((UnityEngine.Object)info.PilotingSystem == (UnityEngine.Object)null)
-                    {
-                        info.PilotingSystem = info.gameObject.AddComponent<PLPilotingSystem>();
-                        info.PilotingSystem.MyShipInfo = info;
-                    }
-                    if ((UnityEngine.Object)info.PilotingHUD == (UnityEngine.Object)null)
-                    {
-                        info.PilotingHUD = info.gameObject.AddComponent<PLPilotingHUD>();
-                        info.PilotingHUD.MyShipInfo = info;
-                    }
-                    info.OrbitCameraMaxDistance = 40f;
-                    info.OrbitCameraMinDistance = 7f;
-                    info.photonView.RPC("Captain_NameShip", PhotonTargets.All, (object)"Surveyer Drone");
-                    chair.SubTypeData = (short)info.ShipID;
-                    ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
-                    {
-                        (object) chair.ShipStats.Ship.ShipID,
-                        (object) chair.NetID,
-                        (object) chair.SubTypeData,
-                    });
-                    Puppet.shipDatas.Add(info.ShipID, (int)arguments[0]);
-                    info.photonView.RPC("NewShipController", PhotonTargets.All, -1);
-                    if (sender.sender.IsMasterClient)
-                    {
-                        info.photonView.RPC("NewShipController", PhotonTargets.All, PLNetworkManager.Instance.LocalPlayer.GetPlayerID());
-                    }
-                    else
-                    {
-                        ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.PilotDrone", sender.sender, new object[1]
+                        PLPersistantShipInfo droneInfo = new PLPersistantShipInfo(EShipType.E_WDDRONE1, PLNetworkManager.Instance.LocalPlayer.StartingShip.FactionID, PLServer.GetCurrentSector(), isFlagged: false)
                         {
-                            info.ShipID
-                        });
-                    }
-                }
-                else if (chair.SubTypeData > 0)
-                {
-                    if (PLEncounterManager.Instance.GetShipFromID(chair.SubTypeData) != null)
-                    {
-                        PLShipInfoBase info = PLEncounterManager.Instance.GetShipFromID(chair.SubTypeData);
+                            ShipName = "Surveyor Drone",
+                            HullPercent = 1f,
+                            ShldPercent = 1f,
+                        };
+                        droneInfo.CompOverrides.AddRange((IEnumerable<ComponentOverrideData>)DroneData(PLEncounterManager.Instance.GetShipFromID((int)arguments[0])));
+                        PLServer.Instance.AllPSIs.Add(droneInfo);
+
+                        Vector3 pos = PLEncounterManager.Instance.GetShipFromID((int)arguments[0]).transform.position + PLEncounterManager.Instance.GetShipFromID((int)arguments[0]).transform.forward * 200f;
+                        droneInfo.CreateShipInstance(PLEncounterManager.Instance.GetCPEI());
+                        if (droneInfo.ShipInstance == null)
+                            return;
+                        PLShipInfoBase info = droneInfo.ShipInstance;
+                        info.Exterior.transform.position = pos;
+                        info.DropScrap = false;
+                        info.CreditsLeftBehind = 0;
+                        info.NoRepLossOnKilled = true;
                         if ((UnityEngine.Object)info.PilotingSystem == (UnityEngine.Object)null)
                         {
                             info.PilotingSystem = info.gameObject.AddComponent<PLPilotingSystem>();
@@ -225,6 +293,15 @@ namespace ExpandedGalaxy
                         }
                         info.OrbitCameraMaxDistance = 40f;
                         info.OrbitCameraMinDistance = 7f;
+                        info.photonView.RPC("Captain_NameShip", PhotonTargets.All, (object)"Surveyer Drone");
+                        chair.SubTypeData = (short)info.ShipID;
+                        ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.UpdateSubTypeData", PhotonTargets.Others, new object[3]
+                        {
+                        (object) chair.ShipStats.Ship.ShipID,
+                        (object) chair.NetID,
+                        (object) chair.SubTypeData,
+                        });
+                        Puppet.shipDatas.Add(info.ShipID, (int)arguments[0]);
                         info.photonView.RPC("NewShipController", PhotonTargets.All, -1);
                         if (sender.sender.IsMasterClient)
                         {
@@ -234,216 +311,247 @@ namespace ExpandedGalaxy
                         {
                             ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.PilotDrone", sender.sender, new object[1]
                             {
-                                info.ShipID
+                            info.ShipID
                             });
+                        }
+                    }
+                    else if (chair.SubTypeData > 0)
+                    {
+                        if (PLEncounterManager.Instance.GetShipFromID(chair.SubTypeData) != null)
+                        {
+                            PLShipInfoBase info = PLEncounterManager.Instance.GetShipFromID(chair.SubTypeData);
+                            if ((UnityEngine.Object)info.PilotingSystem == (UnityEngine.Object)null)
+                            {
+                                info.PilotingSystem = info.gameObject.AddComponent<PLPilotingSystem>();
+                                info.PilotingSystem.MyShipInfo = info;
+                            }
+                            if ((UnityEngine.Object)info.PilotingHUD == (UnityEngine.Object)null)
+                            {
+                                info.PilotingHUD = info.gameObject.AddComponent<PLPilotingHUD>();
+                                info.PilotingHUD.MyShipInfo = info;
+                            }
+                            info.OrbitCameraMaxDistance = 40f;
+                            info.OrbitCameraMinDistance = 7f;
+                            info.photonView.RPC("NewShipController", PhotonTargets.All, -1);
+                            if (sender.sender.IsMasterClient)
+                            {
+                                info.photonView.RPC("NewShipController", PhotonTargets.All, PLNetworkManager.Instance.LocalPlayer.GetPlayerID());
+                            }
+                            else
+                            {
+                                ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.PilotDrone", sender.sender, new object[1]
+                                {
+                                info.ShipID
+                                });
+                            }
                         }
                     }
                 }
             }
-        }
 
-        [HarmonyPatch(typeof(PLShipInfoBase), "GetChaosBoost", new Type[2] { typeof(PLPersistantShipInfo), typeof(int) })]
-        internal class DroneScalingFix
-        {
-            private static Exception Finalizer(Exception __exception, PLShipInfoBase __instance, PLPersistantShipInfo inPersistantShipInfo, int offset, ref int __result)
+            [HarmonyPatch(typeof(PLShipInfoBase), "GetChaosBoost", new Type[2] { typeof(PLPersistantShipInfo), typeof(int) })]
+            internal class DroneScalingFix
             {
-                if (!((UnityEngine.Object)PLServer.Instance != (UnityEngine.Object)null) || inPersistantShipInfo == null)
+                private static Exception Finalizer(Exception __exception, PLShipInfoBase __instance, PLPersistantShipInfo inPersistantShipInfo, int offset, ref int __result)
+                {
+                    if (!((UnityEngine.Object)PLServer.Instance != (UnityEngine.Object)null) || inPersistantShipInfo == null)
+                        return __exception;
+                    if (inPersistantShipInfo.Type == EShipType.E_WDDRONE1 && inPersistantShipInfo.ShipName == "Surveyor Drone")
+                    {
+                        __result = 0;
+                    }
                     return __exception;
-                if (inPersistantShipInfo.Type == EShipType.E_WDDRONE1 && inPersistantShipInfo.ShipName == "Surveyor Drone")
-                {
-                    __result = 0;
                 }
-                return __exception;
             }
-        }
 
-        private static List<ComponentOverrideData> DroneData(PLShipInfoBase ship)
-        {
-            List<ComponentOverrideData> droneParts = new List<ComponentOverrideData>();
-            int compLevel = 0;
-            if (ship.MyShieldGenerator != null)
-                compLevel = ship.MyShieldGenerator.Level / 2;
-            droneParts.Add
+            private static List<ComponentOverrideData> DroneData(PLShipInfoBase ship)
+            {
+                List<ComponentOverrideData> droneParts = new List<ComponentOverrideData>();
+                int compLevel = 0;
+                if (ship.MyShieldGenerator != null)
+                    compLevel = ship.MyShieldGenerator.Level / 2;
+                droneParts.Add
+                        (
+                            new ComponentOverrideData()
+                            {
+                                CompType = (int)ESlotType.E_COMP_SHLD,
+                                CompSubType = (int)EShieldGeneratorType.E_SG_HEAVY_TACTICAL_HOLOSCREEN,
+                                ReplaceExistingComp = true,
+                                CompLevel = compLevel,
+                                IsCargo = false,
+                                CompTypeToReplace = (int)ESlotType.E_COMP_SHLD,
+                                SlotNumberToReplace = 0
+                            }
+                        );
+                compLevel = 0;
+                if (ship.MyReactor != null)
+                    compLevel = ship.MyReactor.Level / 2;
+                droneParts.Add
                     (
-                        new ComponentOverrideData()
-                        {
-                            CompType = (int)ESlotType.E_COMP_SHLD,
-                            CompSubType = (int)EShieldGeneratorType.E_SG_HEAVY_TACTICAL_HOLOSCREEN,
-                            ReplaceExistingComp = true,
-                            CompLevel = compLevel,
-                            IsCargo = false,
-                            CompTypeToReplace = (int)ESlotType.E_COMP_SHLD,
-                            SlotNumberToReplace = 0
-                        }
+                    new ComponentOverrideData()
+                    {
+                        CompType = (int)ESlotType.E_COMP_REACTOR,
+                        CompSubType = (int)EReactorType.E_REAC_CU_FUSION_REACTOR_MK3,
+                        ReplaceExistingComp = true,
+                        CompLevel = 2 + compLevel,
+                        IsCargo = false,
+                        CompTypeToReplace = (int)ESlotType.E_COMP_REACTOR,
+                        SlotNumberToReplace = 0
+                    }
                     );
-            compLevel = 0;
-            if (ship.MyReactor != null)
-                compLevel = ship.MyReactor.Level / 2;
-            droneParts.Add
-                (
-                new ComponentOverrideData()
-                {
-                    CompType = (int)ESlotType.E_COMP_REACTOR,
-                    CompSubType = (int)EReactorType.E_REAC_CU_FUSION_REACTOR_MK3,
-                    ReplaceExistingComp = true,
-                    CompLevel = 2 + compLevel,
-                    IsCargo = false,
-                    CompTypeToReplace = (int)ESlotType.E_COMP_REACTOR,
-                    SlotNumberToReplace = 0
-                }
-                );
-            compLevel = 0;
-            if (ship.MyHull != null)
-                compLevel = ship.MyHull.Level / 2;
-            droneParts.Add
-                (
-                new ComponentOverrideData()
-                {
-                    CompType = (int)ESlotType.E_COMP_HULL,
-                    CompSubType = (int)EHullType.E_CCG_LIGHT_HULL,
-                    ReplaceExistingComp = true,
-                    CompLevel = compLevel,
-                    IsCargo = false,
-                    CompTypeToReplace = (int)ESlotType.E_COMP_HULL,
-                    SlotNumberToReplace = 0
-                }
-                );
-            droneParts.Add
-                (
-                new ComponentOverrideData()
-                {
-                    CompType = (int)ESlotType.E_COMP_CPU,
-                    CompSubType = (int)ECPUClass.E_CPUTYPE_CYBER_DEF,
-                    ReplaceExistingComp = true,
-                    CompLevel = 4,
-                    IsCargo = false,
-                    CompTypeToReplace = (int)ESlotType.E_COMP_CPU,
-                    SlotNumberToReplace = 0
-                }
-                );
-            droneParts.Add
-                (
-                new ComponentOverrideData()
-                {
-                    CompType = (int)ESlotType.E_COMP_CPU,
-                    CompSubType = (int)ECPUClass.E_CPUTYPE_SHIELD_COPROCESSOR,
-                    ReplaceExistingComp = true,
-                    CompLevel = 0,
-                    IsCargo = false,
-                    CompTypeToReplace = (int)ESlotType.E_COMP_CPU,
-                    SlotNumberToReplace = 1
-                }
-                );
-            droneParts.Add
-                (
-                new ComponentOverrideData()
-                {
-                    CompType = (int)ESlotType.E_COMP_CPU,
-                    CompSubType = (int)ECPUClass.E_CPUTYPE_SHIELD_COPROCESSOR,
-                    ReplaceExistingComp = true,
-                    CompLevel = 0,
-                    IsCargo = false,
-                    CompTypeToReplace = (int)ESlotType.E_COMP_CPU,
-                    SlotNumberToReplace = 2
-                }
-                );
-            compLevel = 0;
-            if (ship.MyStats.GetShipComponent<PLTurret>(ESlotType.E_COMP_MAINTURRET) != null)
-                compLevel = ship.MyStats.GetShipComponent<PLTurret>(ESlotType.E_COMP_MAINTURRET).Level / 2;
-            droneParts.Add
-                (
-                new ComponentOverrideData()
-                {
-                    CompType = (int)ESlotType.E_COMP_TURRET,
-                    CompSubType = (int)ETurretType.LASER,
-                    ReplaceExistingComp = true,
-                    CompLevel = compLevel,
-                    IsCargo = false,
-                    CompTypeToReplace = (int)ESlotType.E_COMP_TURRET,
-                    SlotNumberToReplace = 0
-                }
-                );
-            droneParts.Add
-                (
-                new ComponentOverrideData()
-                {
-                    CompType = (int)ESlotType.E_COMP_TURRET,
-                    CompSubType = (int)ETurretType.LASER,
-                    ReplaceExistingComp = true,
-                    CompLevel = compLevel,
-                    IsCargo = false,
-                    CompTypeToReplace = (int)ESlotType.E_COMP_TURRET,
-                    SlotNumberToReplace = 1
-                }
-                );
+                compLevel = 0;
+                if (ship.MyHull != null)
+                    compLevel = ship.MyHull.Level / 2;
+                droneParts.Add
+                    (
+                    new ComponentOverrideData()
+                    {
+                        CompType = (int)ESlotType.E_COMP_HULL,
+                        CompSubType = (int)EHullType.E_CCG_LIGHT_HULL,
+                        ReplaceExistingComp = true,
+                        CompLevel = compLevel,
+                        IsCargo = false,
+                        CompTypeToReplace = (int)ESlotType.E_COMP_HULL,
+                        SlotNumberToReplace = 0
+                    }
+                    );
+                droneParts.Add
+                    (
+                    new ComponentOverrideData()
+                    {
+                        CompType = (int)ESlotType.E_COMP_CPU,
+                        CompSubType = (int)ECPUClass.E_CPUTYPE_CYBER_DEF,
+                        ReplaceExistingComp = true,
+                        CompLevel = 4,
+                        IsCargo = false,
+                        CompTypeToReplace = (int)ESlotType.E_COMP_CPU,
+                        SlotNumberToReplace = 0
+                    }
+                    );
+                droneParts.Add
+                    (
+                    new ComponentOverrideData()
+                    {
+                        CompType = (int)ESlotType.E_COMP_CPU,
+                        CompSubType = (int)ECPUClass.E_CPUTYPE_SHIELD_COPROCESSOR,
+                        ReplaceExistingComp = true,
+                        CompLevel = 0,
+                        IsCargo = false,
+                        CompTypeToReplace = (int)ESlotType.E_COMP_CPU,
+                        SlotNumberToReplace = 1
+                    }
+                    );
+                droneParts.Add
+                    (
+                    new ComponentOverrideData()
+                    {
+                        CompType = (int)ESlotType.E_COMP_CPU,
+                        CompSubType = (int)ECPUClass.E_CPUTYPE_SHIELD_COPROCESSOR,
+                        ReplaceExistingComp = true,
+                        CompLevel = 0,
+                        IsCargo = false,
+                        CompTypeToReplace = (int)ESlotType.E_COMP_CPU,
+                        SlotNumberToReplace = 2
+                    }
+                    );
+                compLevel = 0;
+                if (ship.MyStats.GetShipComponent<PLTurret>(ESlotType.E_COMP_MAINTURRET) != null)
+                    compLevel = ship.MyStats.GetShipComponent<PLTurret>(ESlotType.E_COMP_MAINTURRET).Level / 2;
+                droneParts.Add
+                    (
+                    new ComponentOverrideData()
+                    {
+                        CompType = (int)ESlotType.E_COMP_TURRET,
+                        CompSubType = (int)ETurretType.LASER,
+                        ReplaceExistingComp = true,
+                        CompLevel = compLevel,
+                        IsCargo = false,
+                        CompTypeToReplace = (int)ESlotType.E_COMP_TURRET,
+                        SlotNumberToReplace = 0
+                    }
+                    );
+                droneParts.Add
+                    (
+                    new ComponentOverrideData()
+                    {
+                        CompType = (int)ESlotType.E_COMP_TURRET,
+                        CompSubType = (int)ETurretType.LASER,
+                        ReplaceExistingComp = true,
+                        CompLevel = compLevel,
+                        IsCargo = false,
+                        CompTypeToReplace = (int)ESlotType.E_COMP_TURRET,
+                        SlotNumberToReplace = 1
+                    }
+                    );
 
-            droneParts.Add
-                (
-                new ComponentOverrideData()
-                {
-                    CompType = (int)ESlotType.E_COMP_SENS,
-                    CompSubType = (int)0,
-                    ReplaceExistingComp = true,
-                    CompLevel = 9,
-                    IsCargo = false,
-                    CompTypeToReplace = (int)ESlotType.E_COMP_SENS,
-                    SlotNumberToReplace = 0
-                }
-                );
-            droneParts.Add
-                (
-                new ComponentOverrideData()
-                {
-                    CompType = (int)ESlotType.E_COMP_THRUSTER,
-                    CompSubType = (int)EThrusterType.E_THRUSTER_PERF,
-                    ReplaceExistingComp = true,
-                    CompLevel = 2,
-                    IsCargo = false,
-                    CompTypeToReplace = (int)ESlotType.E_COMP_THRUSTER,
-                    SlotNumberToReplace = 0
-                }
-                );
-            droneParts.Add
-                (
-                new ComponentOverrideData()
-                {
-                    CompType = (int)ESlotType.E_COMP_THRUSTER,
-                    CompSubType = (int)EThrusterType.E_THRUSTER_PERF,
-                    ReplaceExistingComp = true,
-                    CompLevel = 2,
-                    IsCargo = false,
-                    CompTypeToReplace = (int)ESlotType.E_COMP_THRUSTER,
-                    SlotNumberToReplace = 1
-                }
-                );
-            droneParts.Add
-                (
-                new ComponentOverrideData()
-                {
-                    CompType = (int)ESlotType.E_COMP_INERTIA_THRUSTER,
-                    CompSubType = (int)EInertiaThrusterType.E_NORMAL,
-                    ReplaceExistingComp = true,
-                    CompLevel = 2,
-                    IsCargo = false,
-                    CompTypeToReplace = (int)ESlotType.E_COMP_INERTIA_THRUSTER,
-                    SlotNumberToReplace = 0
-                }
-                );
-            droneParts.Add
-                (
-                new ComponentOverrideData()
-                {
-                    CompType = (int)ESlotType.E_COMP_MANEUVER_THRUSTER,
-                    CompSubType = (int)EManeuverThrusterType.E_NORMAL,
-                    ReplaceExistingComp = true,
-                    CompLevel = 2,
-                    IsCargo = false,
-                    CompTypeToReplace = (int)ESlotType.E_COMP_MANEUVER_THRUSTER,
-                    SlotNumberToReplace = 0
-                }
-                );
+                droneParts.Add
+                    (
+                    new ComponentOverrideData()
+                    {
+                        CompType = (int)ESlotType.E_COMP_SENS,
+                        CompSubType = (int)0,
+                        ReplaceExistingComp = true,
+                        CompLevel = 9,
+                        IsCargo = false,
+                        CompTypeToReplace = (int)ESlotType.E_COMP_SENS,
+                        SlotNumberToReplace = 0
+                    }
+                    );
+                droneParts.Add
+                    (
+                    new ComponentOverrideData()
+                    {
+                        CompType = (int)ESlotType.E_COMP_THRUSTER,
+                        CompSubType = (int)EThrusterType.E_THRUSTER_PERF,
+                        ReplaceExistingComp = true,
+                        CompLevel = 2,
+                        IsCargo = false,
+                        CompTypeToReplace = (int)ESlotType.E_COMP_THRUSTER,
+                        SlotNumberToReplace = 0
+                    }
+                    );
+                droneParts.Add
+                    (
+                    new ComponentOverrideData()
+                    {
+                        CompType = (int)ESlotType.E_COMP_THRUSTER,
+                        CompSubType = (int)EThrusterType.E_THRUSTER_PERF,
+                        ReplaceExistingComp = true,
+                        CompLevel = 2,
+                        IsCargo = false,
+                        CompTypeToReplace = (int)ESlotType.E_COMP_THRUSTER,
+                        SlotNumberToReplace = 1
+                    }
+                    );
+                droneParts.Add
+                    (
+                    new ComponentOverrideData()
+                    {
+                        CompType = (int)ESlotType.E_COMP_INERTIA_THRUSTER,
+                        CompSubType = (int)EInertiaThrusterType.E_NORMAL,
+                        ReplaceExistingComp = true,
+                        CompLevel = 2,
+                        IsCargo = false,
+                        CompTypeToReplace = (int)ESlotType.E_COMP_INERTIA_THRUSTER,
+                        SlotNumberToReplace = 0
+                    }
+                    );
+                droneParts.Add
+                    (
+                    new ComponentOverrideData()
+                    {
+                        CompType = (int)ESlotType.E_COMP_MANEUVER_THRUSTER,
+                        CompSubType = (int)EManeuverThrusterType.E_NORMAL,
+                        ReplaceExistingComp = true,
+                        CompLevel = 2,
+                        IsCargo = false,
+                        CompTypeToReplace = (int)ESlotType.E_COMP_MANEUVER_THRUSTER,
+                        SlotNumberToReplace = 0
+                    }
+                    );
 
-            return droneParts;
+                return droneParts;
+            }
         }
 
         [HarmonyPatch(typeof(PLShipInfo), "AttemptToSitInCaptainsChair")]

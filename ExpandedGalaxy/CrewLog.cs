@@ -6,6 +6,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Text;
+using System.Xml.Linq;
+using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,6 +20,16 @@ namespace ExpandedGalaxy
         public float timeStamp;
         public int optionalSectorID;
         public Color optionalColor;
+        public int specialData;
+    }
+
+    public class MapPin
+    {
+        public string Name;
+        public int LogIndex;
+        public int Priority;
+        public Color Color;
+        public GameObject PinObject;
     }
 
     public struct CrewLogScreenObjects
@@ -44,7 +57,7 @@ namespace ExpandedGalaxy
         public UISprite LogInfoBoxWrite;
         public List<UITexture> LogInfoKeypadButtons;
         public List<UILabel> LogInfoKeypadLabels;
-
+        public List<UIWidget> SpecialLogObjects;
     }
 
     public class CrewLogManager
@@ -55,7 +68,7 @@ namespace ExpandedGalaxy
         private int showlogindex;
         private int logindex;
         private CrewLogData tempData;
-        private Dictionary<int, GameObject> m_mappins;
+        private Dictionary<int, List<MapPin>> m_mappins;
 
         public static CrewLogManager Instance
         {
@@ -80,7 +93,7 @@ namespace ExpandedGalaxy
                 Text = string.Empty,
                 optionalSectorID = -1
             };
-            m_mappins = new Dictionary<int, GameObject>();
+            m_mappins = new Dictionary<int, List<MapPin>>();
         }
 
         public int LogIndex
@@ -112,23 +125,37 @@ namespace ExpandedGalaxy
                 timeStamp = 0f,
                 optionalColor = Color.black,
                 Text = string.Empty,
-                optionalSectorID = -1
+                optionalSectorID = -1,
+                specialData = -1
             };
-            foreach (GameObject image in m_mappins.Values)
-                UnityEngine.Object.Destroy(image);
+            foreach (int key in m_mappins.Keys)
+            {
+                foreach (MapPin pin in m_mappins[key])
+                    UnityEngine.Object.Destroy(pin.PinObject);
+                m_mappins[key].Clear();
+            }
             m_mappins.Clear();
+            
         }
 
         public void ClearLogs()
         {
             m_logs.Clear();
             logindex = -1;
-            foreach (GameObject image in m_mappins.Values)
-                UnityEngine.Object.Destroy(image);
-            m_mappins.Clear();
+            foreach (int key in m_mappins.Keys)
+            {
+                foreach (MapPin pin in m_mappins[key])
+                {
+                    if (pin.LogIndex != -1)
+                    {
+                        UnityEngine.Object.Destroy(pin.PinObject);
+                        m_mappins[key].Remove(pin);
+                    }
+                }
+            }
         }
 
-        public Dictionary<int, GameObject> MapPins
+        public Dictionary<int, List<MapPin>> MapPins
         {
             get { return m_mappins; }
             set { m_mappins = value; }
@@ -169,6 +196,7 @@ namespace ExpandedGalaxy
             screenObjects.LogColors = new List<UITexture>();
             screenObjects.LogInfoKeypadButtons = new List<UITexture>();
             screenObjects.LogInfoKeypadLabels = new List<UILabel>();
+            screenObjects.SpecialLogObjects = new List<UIWidget>();
             object[] params1;
             params1 = new object[7]
             {
@@ -360,7 +388,7 @@ namespace ExpandedGalaxy
             screenObjects.LogInfoBox.depth += 10000;
             params1 = new object[6]
             {
-                    "Title",
+                    string.Empty,
                     new Vector3(-164f, 184f),
                     14,
                     new Color(0.65f, 0.65f, 0.65f),
@@ -371,7 +399,7 @@ namespace ExpandedGalaxy
             screenObjects.LogInfoBoxLabel.depth += 10000;
             params1 = new object[8]
             {
-                    "Text",
+                    string.Empty,
                     new Vector3(-164f, 128f),
                     12,
                     720,
@@ -551,6 +579,768 @@ namespace ExpandedGalaxy
             m_screenobjects.Add(captainScreen, screenObjects);
         }
 
+        public void SetupSpecialLog(PLCaptainScreen captainScreen, int specialLogIndex)
+        {
+            if (!m_screenobjects.ContainsKey(captainScreen))
+                return;
+            Traverse traverse = Traverse.Create(captainScreen);
+            CrewLogScreenObjects screenObjects = GetObjectsForScreen(captainScreen);
+            screenObjects.LogInfoButtonDel.gameObject.SetActive(SpecialLogCanBeDeleted(specialLogIndex));
+            screenObjects.LogInfoBoxText.text = string.Empty;
+            object[] params1;
+            float x;
+            float y;
+            if (specialLogIndex == 0)
+            {
+                int decrypted = (Relic.ReflectedRift.GetRiftData(1) ? 1 : 0) + (Relic.ReflectedRift.GetRiftData(2) ? 1 : 0) + (Relic.ReflectedRift.GetRiftData(3) ? 1 : 0);
+                PLRand rand;
+                for (int i = 0; i < 2; i++)
+                {
+                    rand = new PLRand((int)PLServer.Instance.GalaxySeed);
+                    
+                    x = 1.5f;
+                    y = 87f;
+                    if (i == 0)
+                    {
+                        params1 = new object[6]
+                        {
+                                PLGlobal.Instance.TriangleIcon,
+                                new Vector3(x, y),
+                                new Vector2(50f, 50f),
+                                Color.white,
+                                screenObjects.LogInfoBox.transform,
+                                UIWidget.Pivot.Center
+                        };
+                    }
+                    else
+                    {
+                        params1 = new object[6]
+                        {
+                                PLGlobal.Instance.TriangleIcon,
+                                new Vector3(x, y),
+                                new Vector2(48f, 48f),
+                                Color.black,
+                                screenObjects.LogInfoBox.transform,
+                                UIWidget.Pivot.Center
+                        };
+                    }
+
+                    for (int j = 0; j < 9; j++)
+                    {
+                        if (j % 2 == 0)
+                        {
+                            if (decrypted > rand.Next(3))
+                            {
+                                screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                                screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                                screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].transform.Rotate(new Vector3(0f, 0f, 180f));
+                            }
+                            x -= 1.5f;
+                            y -= 37f;
+                        }
+                        else
+                        {
+                            if (decrypted > rand.Next(3))
+                            {
+                                screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                                screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                            }
+                            x -= 19f;
+                            y += 1f;
+                        }
+                        params1[1] = new Vector3(x, y);
+                    }
+
+                    x = 22f;
+                    y = 51f;
+                    params1[1] = new Vector3(x, y);
+                    for (int j = 0; j < 7; j++)
+                    {
+                        if (j % 2 == 0)
+                        {
+                            if (decrypted > rand.Next(3))
+                            {
+                                screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                                screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                                screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].transform.Rotate(new Vector3(0f, 0f, 180f));
+                            }
+                            x -= 1.5f;
+                            y -= 37f;
+                        }
+                        else
+                        {
+                            if (decrypted > rand.Next(3) || j == 3)
+                            {
+                                screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                                screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                            }
+                            x -= 19f;
+                            y += 1f;
+                        }
+                        params1[1] = new Vector3(x, y);
+                    }
+
+                    x = 42.5f;
+                    y = 15f;
+                    params1[1] = new Vector3(x, y);
+                    for (int j = 0; j < 5; j++)
+                    {
+                        if (j % 2 == 0)
+                        {
+                            if (decrypted > rand.Next(3))
+                            {
+                                screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                                screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                                screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].transform.Rotate(new Vector3(0f, 0f, 180f));
+                            }
+                            x -= 1.5f;
+                            y -= 37f;
+                        }
+                        else
+                        {
+                            if (decrypted > rand.Next(3))
+                            {
+                                screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                                screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                            }
+                            x -= 19f;
+                            y += 1f;
+                        }
+                        params1[1] = new Vector3(x, y);
+                    }
+
+                    x = 63f;
+                    y = -21f;
+                    params1[1] = new Vector3(x, y);
+                    for (int j = 0; j < 3; j++)
+                    {
+                        if (j % 2 == 0)
+                        {
+                            if (decrypted > rand.Next(3))
+                            {
+                                screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                                screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                                screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].transform.Rotate(new Vector3(0f, 0f, 180f));
+                            }
+                            x -= 1.5f;
+                            y -= 37f;
+                        }
+                        else
+                        {
+                            if (decrypted > rand.Next(3))
+                            {
+                                screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                                screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                            }
+                            x -= 19f;
+                            y += 1f;
+                        }
+                        params1[1] = new Vector3(x, y);
+                    }
+
+                    x = 83.5f;
+                    y = -57f;
+                    params1[1] = new Vector3(x, y);
+                    if (decrypted > rand.Next(3))
+                    {
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].transform.Rotate(new Vector3(0f, 0f, 180f));
+                    }
+                }
+
+                x = 1.5f;
+                y = 80f;
+                int a = 0;
+                params1 = new object[6]
+                        {
+                                Relic.StargatePuzzle.SubLetters[a].ToString(),
+                                new Vector3(x, y),
+                                12,
+                                Color.white,
+                                screenObjects.LogInfoBox.transform,
+                                UIWidget.Pivot.Center
+                        };
+
+                rand = new PLRand((int)PLServer.Instance.GalaxySeed);
+                for (int j = 0; j < 9; j++)
+                {
+                    a++;
+                    if (decrypted > rand.Next(3))
+                    {
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                    }
+                    if (j % 2 == 0)
+                    {
+                        y -= 27.5f;
+                    }
+                    else
+                    {
+                        x -= 20.5f;
+                        y -= 7.5f;
+                    }
+                    params1[0] = Relic.StargatePuzzle.SubLetters[a].ToString();
+                    params1[1] = new Vector3(x, y);
+                }
+
+                x = 22f;
+                y = 44f;
+                params1[1] = new Vector3(x, y);
+                for (int j = 0; j < 7; j++)
+                {
+                    a++;
+                    if (decrypted > rand.Next(3) || j == 3)
+                    {
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                    }
+                    if (j % 2 == 0)
+                    {
+                        y -= 27.5f;
+                    }
+                    else
+                    {
+                        x -= 20.5f;
+                        y -= 7.5f;
+                    }
+                    params1[0] = Relic.StargatePuzzle.SubLetters[a].ToString();
+                    params1[1] = new Vector3(x, y);
+                }
+
+                x = 42.5f;
+                y = 8f;
+                params1[1] = new Vector3(x, y);
+                for (int j = 0; j < 5; j++)
+                {
+                    a++;
+                    if (decrypted > rand.Next(3))
+                    {
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                    }
+                    if (j % 2 == 0)
+                    {
+                        y -= 27.5f;
+                    }
+                    else
+                    {
+                        x -= 20.5f;
+                        y -= 7.5f;
+                    }
+                    params1[0] = Relic.StargatePuzzle.SubLetters[a].ToString();
+                    params1[1] = new Vector3(x, y);
+                }
+
+                x = 63f;
+                y = -28f;
+                params1[1] = new Vector3(x, y);
+                for (int j = 0; j < 3; j++)
+                {
+                    a++;
+                    if (decrypted > rand.Next(3))
+                    {
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                    }
+                    if (j % 2 == 0)
+                    {
+                        y -= 27.5f;
+                    }
+                    else
+                    {
+                        x -= 20.5f;
+                        y -= 7.5f;
+                    }
+                    params1[0] = Relic.StargatePuzzle.SubLetters[a].ToString();
+                    params1[1] = new Vector3(x, y);
+                }
+
+                x = 83.5f;
+                y = -64f;
+                params1[1] = new Vector3(x, y);
+                if (decrypted > rand.Next(3))
+                {
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+            }
+            else if (specialLogIndex == 1)
+            {
+                int decrypted = (Relic.ReflectedRift.GetRiftData(4) ? 1 : 0) + (Relic.ReflectedRift.GetRiftData(5) ? 1 : 0);
+                PLRand rand;
+                for (int i = 0; i < 2; i++)
+                {
+                    rand = new PLRand((int)PLServer.Instance.GalaxySeed);
+
+                    x = 0f;
+                    y = -22f;
+                    if (i == 0)
+                    {
+                        params1 = new object[6]
+                        {
+                                PLGlobal.Instance.TriangleIcon,
+                                new Vector3(x, y),
+                                new Vector2(50f, 50f),
+                                Color.white,
+                                screenObjects.LogInfoBox.transform,
+                                UIWidget.Pivot.Center
+                        };
+                    }
+                    else
+                    {
+                        params1 = new object[6]
+                        {
+                                PLGlobal.Instance.TriangleIcon,
+                                new Vector3(x, y),
+                                new Vector2(48f, 48f),
+                                Color.black,
+                                screenObjects.LogInfoBox.transform,
+                                UIWidget.Pivot.Center
+                        };
+                    }
+
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                    
+                    x += 1.5f;
+                    y += 37f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].transform.Rotate(new Vector3(0f, 0f, 180f));
+                    }
+
+                    x += 19f;
+                    y -= 1f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                    }
+
+                    x += 22f;
+                    y += 1f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].transform.Rotate(new Vector3(0f, 0f, 180f));
+                    }
+
+                    x += 19f;
+                    y -= 1f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                    }
+
+                    x += 1.5f;
+                    y += 37f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].transform.Rotate(new Vector3(0f, 0f, 180f));
+                    }
+
+                    x -= 22f;
+                    y -= 1f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                    }
+
+                    x = 0f;
+                    y = -22f;
+
+                    x -= 19f;
+                    y += 1f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].transform.Rotate(new Vector3(0f, 0f, 180f));
+                    }
+
+                    x -= 22f;
+                    y -= 1f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                    }
+
+                    x += 1.5f;
+                    y += 37f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].transform.Rotate(new Vector3(0f, 0f, 180f));
+                    }
+
+                    x -= 22f;
+                    y -= 1f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                    }
+
+                    x -= 19f;
+                    y += 1f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].transform.Rotate(new Vector3(0f, 0f, 180f));
+                    }
+
+                    x -= 1.5f;
+                    y -= 37f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                    }
+
+                    x = 0f;
+                    y = -22f;
+
+                    x += 22f;
+                    y += 1f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].transform.Rotate(new Vector3(0f, 0f, 180f));
+                    }
+
+                    x -= 1.5f;
+                    y -= 37f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                    }
+
+                    x -= 19f;
+                    y += 1f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].transform.Rotate(new Vector3(0f, 0f, 180f));
+                    }
+
+                    x -= 1.5f;
+                    y -= 37f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                    }
+
+                    x += 22f;
+                    y += 1f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].transform.Rotate(new Vector3(0f, 0f, 180f));
+                    }
+
+                    x += 19f;
+                    y -= 1f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                    }
+
+                    x -= 19f;
+                    y += 1f;
+
+                    x -= 1.5f;
+                    y -= 37f;
+                    if (decrypted > rand.Next(2))
+                    {
+                        params1[1] = new Vector3(x, y);
+                        screenObjects.SpecialLogObjects.Add(traverse.Method("CreateTexture", new Type[6] { typeof(Texture2D), typeof(Vector3), typeof(Vector2), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UITexture>(params1));
+                        screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                    }
+                }
+
+                rand = new PLRand((int)PLServer.Instance.GalaxySeed);
+                x = 0f;
+                y = -22f;
+
+                params1 = new object[6]
+                        {
+                                Relic.StargatePuzzle.SubLetters[12].ToString(),
+                                new Vector3(x + 1.5f, y + 2.5f),
+                                12,
+                                Color.white,
+                                screenObjects.LogInfoBox.transform,
+                                UIWidget.Pivot.Center
+                        };
+
+                screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+
+                x += 1.5f;
+                y += 37f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[10].ToString();
+                    params1[1] = new Vector3(x, y - 7f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x += 19f;
+                y -= 1f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[2].ToString();
+                    params1[1] = new Vector3(x + 1.5f, y + 2.5f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x += 22f;
+                y += 1f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[4].ToString();
+                    params1[1] = new Vector3(x, y - 7f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x += 19f;
+                y -= 1f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[1].ToString();
+                    params1[1] = new Vector3(x + 1.5f, y + 2.5f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x += 1.5f;
+                y += 37f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[0].ToString();
+                    params1[1] = new Vector3(x, y - 7f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x -= 22f;
+                y -= 1f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[3].ToString();
+                    params1[1] = new Vector3(x + 1.5f, y + 2.5f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x = 0f;
+                y = -22f;
+
+                x -= 19f;
+                y += 1f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[9].ToString();
+                    params1[1] = new Vector3(x, y - 7f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x -= 22f;
+                y -= 1f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[8].ToString();
+                    params1[1] = new Vector3(x + 1.5f, y + 2.5f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x += 1.5f;
+                y += 37f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[11].ToString();
+                    params1[1] = new Vector3(x, y - 7f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x -= 22f;
+                y -= 1f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[16].ToString();
+                    params1[1] = new Vector3(x + 1.5f, y + 2.5f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x -= 19f;
+                y += 1f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[18].ToString();
+                    params1[1] = new Vector3(x, y - 7f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x -= 1.5f;
+                y -= 37f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[14].ToString();
+                    params1[1] = new Vector3(x + 1.5f, y + 2.5f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x = 0f;
+                y = -22f;
+
+                x += 22f;
+                y += 1f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[17].ToString();
+                    params1[1] = new Vector3(x, y - 7f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x -= 1.5f;
+                y -= 37f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[19].ToString();
+                    params1[1] = new Vector3(x + 1.5f, y + 2.5f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x -= 19f;
+                y += 1f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[15].ToString();
+                    params1[1] = new Vector3(x, y - 7f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x -= 1.5f;
+                y -= 37f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[13].ToString();
+                    params1[1] = new Vector3(x + 1.5f, y + 2.5f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x += 22f;
+                y += 1f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[5].ToString();
+                    params1[1] = new Vector3(x, y - 7f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x += 19f;
+                y -= 1f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[7].ToString();
+                    params1[1] = new Vector3(x + 1.5f, y + 2.5f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+
+                x -= 19f;
+                y += 1f;
+
+                x -= 1.5f;
+                y -= 37f;
+                if (decrypted > rand.Next(2))
+                {
+                    params1[0] = Relic.StargatePuzzle.SubLetters[6].ToString();
+                    params1[1] = new Vector3(x + 1.5f, y + 2.5f);
+                    screenObjects.SpecialLogObjects.Add(traverse.Method("CreateLabel", new Type[6] { typeof(string), typeof(Vector3), typeof(int), typeof(Color), typeof(Transform), typeof(UIWidget.Pivot) }).GetValue<UILabel>(params1));
+                    screenObjects.SpecialLogObjects[screenObjects.SpecialLogObjects.Count - 1].depth += 10000;
+                }
+            }
+            else if (specialLogIndex == 2)
+            {
+                screenObjects.LogInfoBoxText.fontSize = 45;
+                screenObjects.LogInfoBoxText.width = 1200;
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.AppendLine("TIMESTAMP: 2191-03-24T14:37:09Z");
+                stringBuilder.AppendLine("SYS-ID: A-993-WD-X9");
+                stringBuilder.AppendLine();
+                stringBuilder.AppendLine("> INIT WARP SEQUENCE");
+                stringBuilder.Append("> WARP HEADING: ");
+                Relic.StargatePuzzle.GeneratePuzzleVector(out string solution, (int)PLServer.Instance.GalaxySeed);
+                Vector3 vector = Relic.StargatePuzzle.VectorFromCode(solution) * -1;
+                stringBuilder.AppendLine(string.Format("<{0:F4}, {1:F4}, {2:F4}>", vector.x, vector.y, vector.z));
+                stringBuilder.AppendLine("> WARP SEQUENCE UNSTABLE: OVERIDE");
+                stringBuilder.AppendLine();
+                stringBuilder.AppendLine("*** ERROR: WD-42-GL ** Graviton Lattice Overload");
+                stringBuilder.AppendLine("*** ERROR: FTL-Δ7 ** COLLISION DETECTED");
+                stringBuilder.AppendLine();
+                stringBuilder.AppendLine("> WARP STABILITY: 0.007% (CRITICAL)");
+                stringBuilder.AppendLine("> COILS: OSCILLATING @ 492 Hz (MAX SAFE 198 Hz)");
+                stringBuilder.AppendLine("> POWER FLUCTUATION: 137% NOMINAL");
+                stringBuilder.AppendLine("> AUXILIARY SYSTEMS: FAIL");
+                stringBuilder.AppendLine("> LIFE SUPPORT: CRITICAL");
+                stringBuilder.AppendLine();
+                stringBuilder.AppendLine("!!! GRAVITIC LATTICE COLLAPSING !!!");
+                stringBuilder.AppendLine("!!! INIT EMERGENCY WARP DROPOFF !!!");                         
+                stringBuilder.AppendLine();
+                stringBuilder.Append("--- LOG INTERRUPTED – SEQUENCE ABORTED DUE TO CORE FAILURE ---");
+                screenObjects.LogInfoBoxText.text = stringBuilder.ToString();
+            }
+        }
+
         public void HideKeyPad(PLCaptainScreen captainScreen, bool hide = true)
         {
             if (!m_screenobjects.ContainsKey(captainScreen))
@@ -601,146 +1391,193 @@ namespace ExpandedGalaxy
         public void AddLog(CrewLogData logData)
         {
             m_logs.Add(logData);
-            this.AddPin(m_logs.Count - 1);
+            this.AddLogPin(m_logs.Count - 1);
         }
 
         public void RemoveLog(int index)
         {
             if (index < m_logs.Count)
             {
-                this.RemovePin(index);
+                this.RemoveLogPin(index);
                 m_logs.RemoveAt(index);
             }
         }
 
-        public string GetPinName(int sectorID)
+        private bool SpecialLogCanBeDeleted(int specialLogIndex)
         {
-            if (m_mappins.ContainsKey(sectorID))
+            switch (specialLogIndex)
             {
-                string[] info = m_mappins[sectorID].name.Split("_");
-                return info[0];
+                case 0:
+                case 1:
+                    return false;
+                case 2:
+                    if (PLServer.Instance != null && PLServer.Instance.HasCompletedMissionWithID(8000014))
+                        return true;
+                    return false;
+                default:
+                    return true;
             }
-            else
-                return string.Empty;
         }
 
-        public int GetPinPriority(int sectorID)
+        public MapPin GetPinOfName(string name, out int sectorId)
         {
-            if (m_mappins.ContainsKey(sectorID))
+            foreach (int key in m_mappins.Keys)
             {
-                string[] info = m_mappins[sectorID].name.Split("_");
-                try
+                foreach (MapPin pin in m_mappins[key])
                 {
-                    int currentPriority = Int32.Parse(info[1]);
-                    return currentPriority;
+                    if (pin.Name == name)
+                    {
+                        sectorId = key;
+                        return pin;
+                    }
                 }
-                catch
-                {
-                    return -1;
-                }
-                
             }
-            else
-                return -1;
+            sectorId = -1;
+            return new MapPin();
         }
 
-        private void AddPin(int index, int priority = 0)
+        private void AddLogPin(int logIndex, int priority = 0)
         {
-            if (!(index < this.m_logs.Count))
+            if (!(logIndex < this.m_logs.Count))
                 return;
-            CrewLogData data = m_logs[index];
-            AddPin(FormatPlaytime(data.timeStamp), data.optionalSectorID, data.optionalColor, priority);
+            CrewLogData data = m_logs[logIndex];
+            AddPin(FormatPlaytime(data.timeStamp), data.optionalSectorID, data.optionalColor, priority, logIndex);
         }
 
-        public void AddPin(string name, int sectorID, Color color, int priority = 0)
+        public void AddPin(string name, int sectorID, Color color, int priority = 0, int logIndex = -1)
         {
             PLSectorInfo sectorWithId = PLServer.GetSectorWithID(sectorID);
             if (sectorWithId == null)
                 return;
+            MapPin pin = new MapPin()
+            {
+                Name = name,
+                LogIndex = logIndex,
+                Priority = priority,
+                Color = color
+            };
             if (m_mappins.ContainsKey(sectorID))
             {
-                if (GetPinPriority(sectorID) >= priority)
-                    return;
-                else
-                    RemovePin(info[0], sectorID);
+                bool flag = false;
+                for (int i = 0; i < m_mappins[sectorID].Count; i++)
+                {
+                    if (m_mappins[sectorID][i].Priority < priority)
+                    {
+                        flag = true;
+                        m_mappins[sectorID].Insert(i, pin);
+                        break;
+                    }
+                }
+                if (!flag)
+                    m_mappins[sectorID].Add(pin);
             }
-            Image pin = UnityEngine.Object.Instantiate(PLStarmap.Instance.HunterLocImage, PLStarmap.Instance.HunterLocImage.transform.parent);
-            pin.GetComponent<Image>().color = color;
-            Image[] image = pin.GetComponentsInChildren<Image>();
-            image[1].color = color * 0.5f;
-            image[2].color = color;
-            pin.GetComponentInChildren<Text>().text = name;
-            pin.GetComponentInChildren<Text>().color = color;
-            pin.transform.localPosition = sectorWithId.Position * 2000f + new Vector3(0.0f, -15f, 0.0f);
-            pin.transform.localPosition = new Vector3(pin.transform.localPosition.x, pin.transform.localPosition.y, 0.0f);
-            pin.gameObject.name = name + "_" + priority.ToString();
-            pin.gameObject.SetActive(true);
-            image[1].gameObject.SetActive(true);
-            m_mappins.Add(sectorID, pin.gameObject);
+            else
+            {
+                m_mappins.Add(sectorID, new List<MapPin>());
+                m_mappins[sectorID].Add(pin);
+            }
+            UpdatePinForSector(sectorID);
         }
 
-        public void MovePin(int oldSectorID, int newSectorID)
+        public void MovePin(string name, int oldSectorID, int newSectorID)
         {
             if (!m_mappins.ContainsKey(oldSectorID))
                 return;
             PLSectorInfo sectorWithId = PLServer.GetSectorWithID(newSectorID);
             if (sectorWithId == null)
                 return;
-            GameObject pin = m_mappins[oldSectorID];
-            pin.transform.localPosition = sectorWithId.Position * 2000f + new Vector3(0.0f, -15f, 0.0f);
-            pin.transform.localPosition = new Vector3(pin.transform.localPosition.x, pin.transform.localPosition.y, 0.0f);
-            m_mappins.Remove(oldSectorID);
-            m_mappins.Add(newSectorID, pin);
-            UpdatePinForSector(oldSectorID);
-        }
-
-        private void UpdatePinForSector(int inSectorID, int removedLogIndex = -1)
-        {
-            int index = 0;
-            foreach (CrewLogData logData in CrewLogManager.Instance.GetLogs())
+            foreach (MapPin pin in m_mappins[oldSectorID])
             {
-                if (logData.optionalSectorID == inSectorID && index != removedLogIndex)
+                if (pin.Name == name)
                 {
-                    this.AddPin(index);
+                    string name1 = pin.Name;
+                    Color color = pin.Color;
+                    int priority = pin.Priority;
+                    int logIndex = pin.LogIndex;
+                    RemovePinOfName(pin.Name);
+                    AddPin(name1, newSectorID, color, priority, logIndex);
                     break;
                 }
-                index++;
+            }
+        }
+
+        private void UpdatePinForSector(int inSectorID, bool removeLastIndex = false)
+        {
+            PLSectorInfo sectorWithId = PLServer.GetSectorWithID(inSectorID);
+            if (sectorWithId == null)
+                return;
+            if (m_mappins.ContainsKey(inSectorID))
+            {
+                foreach (MapPin mapPin in m_mappins[inSectorID])
+                {
+                    GameObject.Destroy(mapPin.PinObject);
+                }
+                if (removeLastIndex)
+                {
+                    m_mappins[inSectorID].RemoveAt(m_mappins[inSectorID].Count - 1);
+                    if (m_mappins[inSectorID].Count == 0)
+                    {
+                        m_mappins.Remove(inSectorID);
+                        return;
+                    }
+                }
+
+                MapPin mapPin1 = m_mappins[inSectorID][0];
+                Image pin = UnityEngine.Object.Instantiate(PLStarmap.Instance.HunterLocImage, PLStarmap.Instance.HunterLocImage.transform.parent);
+                pin.GetComponent<Image>().color = mapPin1.Color;
+                Image[] image = pin.GetComponentsInChildren<Image>();
+                image[1].color = mapPin1.Color * 0.5f;
+                image[2].color = mapPin1.Color;
+                pin.GetComponentInChildren<Text>().text = mapPin1.Name;
+                pin.GetComponentInChildren<Text>().color = mapPin1.Color;
+                pin.transform.localPosition = sectorWithId.Position * 2000f + new Vector3(0.0f, -15f, 0.0f);
+                pin.transform.localPosition = new Vector3(pin.transform.localPosition.x, pin.transform.localPosition.y, 0.0f);
+                pin.gameObject.name = mapPin1.Name + "_" + mapPin1.Priority.ToString();
+                pin.gameObject.SetActive(true);
+                image[1].gameObject.SetActive(true);
+                m_mappins[inSectorID][0].PinObject = pin.gameObject;
             }
         }
 
         public void UpdateAllPins()
         {
-            int index = 0;
-            foreach (CrewLogData logData in CrewLogManager.Instance.GetLogs())
+            foreach (int sectorId in m_mappins.Keys)
+                UpdatePinForSector(sectorId);
+        }
+
+        private void RemoveLogPin(int logIndex)
+        {
+            if (!(logIndex < this.m_logs.Count))
+                return;
+            CrewLogData data = m_logs[logIndex];
+            if (!m_mappins.ContainsKey(data.optionalSectorID))
+                return;
+            foreach (MapPin pin in m_mappins[data.optionalSectorID])
             {
-                if (logData.optionalSectorID != -1 && !m_mappins.Keys.Contains(logData.optionalSectorID))
+                if (pin.LogIndex == logIndex)
                 {
-                    this.AddPin(index);
+                    RemoveSectorPin(data.optionalSectorID, m_mappins[data.optionalSectorID].IndexOf(pin));
                     break;
                 }
-                index++;
             }
         }
 
-        private void RemovePin(int index)
-        {
-            if (!(index < this.m_logs.Count))
-                return;
-            CrewLogData data = m_logs[index];
-            if (!m_mappins.ContainsKey(data.optionalSectorID))
-                return;
-            UnityEngine.Object.Destroy(m_mappins[data.optionalSectorID]);
-            m_mappins.Remove(data.optionalSectorID);
-            UpdatePinForSector(data.optionalSectorID, index);
-        }
-
-        public void RemovePin(int sectorID)
+        public void RemoveSectorPin(int sectorID, int index)
         {
             if (!m_mappins.ContainsKey(sectorID))
                 return;
-            UnityEngine.Object.Destroy(m_mappins[sectorID]);
-            m_mappins.Remove(sectorID);
-            UpdatePinForSector(sectorID);
+            MapPin pin = m_mappins[sectorID][index];
+            m_mappins[sectorID].RemoveAt(index);
+            m_mappins[sectorID].Add(pin);
+            UpdatePinForSector(sectorID, true);
+        }
+
+        public void RemovePinOfName(string name)
+        {
+            int ID;
+            MapPin pin = GetPinOfName(name, out ID);
+            if (ID != -1)
+                RemoveSectorPin(ID, m_mappins[ID].IndexOf(pin));
         }
     }
     internal class CrewLog
@@ -821,12 +1658,15 @@ namespace ExpandedGalaxy
                     screenObjects.LogInfoPanel.gameObject.SetActive(true);
                     screenObjects.LogInfoBoxLabel.text = "New Log";
                     screenObjects.LogInfoBoxText.text = "";
+                    screenObjects.LogInfoBoxText.fontSize = 84;
+                    screenObjects.LogInfoBoxText.width = 720;
                     CrewLogData data = new CrewLogData
                     {
                         optionalSectorID = -1,
                         timeStamp = (float)PLServer.Instance.Playtime,
                         optionalColor = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f)),
-                        Text = string.Empty
+                        Text = string.Empty,
+                        specialData = -1
                     };
                     screenObjects.LogInfoBoxSectorButton.gameObject.SetActive(false);
                     screenObjects.LogInfoBoxSectorButton.GetComponentInChildren<UILabel>().text = string.Empty;
@@ -843,6 +1683,14 @@ namespace ExpandedGalaxy
                     CrewLogManager.Instance.LogIndex = -1;
                     screenObjects.LogInfoPanel.gameObject.SetActive(false);
                     CrewLogManager.Instance.HideKeyPad(__instance);
+                    if (screenObjects.SpecialLogObjects.Count > 0)
+                    {
+                        for (int i = 0; i < screenObjects.SpecialLogObjects.Count; i++)
+                        {
+                            UnityEngine.Object.Destroy(screenObjects.SpecialLogObjects[i].gameObject);
+                        }
+                        screenObjects.SpecialLogObjects.Clear();
+                    }
                     __instance.StartCoroutine(CrewLogManager.Instance.ToggleLogButtons(__instance, false));
                     __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
                 }
@@ -864,6 +1712,7 @@ namespace ExpandedGalaxy
                             sendArgumentList.Add(sendLogData.optionalColor.g);
                             sendArgumentList.Add(sendLogData.optionalColor.b);
                             sendArgumentList.Add(sendLogData.optionalColor.a);
+                            sendArgumentList.Add(sendLogData.specialData);
                         }
                         ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendLog", PhotonTargets.Others, sendArgumentList.ToArray());
                     }
@@ -907,6 +1756,7 @@ namespace ExpandedGalaxy
                             sendArgumentList.Add(sendLogData.optionalColor.g);
                             sendArgumentList.Add(sendLogData.optionalColor.b);
                             sendArgumentList.Add(sendLogData.optionalColor.a);
+                            sendArgumentList.Add(sendLogData.specialData);
                         }
                         ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendLog", PhotonTargets.Others, sendArgumentList.ToArray());
                     }
@@ -922,14 +1772,24 @@ namespace ExpandedGalaxy
                     CrewLogManager.Instance.TempData = CrewLogManager.Instance.GetLogs()[CrewLogManager.Instance.LogIndex];
                     screenObjects.LogInfoPanel.gameObject.SetActive(true);
                     screenObjects.LogInfoBoxLabel.text = "Log #" + (CrewLogManager.Instance.LogIndex + 1).ToString();
-                    screenObjects.LogInfoBoxText.text = CrewLogManager.Instance.TempData.Text;
-                    screenObjects.LogInfoBoxSectorButton.GetComponentInChildren<UILabel>().text = CrewLogManager.Instance.TempData.optionalSectorID.ToString();
                     screenObjects.LogInfoBoxSectorButton.gameObject.SetActive(false);
                     screenObjects.LogInfoSectorColor.color = CrewLogManager.Instance.TempData.optionalColor;
                     screenObjects.LogInfoBoxCreate.gameObject.SetActive(false);
-                    screenObjects.LogInfoButtonDel.gameObject.SetActive(true);
+                    CrewLogManager.Instance.HideKeyPad(__instance);
                     __instance.StartCoroutine(CrewLogManager.Instance.ToggleLogButtons(__instance));
                     __instance.PlaySoundEventOnAllClonedScreens("play_ship_generic_internal_computer_ui_click");
+                    if (CrewLogManager.Instance.TempData.specialData == -1)
+                    {
+                        screenObjects.LogInfoButtonDel.gameObject.SetActive(true);
+                        screenObjects.LogInfoBoxText.fontSize = 84;
+                        screenObjects.LogInfoBoxText.width = 720;
+                        screenObjects.LogInfoBoxText.text = CrewLogManager.Instance.TempData.Text;
+                        screenObjects.LogInfoBoxSectorButton.GetComponentInChildren<UILabel>().text = CrewLogManager.Instance.TempData.optionalSectorID.ToString();                      
+                    }
+                    else
+                    {
+                        CrewLogManager.Instance.SetupSpecialLog(__instance, CrewLogManager.Instance.TempData.specialData);
+                    }
                 }
                 else if (inButton.name == "LogInfoSectorBtn")
                 {
@@ -1112,7 +1972,8 @@ namespace ExpandedGalaxy
                     Text = (string)arguments[0],
                     timeStamp = (float)arguments[1],
                     optionalSectorID = (int)arguments[2],
-                    optionalColor = new Color((float)arguments[3], (float)arguments[4], (float)arguments[5], (float)arguments[6])
+                    optionalColor = new Color((float)arguments[3], (float)arguments[4], (float)arguments[5], (float)arguments[6]),
+                    specialData = -1
                 };
                 CrewLogManager.Instance.AddLog(logData);
                 PLPlayer player = Systems.GetPlayerFromPhotonPlayer(sender.sender);
@@ -1131,6 +1992,7 @@ namespace ExpandedGalaxy
                     sendArgumentList.Add(sendLogData.optionalColor.g);
                     sendArgumentList.Add(sendLogData.optionalColor.b);
                     sendArgumentList.Add(sendLogData.optionalColor.a);
+                    sendArgumentList.Add(sendLogData.specialData);
                 }
                 ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendLog", PhotonTargets.Others, sendArgumentList.ToArray());
             }
@@ -1150,7 +2012,8 @@ namespace ExpandedGalaxy
                         Text = (string)arguments[index++],
                         timeStamp = (float)arguments[index++],
                         optionalSectorID = (int)arguments[index++],
-                        optionalColor = new Color((float)arguments[index++], (float)arguments[index++], (float)arguments[index++], (float)arguments[index++])
+                        optionalColor = new Color((float)arguments[index++], (float)arguments[index++], (float)arguments[index++], (float)arguments[index++]),
+                        specialData = (int)arguments[index++]
                     };
                     CrewLogManager.Instance.AddLog(logData);
                 }
@@ -1176,6 +2039,7 @@ namespace ExpandedGalaxy
                         sendArgumentList.Add(sendLogData.optionalColor.g);
                         sendArgumentList.Add(sendLogData.optionalColor.b);
                         sendArgumentList.Add(sendLogData.optionalColor.a);
+                        sendArgumentList.Add(sendLogData.specialData);
                     }
                     ModMessage.SendRPC("sugarbuzz1.ExpandedGalaxy", "ExpandedGalaxy.ServerSendLog", newPhotonPlayer, sendArgumentList.ToArray());
                 }
