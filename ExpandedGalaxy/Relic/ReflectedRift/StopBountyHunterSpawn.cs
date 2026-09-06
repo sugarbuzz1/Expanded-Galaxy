@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using HarmonyLib;
 
-namespace ExpandedGalaxy.Relic.ReflectedRift
+namespace ExpandedGalaxy
 {
+    [HarmonyPatch(typeof(PLServer), "UpdateBountyHunter")]
     internal class StopBountyHunterSpawn
     {
+        private static bool Prefix(PLServer __instance)
+        {
+            return !ReflectedRift.inRift;
+        }
     }
 }

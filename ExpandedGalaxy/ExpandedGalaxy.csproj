@@ -46,6 +46,7 @@
     <Compile Include="ModdedComponents\WarpDrive\Components\MiningDroneDrive.cs" />
     <Compile Include="Relic\Interlude\BurrowArenaKillMusic.cs" />
     <Compile Include="Relic\Interlude\BurrowMusic.cs" />
+    <Compile Include="Relic\ReflectedRift\StopBountyHunterSpawn.cs" />
     <Compile Include="Screens\ShipSystemUI\TurretSysConduitAssign.cs" />
     <Compile Include="Screens\ShipSystemUI\WeaponSysFix.cs" />
     <Compile Include="Screens\ShipSystemUI\WeaponSysText.cs" />
