@@ -1,11 +1,7 @@
-﻿using CodeStage.AntiCheat.ObscuredTypes;
-using HarmonyLib;
-using PulsarModLoader;
+﻿using PulsarModLoader;
 using PulsarModLoader.Keybinds;
-using System;
 using System.Collections.Generic;
-using Talents.Framework;
-using UnityEngine;
+
 
 namespace ExpandedGalaxy
 {
@@ -14,9 +10,17 @@ namespace ExpandedGalaxy
         public Mod() : base()
         {
             PLGlobal.Instance.AuxSystemNames[4] = PLLocalize.Localize("Turret Autofire");
-            PLGlobal.Instance.Galaxy.FactionColors[6] = Relic.getRelicColor();
+            PLGlobal.Instance.Galaxy.FactionColors[6] = Relic.GetRelicColor();
+
+            Events.Instance.SpawnNewPlayerEvent += CrewLog.NewPlayerSendLogs;
+            Events.Instance.ServerStartEvent += CrewAI.PLServerAICoroutine.ServerStartAICoroutine;
+            Events.Instance.ServerStartEvent += NPCData.ServerStartGuidebookCoroutine;
+
+            CosmeticManager.Init();
+
+            Events.Instance.EnterNewGameEvent += CosmeticManager.Instance.OnEnterNewGame;
         }
-        public override string Version => "1.2.0";
+        public override string Version => "1.2.4";
 
         public override string Author => "sugarbuzz1";
 
@@ -40,8 +44,7 @@ namespace ExpandedGalaxy
             PLInput.Instance.EInputActionNameToString[63] = "full_reverse_throttle";
             PLInput.Instance.EInputActionNameToString[62] = "full_throttle";
             Talent.SetTalentsAsUnhidden();
-            Traverse traverse = Traverse.Create(PLGlobal.Instance);
-            traverse.Field("CachedTalentInfos").SetValue(new Dictionary<int, TalentInfo>());
+            PLGlobal.CachedTalentInfos = new Dictionary<int, TalentInfo>();
             base.Unload();
         }
 
