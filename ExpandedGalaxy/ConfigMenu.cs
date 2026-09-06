@@ -114,12 +114,12 @@ namespace ExpandedGalaxy
                     page = EMenuPage.SETTINGS;
                     return;
                 }
-                if (Achievements.HasUnlockedAchievement(1))
+                if (Achievements.HasUnlockedAchievement(0))
                 {
                     tempCosmeticData[8] = GUILayout.Toggle(tempCosmeticData[8], " Dark Exosuit Visor");
                 }
                 else
-                    GUILayout.Label("<color=#" + LockedColor + "> <LOCKED></color> Complete \"Existential Compilation\" to unlock!");
+                    GUILayout.Label("<color=#" + LockedColor + "> <LOCKED></color> Complete \"Full Rebuild\" to unlock!");
                 if (Achievements.HasUnlockedAchievement(2))
                 {
                     tempCosmeticData[4] = GUILayout.Toggle(tempCosmeticData[4], " Brown Sylvassi Suit");
