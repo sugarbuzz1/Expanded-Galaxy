@@ -1,5 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\PulsarLostColony.GameLibs.1.2.7.2\build\PulsarLostColony.GameLibs.props" Condition="Exists('..\packages\PulsarLostColony.GameLibs.1.2.7.2\build\PulsarLostColony.GameLibs.props')" />
+  <Import Project="..\packages\OpenSesame.Net.Compilers.Toolset.4.0.1\build\OpenSesame.Net.Compilers.Toolset.props" Condition="Exists('..\packages\OpenSesame.Net.Compilers.Toolset.4.0.1\build\OpenSesame.Net.Compilers.Toolset.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -13,15 +15,18 @@
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,7 +35,590 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Achievements\Achievements.cs" />
+    <Compile Include="Achievements\ClientUnlockAchievement.cs" />
+    <Compile Include="ModdedComponents\Shields\Components\MiningDroneShield\MiningDroneShield.cs" />
+    <Compile Include="ModdedComponents\Shields\Components\MiningDroneShield\MiningDroneShieldDamage.cs" />
+    <Compile Include="ModdedComponents\WarpDrive\Components\EscortDroneDrive.cs" />
+    <Compile Include="ModdedComponents\WarpDrive\Components\MiningDroneDrive.cs" />
+    <Compile Include="Relic\Interlude\BurrowArenaKillMusic.cs" />
+    <Compile Include="Relic\Interlude\BurrowMusic.cs" />
+    <Compile Include="Screens\ShipSystemUI\TurretSysConduitAssign.cs" />
+    <Compile Include="Screens\ShipSystemUI\WeaponSysFix.cs" />
+    <Compile Include="Screens\ShipSystemUI\WeaponSysText.cs" />
+    <Compile Include="Systems\ModdedCountdown\TriggerModdedCountdownRPC.cs" />
+    <Compile Include="PlanetObjectSetupManager\DestroyObjectWithViewID.cs" />
+    <Compile Include="PlanetObjectSetupManager\DPODestroyPatch.cs" />
+    <Compile Include="PlanetObjectSetupManager\ClientRequestViewIDs.cs" />
+    <Compile Include="PlanetObjectSetupManager\ServerSendViewIDs.cs" />
+    <Compile Include="Systems\AddExtraFactions.cs" />
+    <Compile Include="Screens\AllScreenCapture.cs" />
+    <Compile Include="Systems\GroundTurretInShipPatch.cs" />
+    <Compile Include="Systems\MoreUpgrades.cs" />
+    <Compile Include="Systems\PLFactionInfo_Unknown.cs" />
+    <Compile Include="Systems\ThrottleBoostMax.cs" />
+    <Compile Include="Systems\TurretAutoFire\AIFireBase.cs" />
+    <Compile Include="Systems\TurretAutoFire\AIFireFlamelance.cs" />
+    <Compile Include="Systems\TurretAutoFire\AlwaysShowLead.cs" />
+    <Compile Include="Systems\EMPPulse.cs" />
+    <Compile Include="Systems\Damage\ExGalDamagePatch.cs" />
+    <Compile Include="Systems\Damage\ExgalDamagePatchDSO.cs" />
+    <Compile Include="Systems\Damage\ExGalTakeHullDamagePatch.cs" />
+    <Compile Include="Systems\LoseRepOnShipClaim.cs" />
+    <Compile Include="Systems\PawnAbility\PawnAbilityHandler.cs" />
+    <Compile Include="PlanetCompPickups\PlanetCompPickups.cs" />
+    <Compile Include="Puppet\CaptainSetPuppetTarget.cs" />
+    <Compile Include="Puppet\DisablePuppetDroneJump.cs" />
+    <Compile Include="Puppet\DroneCollectScrap.cs" />
+    <Compile Include="Puppet\PuppetAggro.cs" />
+    <Compile Include="Puppet\PuppetTurretTarget.cs" />
+    <Compile Include="Puppet\SetPuppetTarget.cs" />
+    <Compile Include="Puppet\ShipAggroToPuppet.cs" />
+    <Compile Include="Puppet\ShipShouldBeAggroToPuppet.cs" />
+    <Compile Include="PlanetCompPickups\AddCompToPlanetRPC.cs" />
+    <Compile Include="Relic\Interlude\BurrowSetupCall.cs" />
+    <Compile Include="Relic\Interlude\CaravanBossUI.cs" />
+    <Compile Include="Relic\Caravan\AddCaravanShopComponent.cs" />
+    <Compile Include="Relic\Caravan\CanyonPlanetSetupCall.cs" />
+    <Compile Include="Relic\Caravan\CaravanCrewSpawn.cs" />
+    <Compile Include="Relic\Caravan\CaravanIcon.cs" />
+    <Compile Include="Relic\Caravan\CaravanNoHostile.cs" />
+    <Compile Include="Relic\Caravan\HandleCaravanEmergencyWarp.cs" />
+    <Compile Include="Relic\Caravan\MoveCaravan.cs" />
+    <Compile Include="Relic\Caravan\RecieveShopComponent.cs" />
+    <Compile Include="Relic\Caravan\RelicRewardMod.cs" />
+    <Compile Include="PlanetCompPickups\ClientRequestPickupQueue.cs" />
+    <Compile Include="PlanetCompPickups\PlanetCompPickupsInitGame.cs" />
+    <Compile Include="PlanetCompPickups\MarkPickupAsPickedUp.cs" />
+    <Compile Include="PlanetCompPickups\SetupRandCompFix.cs" />
+    <Compile Include="Relic\Caravan\Shop_Caravan.cs" />
+    <Compile Include="Relic\Caravan\SpawnCaravan.cs" />
+    <Compile Include="Relic\Caravan\UpdateCaravan.cs" />
+    <Compile Include="Relic\MiningDroneQuest\GXEntries\AddDroneGXEntries.cs" />
+    <Compile Include="Relic\MiningDroneQuest\Drones\DisableGuardianDroneWarp.cs" />
+    <Compile Include="Relic\MiningDroneQuest\Planet\DisableHubTeleporter.cs" />
+    <Compile Include="Relic\MiningDroneQuest\Drones\DropMiningDroneLoot.cs" />
+    <Compile Include="Relic\MiningDroneQuest\Drones\EscortDroneSpawn.cs" />
+    <Compile Include="Relic\MiningDroneQuest\GXEntries\HideDroneInfos.cs" />
+    <Compile Include="Relic\MiningDroneQuest\Drones\MiningDroneBePassive.cs" />
+    <Compile Include="Relic\MiningDroneQuest\Drones\MiningDroneMusic.cs" />
+    <Compile Include="Relic\MiningDroneQuest\MiningDroneQuest.cs" />
+    <Compile Include="Relic\MiningDroneQuest\Planet\MiningHubSetupCall.cs" />
+    <Compile Include="Relic\MiningDroneQuest\Planet\SectorDotsOnStarMap.cs" />
+    <Compile Include="Relic\MiningDroneQuest\Planet\SectorOnStarMap.cs" />
+    <Compile Include="Relic\MiningDroneQuest\Drones\SpawnMiningDrones.cs" />
+    <Compile Include="Relic\MiningDroneQuest\Planet\UpdateMiningHubLights.cs" />
+    <Compile Include="Relic\Caravan\RelicCaravan.cs" />
+    <Compile Include="Relic\ReflectedRift\WarpStationScreen\ClickStargateScreen.cs" />
+    <Compile Include="Relic\ReflectedRift\DataCache.cs" />
+    <Compile Include="Relic\ReflectedRift\DropDataCache.cs" />
+    <Compile Include="Relic\ReflectedRift\ReflectionCheck\EnsureReflectedRift.cs" />
+    <Compile Include="Relic\ReflectedRift\ReflectionCheck\FailReflectionCheck.cs" />
+    <Compile Include="Relic\ReflectedRift\GreyPlainsPlanet\GreyPlainsSetupCall.cs" />
+    <Compile Include="Relic\ReflectedRift\WarpStationScreen\IHateHardmode_WarpStationFix.cs" />
+    <Compile Include="Relic\ReflectedRift\WarpStationScreen\OnHoverStargateScreen.cs" />
+    <Compile Include="Relic\ReflectedRift\ReflectedRift.cs" />
+    <Compile Include="Relic\ReflectedRift\RiftBlindJump.cs" />
+    <Compile Include="Relic\ReflectedRift\RiftMusic.cs" />
+    <Compile Include="Relic\ReflectedRift\RiftNoPickupMissions.cs" />
+    <Compile Include="Relic\ReflectedRift\RiftNPCBePassive.cs" />
+    <Compile Include="Relic\ReflectedRift\RiftSectorNoPSIClear.cs" />
+    <Compile Include="Relic\ReflectedRift\RiftSectorSetupCall.cs" />
+    <Compile Include="Relic\ReflectedRift\SendToRift.cs" />
+    <Compile Include="Relic\ReflectedRift\ReflectionCheck\ServerSendReflectionCheck.cs" />
+    <Compile Include="Relic\ReflectedRift\WarpStationScreen\SetupStargateScreen.cs" />
+    <Compile Include="Relic\ReflectedRift\StargateSetupCall.cs" />
+    <Compile Include="Relic\ReflectedRift\StartReflectedRift.cs" />
+    <Compile Include="Relic\ReflectedRift\WarpStationScreen\UpdateStargateScreen.cs" />
+    <Compile Include="Relic\RelicColor.cs" />
+    <Compile Include="Relic\RelicText.cs" />
+    <Compile Include="Relic\StargatePuzzle\Face.cs" />
+    <Compile Include="Relic\StargatePuzzle\StargatePuzzle.cs" />
+    <Compile Include="Screens\SensorScreen\SensorButtonMouseAway.cs" />
+    <Compile Include="Screens\SensorScreen\SensorOnButtonHoverPatch.cs" />
+    <Compile Include="Screens\SensorScreen\SensorScreenButtonClick.cs" />
+    <Compile Include="Screens\SensorScreen\SensorScreenUpdate.cs" />
+    <Compile Include="Screens\SensorScreen\SetupSensorUI.cs" />
+    <Compile Include="SectorCommanders\Vanilla\GrimCutlass\CutlassDropCULong2.cs" />
+    <Compile Include="SectorCommanders\Vanilla\Deathwarden\DeathwardenDischarge.cs" />
+    <Compile Include="SectorCommanders\Vanilla\AncientSentry\MoreSentryComps.cs" />
+    <Compile Include="SectorCommanders\Vanilla\AncientSentry\SentryEMP.cs" />
+    <Compile Include="SectorCommanders\Vanilla\AncientSentry\SentryRage.cs" />
+    <Compile Include="SectorCommanders\Vanilla\AncientSentry\SentryStart.cs" />
+    <Compile Include="SectorCommanders\Vanilla\AllSCStats.cs" />
+    <Compile Include="SectorCommanders\Modded\IsSectorCommanderPatch.cs" />
+    <Compile Include="Systems\LoadFunctions\CustomLoad.cs" />
+    <Compile Include="Systems\LoadFunctions\KillInfectedBoss.cs" />
+    <Compile Include="Systems\LoadFunctions\NoUpdateWhenLoading.cs" />
+    <Compile Include="Missions\AddMissionsToCampaign.cs" />
+    <Compile Include="Missions\BlockedInteriorDoor.cs" />
+    <Compile Include="Missions\MissionFlags\Components\BossFlag.cs" />
+    <Compile Include="Missions\MissionFlags\Components\CaravanFlag.cs" />
+    <Compile Include="Missions\MissionFlags\Components\MiningDroneBossFlag.cs" />
+    <Compile Include="Missions\MissionFlags\Components\MiningDroneFlag.cs" />
+    <Compile Include="Missions\MissionFlags\Components\MissionAddOneCPUSlotComp.cs" />
+    <Compile Include="Missions\MissionFlags\Components\MissionComponentFlag.cs" />
+    <Compile Include="Missions\MissionFlags\Components\MissionNoExtractorFlag.cs" />
+    <Compile Include="Missions\MissionFlags\Components\MissionShipFlagComp.cs" />
+    <Compile Include="Missions\MissionFlags\Components\NoScalingFlag.cs" />
+    <Compile Include="Missions\MissionFlags\Patches\BossUIFlagShow.cs" />
+    <Compile Include="Missions\MissionFlags\Patches\CreateMissionFlagFromHash.cs" />
+    <Compile Include="Missions\MissionFlags\Patches\HandleNoExtractorFlag.cs" />
+    <Compile Include="Missions\MissionFlags\Patches\HandleSlotBonuses.cs" />
+    <Compile Include="Missions\MissionFlags\Patches\MissionNoScaling.cs" />
+    <Compile Include="Missions\MissionFlags\Patches\PLInGameUIUpdatePatch.cs" />
+    <Compile Include="Missions\Patches\AddModdedObjectives.cs" />
+    <Compile Include="Missions\Patches\CompleteAfterJumpWarp.cs" />
+    <Compile Include="Missions\Patches\CrewLogAsReward.cs" />
+    <Compile Include="Missions\MissionData\AOGTeasureFleet\IrradiatedCargoTreasFleet.cs" />
+    <Compile Include="Missions\MissionData\BadBiscuits\AddShopComponent.cs" />
+    <Compile Include="Missions\MissionData\BadBiscuits\BadBiscuitEnd.cs" />
+    <Compile Include="Missions\MissionData\BadBiscuits\BadBiscuits.cs" />
+    <Compile Include="Missions\MissionData\CargoInspectionRepeatable.cs" />
+    <Compile Include="Missions\MissionData\CUFriendlyFavor\CUFriendlyFavorA.cs" />
+    <Compile Include="Missions\MissionData\CUFriendlyFavor\CUFriendlyFavorAHidden.cs" />
+    <Compile Include="Missions\MissionData\CUFriendlyFavor\CUFriendlyFavorB.cs" />
+    <Compile Include="Missions\MissionData\Interlude\InterludeStart.cs" />
+    <Compile Include="Missions\MissionData\JunkCubeQuest\JunkCubeRetrieval.cs" />
+    <Compile Include="Missions\MissionData\JunkCubeQuest\JunkCubeStart.cs" />
+    <Compile Include="Missions\MissionData\JunkCubeQuest\JunkCubeWait1.cs" />
+    <Compile Include="Missions\MissionData\JunkCubeQuest\JunkCubeWait2.cs" />
+    <Compile Include="Missions\MissionData\JunkCubeQuest\JunkCubeWait3.cs" />
+    <Compile Include="Missions\MissionData\MiningDroneQuestMission.cs" />
+    <Compile Include="Missions\MissionData\AchievementMissions\RecompilerMaxDifficulty.cs" />
+    <Compile Include="Missions\MissionData\AchievementMissions\RecompilerPolytech.cs" />
+    <Compile Include="Missions\MissionData\ReflectedRiftStart.cs" />
+    <Compile Include="Missions\MissionData\Interlude\TheMap.cs" />
+    <Compile Include="Missions\MissionData\Interlude\TheMapHidden.cs" />
+    <Compile Include="Missions\MissionData\AOGTeasureFleet\TreasureFleet.cs" />
+    <Compile Include="Missions\MissionData\AOGTeasureFleet\TreasureFleetKilledFriendly.cs" />
+    <Compile Include="Missions\MissionData\AOGTeasureFleet\TreasureFleetRewardA.cs" />
+    <Compile Include="Missions\MissionData\AOGTeasureFleet\TreasureFleetRewardB.cs" />
+    <Compile Include="Missions\MissionData\WDProjVulcanus\WDHuntProjVulcanus.cs" />
+    <Compile Include="Missions\MissionData\WDProjVulcanus\MissionShipCrewSpawn.cs" />
+    <Compile Include="Missions\MissionData\WDProjVulcanus\VulcanusShipDeliver.cs" />
+    <Compile Include="Missions\MissionData\WDProjVulcanus\VulcanusShipUpdate.cs" />
+    <Compile Include="Missions\MissionData\AOGTeasureFleet\ServerSendNPCSector.cs" />
+    <Compile Include="Missions\MissionData\AOGTeasureFleet\SpawnFullFleet.cs" />
+    <Compile Include="Missions\MissionData\AOGTeasureFleet\TreasureFleetClaim.cs" />
+    <Compile Include="Missions\MissionData\AOGTeasureFleet\TreasureFleetDestroySelfPatch.cs" />
+    <Compile Include="Missions\MissionData\AOGTeasureFleet\TreasureFleetStartPatch.cs" />
+    <Compile Include="Missions\MissionData\AOGTeasureFleet\UpdateTreasureFleet.cs" />
+    <Compile Include="Missions\MissionData\BadBiscuits\Shop_FBCarrier.cs" />
+    <Compile Include="Missions\Patches\MissionDifficultyColor.cs" />
+    <Compile Include="Missions\Patches\MissionDifficultyOverride.cs" />
+    <Compile Include="Missions\PLMissionObjective_CompleteAfterJumpCount.cs" />
+    <Compile Include="Missions\MissionData\CUFriendlyFavor\SignalScanner.cs" />
+    <Compile Include="Missions\Patches\SkipLocalization.cs" />
+    <Compile Include="Missions\Patches\SlowerPickupMissions.cs" />
+    <Compile Include="Missions\MissionFlags\Components\ReflectedRiftShipFlag.cs" />
+    <Compile Include="Missions\MissionFlags\Components\RolandSCFlag.cs" />
+    <Compile Include="ModdedComponents\CaptainChair\CaptainsChairLeftDescFix.cs" />
+    <Compile Include="ModdedComponents\CaptainChair\CaptainsChairRightDescFix.cs" />
+    <Compile Include="ModdedComponents\CaptainChair\CaptainsChairTickPatch.cs" />
+    <Compile Include="ModdedComponents\CaptainChair\CaptainsChairWarpPatch.cs" />
+    <Compile Include="ModdedComponents\Extractor\ExtractorWarpPatch.cs" />
+    <Compile Include="ModdedComponents\Hull\HullFinalAddStats.cs" />
+    <Compile Include="ModdedComponents\Hull\HullFinalLateAddStats.cs" />
+    <Compile Include="ModdedComponents\WarpDrive\WarpDriveTickPatch.cs" />
+    <Compile Include="NPCData\CreateActorData.cs" />
+    <Compile Include="NPCData\Handbook\EnsureGuidebookOnGameOver.cs" />
+    <Compile Include="NPCData\ExtraLineReqDataCases.cs" />
+    <Compile Include="NPCData\Handbook\HandleInsideShipDAIs.cs" />
+    <Compile Include="PersistantScrap\CollectPersistantScrap.cs" />
+    <Compile Include="PersistantScrap\DelayedSetupPersistantScrapCall.cs" />
+    <Compile Include="PersistantScrap\ExtraScrapData.cs" />
+    <Compile Include="PersistantScrap\InitExtraScrapData.cs" />
+    <Compile Include="PersistantScrap\SendScrapRPC.cs" />
+    <Compile Include="SectorCommanders\Modded\PFSectorCommander\CreatePFCommanderSector.cs" />
+    <Compile Include="SectorCommanders\Modded\PFSectorCommander\DropPFCommanderLoot.cs" />
+    <Compile Include="SectorCommanders\Modded\PFSectorCommander\ExtraScrapFix.cs" />
+    <Compile Include="SectorCommanders\Modded\PFSectorCommander\Fix.cs" />
+    <Compile Include="SectorCommanders\Modded\PFSectorCommander\NoAsteroids.cs" />
+    <Compile Include="SectorCommanders\Modded\PFSectorCommander\PFSectorCommanderCrewSpawn.cs" />
+    <Compile Include="SectorCommanders\Modded\PFSectorCommander\PFSectorCommanderKill.cs" />
+    <Compile Include="SectorCommanders\Modded\PFSectorCommander\PFSectorCommanderScalingFix.cs" />
+    <Compile Include="SectorCommanders\Modded\PFSectorCommander\PFSectorCommanderUpdate.cs" />
+    <Compile Include="SectorCommanders\Modded\PFSectorCommander\PolyTechBots.cs" />
+    <Compile Include="SectorCommanders\Modded\PFSectorCommander\SpawnFirstBoss.cs" />
+    <Compile Include="StarterInfo\AOG\CarrierInfoMod.cs" />
+    <Compile Include="StarterInfo\CU\IntrepidInfoMod.cs" />
+    <Compile Include="StarterInfo\CU\OutriderInfoMod.cs" />
+    <Compile Include="StarterInfo\CU\RolandInfoMod.cs" />
+    <Compile Include="StarterInfo\FB\FluffyOneInfoMod.cs" />
+    <Compile Include="StarterInfo\AOG\StargazerInfoMod.cs" />
+    <Compile Include="StarterInfo\AOG\SwordshipInfoMod.cs" />
+    <Compile Include="StarterInfo\FB\FluffyTwoInfoMod.cs" />
+    <Compile Include="StarterInfo\SetupFlagSlot.cs" />
+    <Compile Include="StarterInfo\Other\Drones\TriCorpShockDroneMod.cs" />
+    <Compile Include="StarterInfo\Other\SC\AlchemistInfoMod.cs" />
+    <Compile Include="StarterInfo\Other\CivilianStartingShipMod.cs" />
+    <Compile Include="StarterInfo\Other\SC\IntrepidCommanderInfoMod.cs" />
+    <Compile Include="StarterInfo\Other\NoBeaconScrap.cs" />
+    <Compile Include="StarterInfo\Other\OldWarsShip_HumanMod.cs" />
+    <Compile Include="StarterInfo\WD\AnnihilatorInfoMod.cs" />
+    <Compile Include="StarterInfo\WD\CruiserInfoMod.cs" />
+    <Compile Include="StarterInfo\WD\DestroyerInfoMod.cs" />
+    <Compile Include="SyncCheck\RecieveSyncCheck.cs" />
+    <Compile Include="SyncCheck\RequestSyncCheck.cs" />
+    <Compile Include="Systems\PawnAbility\ShowAbilityText.cs" />
+    <Compile Include="Puppet\PilotDrone.cs" />
+    <Compile Include="Systems\SendWarning.cs" />
+    <Compile Include="Systems\UpdateSubTypeData.cs" />
+    <Compile Include="Talent\CrewAcademyTraining\AddOneTalentPoint.cs" />
+    <Compile Include="Talent\CrewAcademyTraining\CrewAcademyTraining.cs" />
+    <Compile Include="Talent\EngiEyeImplant\EngineerImplant.cs" />
+    <Compile Include="Talent\EngiEyeImplant\HandleEngiUI.cs" />
+    <Compile Include="Talent\JetpackFuelReserve\CustomJetpackFuel2.cs" />
+    <Compile Include="Talent\MaterialRebalance.cs" />
+    <Compile Include="Talent\NoManualResearch.cs" />
+    <Compile Include="Talent\ProbeLocator\ProbeLocator.cs" />
+    <Compile Include="Talent\ProbeLocator\ProbeLocatorUI.cs" />
+    <Compile Include="Talent\ReloaderModded\Reloader2.cs" />
+    <Compile Include="Talent\ReloaderModded\ReloaderTalent.cs" />
+    <Compile Include="Talent\ReloaderModded\ReloadRPC.cs" />
+    <Compile Include="Talent\ResearchSpecialtyModded\MaterialRebate.cs" />
+    <Compile Include="Talent\ResearchSpecialtyModded\ResearchSpecialty2.cs" />
+    <Compile Include="Talent\CrewAcademyTraining\ResetExtraPoints.cs" />
+    <Compile Include="Talent\TalentsFixFix.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\BotPatches\CrewReloaderTalent.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\BotPatches\ExGalSpawn.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\AmmoSync\ClientSendAmmoToServer.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\AmmoSync\PLAmmoRefillUpdatePatch.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\AmmoSync\ReloadUpdate.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\ShipAmmoRefillPatch.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\ShipAmmoRefillPatchArena.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\StartingAmmo\BeamPistolAmmo.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\StartingAmmo\BurstRifleAmmo.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\StartingAmmo\HealingBeamRifleAmmo.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\StartingAmmo\HeavyPistolAmmo.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\AmmoCrate\AmmunitionCrate.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\AmmoCrate\AmmunitionCrateInShops.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\AmmoCrate\AmmunitionShortDesc.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\AmmoCrate\AttemptToProcessScrapCargoPatch.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\BotPatches\BotAmmoRebate.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\AmmoCrate\NoAmmoRefill.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\StartingAmmo\PhasePistolAmmo.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\StartingAmmo\SmugglerPistolAmmo.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\StartingAmmo\SmugglerPistolDamage.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\StartingAmmo\SplitshotAmmo.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\AmmoSync\SyncAmmoClient.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\AmmoSync\SyncAmmoServer.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\AmmoSync\UpdateItemNoAmmoCall.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\AmmoSync\UpdateItemNoAmmoClient.cs" />
+    <Compile Include="ToggleableOptions\Ammunition\Ammunition.cs" />
+    <Compile Include="ChaosEvents\BuyFuelCap.cs" />
+    <Compile Include="ChaosEvents\ChaosEvents.cs" />
+    <Compile Include="ChaosEvents\CoolantChaosEventPrice.cs" />
+    <Compile Include="ChaosEvents\DisableWarpStationScreen.cs" />
+    <Compile Include="ChaosEvents\FuelChaosEventPrice.cs" />
+    <Compile Include="ChaosEvents\HandleCargoInspections.cs" />
+    <Compile Include="ChaosEvents\HandleChaosEvents.cs" />
+    <Compile Include="ChaosEvents\OnChaosEventActivatePatch.cs" />
+    <Compile Include="ChaosEvents\Patch_UpdateMainItems_ReplaceString.cs" />
+    <Compile Include="ChaosEvents\ScanComponentsFromScreen.cs" />
+    <Compile Include="CosmeticManager\UpdateModdedCosmetics.cs" />
+    <Compile Include="CyberAtk\AddCWR.cs" />
+    <Compile Include="CyberAtk\CWRAddStats.cs" />
+    <Compile Include="CyberAtk\CWRText.cs" />
+    <Compile Include="CyberAtk\NewVirusCalc.cs" />
+    <Compile Include="CyberAtk\RolandCD.cs" />
+    <Compile Include="CyberAtk\RolandCDText.cs" />
+    <Compile Include="CyberAtk\Shop_ProcessorsCWR.cs" />
+    <Compile Include="CyberAtk\Shop_ProgramsSyberWar.cs" />
+    <Compile Include="CyberAtk\StargazerCWR.cs" />
+    <Compile Include="CyberAtk\StargazerCWRText.cs" />
+    <Compile Include="CyberAtk\VirusScreenCWRText.cs" />
+    <Compile Include="CosmeticManager\ClientSendCosmeticData.cs" />
+    <Compile Include="CosmeticManager\ClientSendCosmeticDataCall.cs" />
+    <Compile Include="Systems\DataSaver\DataManager\RecieveData.cs" />
+    <Compile Include="Systems\DataSaver\SaveValues\SaveValues.cs" />
+    <Compile Include="Systems\DataSaver\DataManager\SendData.cs" />
+    <Compile Include="Systems\DataSaver\DataManager\SendSubTypeData.cs" />
+    <Compile Include="Systems\DataSaver\DataManager\ShipUpdatePatch.cs" />
+    <Compile Include="Systems\DataSaver\ResetFlags\CreateNewGame.cs" />
+    <Compile Include="Systems\DataSaver\DataManager\DataManager.cs" />
+    <Compile Include="Systems\DataSaver\ResetFlags\JoinRoomPatch.cs" />
+    <Compile Include="Systems\DataSaver\ResetFlags\ResetFlags.cs" />
+    <Compile Include="Systems\DataSaver\SaveValues\SetPreferencesWhenCreatingGame.cs" />
+    <Compile Include="ModdedComponents\CaptainChair\ChairDesc.cs" />
+    <Compile Include="ModdedComponents\CaptainChair\ChairLateAddStats.cs" />
+    <Compile Include="ModdedComponents\CaptainChair\DontKickFromChairWhilePiloting.cs" />
+    <Compile Include="ModdedComponents\CaptainChair\ModdedRandomChair.cs" />
+    <Compile Include="ModdedComponents\CaptainChair\Components\RelicChair.cs" />
+    <Compile Include="ModdedComponents\CaptainChair\Components\WDModernChair.cs" />
+    <Compile Include="ModdedComponents\Cloak\CloakAddStats.cs" />
+    <Compile Include="ModdedComponents\Cloak\CloakFinalLateAddStats.cs" />
+    <Compile Include="ModdedComponents\Cloak\CloakNoSysConduit.cs" />
+    <Compile Include="ModdedComponents\Cloak\CloakTick.cs" />
+    <Compile Include="ModdedComponents\Cloak\EMSignatureDecreaser.cs" />
+    <Compile Include="ModdedComponents\Cloak\Remove0EMSignature.cs" />
+    <Compile Include="ModdedComponents\Cloak\ScientistScreenFix.cs" />
+    <Compile Include="ModdedComponents\Cloak\StatLineForCloakLeft.cs" />
+    <Compile Include="ModdedComponents\Cloak\StatLineForCloakRight.cs" />
+    <Compile Include="ModdedComponents\CPU\CPUAddStatsPatch.cs" />
+    <Compile Include="ModdedComponents\CPU\CPUConstructorPatch.cs" />
+    <Compile Include="ModdedComponents\CPU\CPUFinalLateAddStatsPatch.cs" />
+    <Compile Include="ModdedComponents\CPU\CPUTickPatch.cs" />
+    <Compile Include="ModdedComponents\CPU\JumpSysInstText.cs" />
+    <Compile Include="ModdedComponents\CPU\Components\SuperShieldCPU.cs" />
+    <Compile Include="ModdedComponents\CPU\SuperShieldTooltip.cs" />
+    <Compile Include="ModdedComponents\CPU\Components\SylvassiCPU.cs" />
+    <Compile Include="ModdedComponents\CPU\Components\UpdateSylvassiCPU.cs" />
+    <Compile Include="CosmeticManager\CosmeticManager.cs" />
+    <Compile Include="CrewAI\CrewAI.cs" />
+    <Compile Include="CrewLog\CrewLogManager.cs" />
+    <Compile Include="ToggleableOptions\Exosuit\BetterExosuitDamage.cs" />
+    <Compile Include="ToggleableOptions\Exosuit\Exosuit.cs" />
+    <Compile Include="ToggleableOptions\Exosuit\NoExosuitSlowdown.cs" />
+    <Compile Include="ToggleableOptions\Exosuit\NoExosuitSprint.cs" />
+    <Compile Include="ToggleableOptions\Exosuit\NoFireDamage.cs" />
+    <Compile Include="Systems\LoadFunctions\LoadFunctions.cs" />
+    <Compile Include="ModdedComponents\DistressSignal\DistressSignalHashFix.cs" />
+    <Compile Include="ModdedComponents\DistressSignal\Components\MiningDroneSignal.cs" />
+    <Compile Include="ModdedComponents\Extractor\Components\PrototypeExtractor\PrototypeExtractorExtractPatch.cs" />
+    <Compile Include="ModdedComponents\Extractor\Components\PrototypeExtractor\PrototypeExtractorMod.cs" />
+    <Compile Include="ModdedComponents\Extractor\Components\PrototypeExtractor\PrototypeExtractorPercentPatch.cs" />
+    <Compile Include="ModdedComponents\HullPlating\Components\BonePlating\BonePlating.cs" />
+    <Compile Include="ModdedComponents\HullPlating\Components\BonePlating\BonePlatingMod.cs" />
+    <Compile Include="ModdedComponents\HullPlating\Components\HeavyDutyPlating\HeavyDutyPlating.cs" />
+    <Compile Include="ModdedComponents\HullPlating\Components\HeavyDutyPlating\HeavyDutyPlatingMod.cs" />
+    <Compile Include="ModdedComponents\HullPlating\Components\LightPlating\LightPlating.cs" />
+    <Compile Include="ModdedComponents\HullPlating\Components\LightPlating\LightPlatingMod.cs" />
+    <Compile Include="ModdedComponents\HullPlating\Components\NanoActivePlating\NanoActivePlating.cs" />
+    <Compile Include="ModdedComponents\HullPlating\Components\NanoActivePlating\NanoActivePlatingMod.cs" />
+    <Compile Include="ModdedComponents\HullPlating\Components\BonePlating\DropBonePlating.cs" />
+    <Compile Include="ModdedComponents\HullPlating\StatLineForBaseHullPlatingLeft.cs" />
+    <Compile Include="ModdedComponents\HullPlating\StatLineForBaseHullPlatingRight.cs" />
+    <Compile Include="ModdedComponents\HullPlating\StatsForBaseHullPlating.cs" />
+    <Compile Include="ModdedComponents\HullPlating\UpdateArmor.cs" />
+    <Compile Include="ModdedComponents\Hull\ClearMass.cs" />
+    <Compile Include="ModdedComponents\Hull\Components\CaravanHullMod.cs" />
+    <Compile Include="ModdedComponents\Hull\Components\EscortDroneHullMod.cs" />
+    <Compile Include="ModdedComponents\Hull\Components\GuardianDroneHullMod.cs" />
+    <Compile Include="ModdedComponents\Hull\Components\JuggernautHull\JuggernautDamage.cs" />
+    <Compile Include="ModdedComponents\Hull\Components\JuggernautHull\JuggernautHullMod.cs" />
+    <Compile Include="ModdedComponents\Hull\Components\MiningDroneHullMod.cs" />
+    <Compile Include="ModdedComponents\Hull\LayeredArmorMaxLine.cs" />
+    <Compile Include="ModdedComponents\Hull\LayeredArmorMaxNumberLine.cs" />
+    <Compile Include="ModdedComponents\Hull\MassForBaseHulls.cs" />
+    <Compile Include="ModdedComponents\Hull\MassLineForBaseHullsLeft.cs" />
+    <Compile Include="ModdedComponents\Hull\MassLineForBaseHullsRight.cs" />
+    <Compile Include="ModdedComponents\Items\Components\AutoRifle\AutoRifleMod.cs" />
+    <Compile Include="ModdedComponents\Items\Components\JetpackCanister\CanisterInShops.cs" />
+    <Compile Include="ModdedComponents\Items\HealBeamNotWeapon.cs" />
+    <Compile Include="ModdedComponents\Items\Components\JetpackCanister\JetpackCanisterMod.cs" />
+    <Compile Include="ModdedComponents\Items\PawnItemFoodAction.cs" />
+    <Compile Include="ModdedComponents\Items\PawnStatusEffectText.cs" />
+    <Compile Include="ModdedComponents\Items\Components\AutoRifle\PLPawnItem_AutoRifle.cs" />
+    <Compile Include="ModdedComponents\Items\Components\JetpackCanister\PLPawnItem_JetpackCanister.cs" />
+    <Compile Include="ModdedComponents\Items\Components\WarpKey\PLPawnItem_WarpKey.cs" />
+    <Compile Include="ModdedComponents\Items\SpeedBoost.cs" />
+    <Compile Include="ModdedComponents\Items\Components\WarpKey\WarpKeyMod.cs" />
+    <Compile Include="ModdedComponents\Missiles\MissileCargoPrefab.cs" />
+    <Compile Include="ModdedComponents\Missiles\MissileDamageFix.cs" />
+    <Compile Include="ModdedComponents\Missiles\MissileTag.cs" />
+    <Compile Include="ModdedComponents\Missiles\PLMissleFixedUpdatePatch.cs" />
+    <Compile Include="ModdedComponents\Missiles\PLMissleOnPhotonSerializeViewPatch.cs" />
+    <Compile Include="ModdedComponents\Missiles\PulseLaserDmgPatch.cs" />
+    <Compile Include="ModdedComponents\Missiles\Components\RelicMissile.cs" />
+    <Compile Include="ModdedComponents\Missiles\SeekerDamage.cs" />
+    <Compile Include="ModdedComponents\Missiles\Components\SwarmerMissile.cs" />
+    <Compile Include="ModdedComponents\Missiles\Components\ThermobaricMissileMod.cs" />
+    <Compile Include="ModdedComponents\Nukes\AboutToBeDestroyedyEffect.cs" />
+    <Compile Include="ModdedComponents\Nukes\DSOEffectUpdate.cs" />
+    <Compile Include="ModdedComponents\Nukes\NuclearDeviceExtraLineLeft.cs" />
+    <Compile Include="ModdedComponents\Nukes\NuclearDeviceExtraLineRight.cs" />
+    <Compile Include="ModdedComponents\Nukes\NuclearDevicePatch.cs" />
+    <Compile Include="ModdedComponents\Nukes\NukeDamageEffect.cs" />
+    <Compile Include="ModdedComponents\Nukes\OnDestroyEffectDSO.cs" />
+    <Compile Include="ModdedComponents\Nukes\ShipEffectIcon.cs" />
+    <Compile Include="ModdedComponents\Nukes\ShipEffectUpdate.cs" />
+    <Compile Include="ModdedComponents\Nukes\ShipStatusEffectData.cs" />
+    <Compile Include="ModdedComponents\Nukes\UpdateStatusDatas.cs" />
+    <Compile Include="ModdedComponents\Programs\BetterRand.cs" />
+    <Compile Include="ModdedComponents\Programs\Components\Corruption\CorruptionControls.cs" />
+    <Compile Include="ModdedComponents\Programs\Components\Corruption\CorruptionDamage.cs" />
+    <Compile Include="ModdedComponents\Programs\Components\Corruption\CorruptionProgramMod.cs" />
+    <Compile Include="ModdedComponents\Programs\Components\DigQuake.cs" />
+    <Compile Include="ModdedComponents\Programs\Components\EMPModded.cs" />
+    <Compile Include="ModdedComponents\Programs\Components\HEAT\HeatDamage.cs" />
+    <Compile Include="ModdedComponents\Programs\Components\HEAT\HeatMod.cs" />
+    <Compile Include="ModdedComponents\Programs\DetectorRework.cs" />
+    <Compile Include="ModdedComponents\Programs\MakesSenseToRunPatch.cs" />
+    <Compile Include="ModdedComponents\Programs\OverdriveBuff.cs" />
+    <Compile Include="ModdedComponents\Programs\ProgramExecute.cs" />
+    <Compile Include="ModdedComponents\Programs\ProgramFGColor.cs" />
+    <Compile Include="ModdedComponents\Programs\ProgramText.cs" />
+    <Compile Include="ModdedComponents\Programs\RandSmallFix.cs" />
+    <Compile Include="ModdedComponents\Programs\RandText.cs" />
+    <Compile Include="ModdedComponents\Programs\ShieldBoostNumbers.cs" />
+    <Compile Include="ModdedComponents\Programs\Components\SpecialTraining\SpecialTrainingMod.cs" />
+    <Compile Include="ModdedComponents\Programs\Components\SpecialTraining\SpecialTrainingVirusMod.cs" />
+    <Compile Include="ModdedComponents\Programs\Shop_Exotic1Heat.cs" />
+    <Compile Include="ModdedComponents\Programs\Shop_Exotic2RandLarge.cs" />
+    <Compile Include="ModdedComponents\Programs\VirusEffect.cs" />
+    <Compile Include="ModdedComponents\PTModules\AdaptiveArmorPT.cs" />
+    <Compile Include="ModdedComponents\PTModules\Components\BossPT1.cs" />
+    <Compile Include="ModdedComponents\PTModules\Components\BossPT3.cs" />
+    <Compile Include="ModdedComponents\PTModules\Components\BossPT4.cs" />
+    <Compile Include="ModdedComponents\PTModules\Components\BossPT5.cs" />
+    <Compile Include="ModdedComponents\Reactor\CustomColors.cs" />
+    <Compile Include="ModdedComponents\Reactor\Components\DarkReactor\DarkReactor.cs" />
+    <Compile Include="ModdedComponents\Reactor\Components\MiningDroneReactor.cs" />
+    <Compile Include="ModdedComponents\Reactor\Components\ModifiedRolandReactor.cs" />
+    <Compile Include="ModdedComponents\Reactor\Components\DarkReactor\NoCoolant.cs" />
+    <Compile Include="ModdedComponents\Reactor\Components\DarkReactor\NoDigiCooolant.cs" />
+    <Compile Include="ModdedComponents\Reactor\ResetColor.cs" />
+    <Compile Include="ModdedComponents\Shields\ChargeShieldFix.cs" />
+    <Compile Include="ModdedComponents\Shields\ChargeShieldWhenOff.cs" />
+    <Compile Include="ModdedComponents\Shields\Components\ReflectorShield\ReflectorShield.cs" />
+    <Compile Include="ModdedComponents\Shields\Components\ReflectorShield\ReflectorShieldDamage.cs" />
+    <Compile Include="ModdedComponents\Shields\Components\RelicShield\RelicShieldDamage.cs" />
+    <Compile Include="ModdedComponents\Shields\Components\RelicShield\SuspensionField.cs" />
+    <Compile Include="ModdedComponents\Thrusters\Components\StabilizerInertia\StabilizerInertiaMissile.cs" />
+    <Compile Include="ModdedComponents\Thrusters\Components\StabilizerInertia\StabilizerInertiaTurret.cs" />
+    <Compile Include="ModdedComponents\Thrusters\Components\StabilizerInertia\StabilizerMod.cs" />
+    <Compile Include="ModdedComponents\Turrets\AutoTurrets\Components\AncientAutoLaser\AncientAutoLaser.cs" />
+    <Compile Include="ModdedComponents\Turrets\AutoTurrets\Components\AutoLaser\AutoLaser.cs" />
+    <Compile Include="ModdedComponents\Turrets\AutoTurrets\Components\AncientAutoLaser\AncientAutoLaserMod.cs" />
+    <Compile Include="ModdedComponents\Turrets\AutoTurrets\Components\AutoLaser\AutoLaserMod.cs" />
+    <Compile Include="ModdedComponents\Turrets\AutoTurrets\Patches\GetAutoTurret.cs" />
+    <Compile Include="ModdedComponents\Turrets\ExplosionAOE.cs" />
+    <Compile Include="ModdedComponents\Turrets\FixTargetting.cs" />
+    <Compile Include="ModdedComponents\Turrets\ProjDamageTypePatch.cs" />
+    <Compile Include="ModdedComponents\Turrets\RandomMegaTurretInShop.cs" />
+    <Compile Include="ModdedComponents\Turrets\HeldLaserTurret\RecieveHeldLaserDamage.cs" />
+    <Compile Include="ModdedComponents\Turrets\Shop_Exotic2Turrets.cs" />
+    <Compile Include="ModdedComponents\Turrets\Shop_Exotic3Turrets.cs" />
+    <Compile Include="ModdedComponents\Turrets\TurretRange\StrictProjRange.cs" />
+    <Compile Include="ModdedComponents\Turrets\TurretRange\LaserTurretRange.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\Disassembler\DisassemblerMod.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\Guardian\GuardianMainTurretMod.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\Guardian\GuardianMainTurret.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\ImpGlaive\ImpGlaiveMod.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Components\MiningLaser\MiningLaserMod.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Components\MissileMk2\MissileTurretMk2Mod.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Components\NaniteRailgun\NaniteRailgunMod.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Components\ParticleLance\ParticleLanceMod.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\CoilArtillery\PhysicalTurretMod.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\CoilArtillery\PhysicalTurret.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\Ripper\RipperTurrret.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\WDStandard\WDStandard.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\Ripper\RipperTurretMod.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Components\SeekerTurret\SeekerTurretMod.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Components\ModdedSylvassi\SylvassiTurretMod.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\WDLong\WDLongMod.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\WDStandard\WDStandardMod.cs" />
+    <Compile Include="ModdedComponents\Turrets\HeldLaserTurret\HeldLaserTurret.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Components\MiningLaser\MiningLaser.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Components\MissileMk2\MissileTurretMk2.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Components\NaniteRailgun\NaniteRailgun.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Components\ParticleLance\ParticleLance.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Components\SeekerTurret\SeekerProjFix.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Components\SeekerTurret\SeekerTurret.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Components\ModdedSylvassi\SylvassiTurret.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Components\ModdedSylvassi\SylvassiTurretDamage.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Patches\DefenderPowerFix.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Patches\ExplosionDamageString.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Patches\FocusLaserDamageNerf.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Patches\LightningDamageNerf.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Patches\LightningDamageShockDrone.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Patches\PlasmaTurretFix.cs" />
+    <Compile Include="ModdedComponents\Turrets\AuxTurrets\Patches\RailgunTurretFix.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\Disassembler\Disassembler.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\Disassembler\DisassemblerHeal.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\ImpGlaive\ImpGlaive.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\ImpGlaive\ImpGlaiveCharge.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\ImpGlaive\TickCharge.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\CoilArtillery\SwitchTurretModeRPC.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\WDLong\WDLong.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Patches\CULong2Stats.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Patches\CULongStats.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Patches\FlashfireStats.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Patches\MegaTurretStats.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Patches\RapidfireStats.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Patches\TickPowerUsage.cs" />
+    <Compile Include="ModdedComponents\Turrets\AutoTurrets\Components\AutoLaser\ReciveAutoLaserDamage.cs" />
+    <Compile Include="ModdedComponents\Turrets\TurretRange\MegaTurretRange.cs" />
+    <Compile Include="ModdedComponents\Turrets\TurretRange\PhaseTurretRange.cs" />
+    <Compile Include="ModdedComponents\Turrets\TurretRange\PulseLaserRange.cs" />
+    <Compile Include="ModdedComponents\WarpDrive\ChargePrograms.cs" />
+    <Compile Include="ModdedComponents\WarpDrive\Components\DestroyedDrive.cs" />
+    <Compile Include="ModdedComponents\WarpDrive\WarpDriveAddStatsPatch.cs" />
+    <Compile Include="ModdedComponents\WarpDrive\WarpDriveProgramChargeRebalance.cs" />
+    <Compile Include="ModdedComponents\WarpDrive\WarpDriveUpdatePatch.cs" />
+    <Compile Include="Systems\ModdedCountdown\ModdedCountdown.cs" />
+    <Compile Include="ModdedComponents\Nukes\Nukes.cs" />
+    <Compile Include="PlanetObjectSetupManager\PlanetObjectSetupManager.cs" />
+    <Compile Include="Screens\ModdedScreenBase.cs" />
+    <Compile Include="Screens\TerminalScreen.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Components\AncientSensorDish\AncientSensorDish.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Components\AncientSensorDish\AncientSensorDishMod.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Components\AncientSensorDish\HostileTakeover.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Components\AncientSensorDish\HostileTakeoverRPC.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Components\AncientSensorDish\MissileLock.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Components\AncientSensorDish\Patches\AncientSensorDishMissileRebateP1.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Components\AncientSensorDish\Patches\AncientSensorDishMissileRebateP2.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Components\AncientSensorDish\Patches\CachePlayerRPC.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Components\AncientSensorDish\Patches\CacheRealPlayer.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Components\AncientSensorDish\Patches\FireProbePatch.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Components\AncientSensorDish\Patches\AncientSensorMissileLock.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Components\AncientSensorDish\Patches\RemoveArmor.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Components\AncientSensorDish\WeakenArmor.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Framework\Patches\OnButtonHoverPatch.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Framework\Patches\OptimizeForBotPatch.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Framework\VanillaSensorDish\Patches\SensorDishCyberDefWeaknessCheck.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Framework\Patches\SensorDishHashFix.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Framework\VanillaSensorDish\Patches\SensorDishReactorWeaknessCheck.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Framework\VanillaSensorDish\Patches\SensorDishShieldWeaknessCheck.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Framework\Patches\UpdateSensorScreenPatch.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Framework\SensorDishAbility.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Framework\SensorDishMod.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Framework\SensorDishModManager.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Framework\VanillaSensorDish\CyberDefenseFlaw.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Framework\VanillaSensorDish\ReactorProtocol.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Framework\VanillaSensorDish\VanillaSensorDishMod.cs" />
+    <Compile Include="ModdedComponents\SensorDish\Framework\VanillaSensorDish\WeakenShields.cs" />
+    <Compile Include="NPCData\NPCData.cs" />
+    <Compile Include="ExGalCommand.cs" />
+    <Compile Include="CrewLog\CrewLog.cs" />
+    <Compile Include="SyncCheck\SyncCheck.cs" />
+    <Compile Include="PersistantScrap\PersistantScrapManager.cs" />
+    <Compile Include="Missions\Missions.cs" />
+    <Compile Include="Talent\Talent.cs" />
+    <Compile Include="Relic\Relic.cs" />
+    <Compile Include="ModdedComponents\Items\Items.cs" />
+    <Compile Include="ConfigMenu.cs" />
+    <Compile Include="ToggleableOptions\Jetpack\Jetpack.cs" />
+    <Compile Include="ModdedComponents\Cloak\Cloak.cs" />
+    <Compile Include="Puppet\Puppet.cs" />
+    <Compile Include="StarterInfo\StarterInfo.cs" />
+    <Compile Include="Systems\DataSaver\DataSaver.cs" />
+    <Compile Include="ModdedComponents\Programs\Programs.cs" />
+    <Compile Include="ModdedComponents\Turrets\Turrets.cs" />
+    <Compile Include="SectorCommanders\Modded\PFSectorCommander\PFSectorCommander.cs" />
+    <Compile Include="CyberAtk\CyberAtk.cs" />
+    <Compile Include="Systems\Systems.cs" />
+    <Compile Include="ModdedComponents\Hull\Hull.cs" />
+    <Compile Include="Mod.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ToggleableOptions\Jetpack\JetpackFuelReserveUI.cs" />
+    <Compile Include="ToggleableOptions\Jetpack\JetpackRecharge.cs" />
+    <Compile Include="WarpDriveScreen\ClickBrokenWarpDriveScreen.cs" />
+    <Compile Include="WarpDriveScreen\OnButtonMouseAwayBrokenDriveScreen.cs" />
+    <Compile Include="WarpDriveScreen\OnHoverBrokenDriveScreen.cs" />
+    <Compile Include="WarpDriveScreen\SetupBrokenDriveScreen.cs" />
+    <Compile Include="WarpDriveScreen\UpdateBrokenDriveScreen.cs" />
+    <Compile Include="WarpDriveScreen\UpdateGlitchBrokenDriveScreen.cs" />
+    <Compile Include="WarpDriveScreen\WarpDriveScreen.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <ItemGroup>
     <Reference Include=".Talents v0.0.1">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\Mods\.Talents v0.0.1.dll</HintPath>
@@ -38,99 +626,586 @@
     <Reference Include="0Harmony">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\0Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="ACTk.Runtime">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\ACTk.Runtime.dll</HintPath>
+    <Reference Include="Accessibility, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Accessibility.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\Assembly-CSharp.dll</HintPath>
+    <Reference Include="ACTk.Examples.Genuine.Runtime, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\ACTk.Examples.Genuine.Runtime.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="AstarPathfindingProject">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\AstarPathfindingProject.dll</HintPath>
+    <Reference Include="ACTk.Examples.Runtime, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\ACTk.Examples.Runtime.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="CrewAILibraryBuild, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\CrewAILibraryBuild.dll</HintPath>
+    <Reference Include="ACTk.Runtime, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\ACTk.Runtime.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="PLInputBase">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\PLInputBase.dll</HintPath>
+    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Assembly-CSharp.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="PulsarModLoader">
+    <Reference Include="Assembly-CSharp-firstpass, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="AstarPathfindingProject, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\AstarPathfindingProject.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Behave.Unity.Assets, Version=0.0.0.0, Culture=neutral, PublicKeyToken=e615ca22040f207c, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Behave.Unity.Assets.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Behave.Unity.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=e615ca22040f207c, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Behave.Unity.Runtime.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Cinemachine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Cinemachine.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="com.rlabrecque.steamworks.net, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\com.rlabrecque.steamworks.net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="CrewAILibraryBuild, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\CrewAILibraryBuild.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="DecalSystem.Runtime, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\DecalSystem.Runtime.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="HOTween, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\HOTween.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Mono.Data.Sqlite, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Mono.Data.Sqlite.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Mono.Posix, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Mono.Posix.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Mono.Security, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Mono.Security.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Mono.WebBrowser, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Mono.WebBrowser.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\netstandard.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Novell.Directory.Ldap, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Novell.Directory.Ldap.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Oculus.Platform, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Oculus.Platform.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Oculus.VR, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Oculus.VR.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Pathfinding.ClipperLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Pathfinding.ClipperLib.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Pathfinding.Ionic.Zip.Reduced, Version=1.9.1.9000, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Pathfinding.Ionic.Zip.Reduced.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Pathfinding.Poly2Tri, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Pathfinding.Poly2Tri.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Photon3Unity3D, Version=4.1.6.10, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Photon3Unity3D.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="PilotAIBuild, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\PilotAIBuild.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="PLInputBase, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\PLInputBase.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="protobuf-net, Version=2.0.0.668, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\protobuf-net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="PulsarModLoader, Version=0.12.3.31, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\PulsarModLoader.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\UnityEngine.dll</HintPath>
+    <Reference Include="RestSharp, Version=104.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\RestSharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SteamVR, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\SteamVR.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SteamVR_Actions, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\SteamVR_Actions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.ComponentModel.Composition.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.ComponentModel.DataAnnotations, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.ComponentModel.DataAnnotations.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Configuration.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Data.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Design, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Design.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Diagnostics.StackTrace, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Diagnostics.StackTrace.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.DirectoryServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.DirectoryServices.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Drawing.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Drawing.Design, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Drawing.Design.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.EnterpriseServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.EnterpriseServices.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Globalization.Extensions, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Globalization.Extensions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.IO.Compression, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.IO.Compression.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.IO.Compression.FileSystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.IO.Compression.FileSystem.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Net.Http.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Numerics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Numerics.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Runtime.Serialization.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization.Formatters.Soap, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Runtime.Serialization.Formatters.Soap.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization.Xml, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Runtime.Serialization.Xml.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Security.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.ServiceModel.Internals, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.ServiceModel.Internals.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Transactions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Transactions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Web.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.ApplicationServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Web.ApplicationServices.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Services, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Web.Services.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Windows.Forms.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Xml.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml.Linq, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Xml.Linq.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml.XPath.XDocument, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\System.Xml.XPath.XDocument.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Unity.Analytics.DataPrivacy, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Unity.Analytics.DataPrivacy.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Unity.InputSystem, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Unity.InputSystem.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Unity.Recorder, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Unity.Recorder.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Unity.Recorder.Base, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Unity.Recorder.Base.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Unity.Subsystem.Registration, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Unity.Subsystem.Registration.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Unity.TerrainTools, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Unity.TerrainTools.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Unity.TextMeshPro.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Unity.Timeline, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Unity.Timeline.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Unity.XR.Management, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Unity.XR.Management.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Unity.XR.OpenVR, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Unity.XR.OpenVR.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AccessibilityModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.AccessibilityModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.AIModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AndroidJNIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.AndroidJNIModule.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="UnityEngine.AnimationModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.AnimationModule.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    <Reference Include="UnityEngine.ARModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.ARModule.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="UnityEngine.IMGUIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+    <Reference Include="UnityEngine.AssetBundleModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.AssetBundleModule.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="UnityEngine.ParticleSystemModule">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
+    <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.AudioModule.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="UnityEngine.PhysicsModule">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+    <Reference Include="UnityEngine.ClothModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.ClothModule.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+    <Reference Include="UnityEngine.ClusterInputModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.ClusterInputModule.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\PULSARLostColony\PULSAR_LostColony_Data\Managed\UnityEngine.UI.dll</HintPath>
+    <Reference Include="UnityEngine.ClusterRendererModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.ClusterRendererModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.CoreModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CrashReportingModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.CrashReportingModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.DirectorModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.DirectorModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.DSPGraphModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.DSPGraphModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.GameCenterModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.GameCenterModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.GIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.GIModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.GridModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.GridModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.HotReloadModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.HotReloadModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.ImageConversionModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.InputModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.InputModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.JSONSerializeModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.JSONSerializeModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.LocalizationModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.LocalizationModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.ParticleSystemModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.PerformanceReportingModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.PerformanceReportingModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.Physics2DModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.Physics2DModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ProfilerModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.ProfilerModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ScreenCaptureModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.ScreenCaptureModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.SharedInternalsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.SharedInternalsModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.SpatialTracking, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.SpatialTracking.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.SpriteMaskModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.SpriteMaskModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.SpriteShapeModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.SpriteShapeModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.StreamingModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.StreamingModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.SubstanceModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.SubstanceModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.SubsystemsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.SubsystemsModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.TerrainModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainPhysicsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.TerrainPhysicsModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextCoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.TextCoreModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TilemapModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.TilemapModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TLSModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.TLSModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.UI.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.UIElementsModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsNativeModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.UIElementsNativeModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.UIModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UmbraModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.UmbraModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UNETModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.UNETModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityAnalyticsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.UnityAnalyticsModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityConnectModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.UnityConnectModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityCurlModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.UnityCurlModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityTestProtocolModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.UnityTestProtocolModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestAssetBundleModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.UnityWebRequestAssetBundleModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestAudioModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.UnityWebRequestModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestTextureModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestWWWModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.VehiclesModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.VehiclesModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.VFXModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.VFXModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.VideoModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.VideoModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.VirtualTexturingModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.VirtualTexturingModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.VRModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.VRModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.WindModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.WindModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.XR.LegacyInputHelpers, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.XR.LegacyInputHelpers.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="UnityEngine.XRModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\UnityEngine.XRModule.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Valve.Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\Valve.Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="websocket-sharp, Version=1.0.2.59611, Culture=neutral, PublicKeyToken=5660b08a1845a91e, processorArchitecture=MSIL">
+      <HintPath>..\packages\PulsarLostColony.GameLibs.1.2.7.2\lib\websocket-sharp.dll</HintPath>
+      <Private>True</Private>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CaptainChair.cs" />
-    <Compile Include="Ammunition.cs" />
-    <Compile Include="ChaosEvents.cs" />
-    <Compile Include="Extractor.cs" />
-    <Compile Include="NPCData.cs" />
-    <Compile Include="CrewAI.cs" />
-    <Compile Include="ExGalCommand.cs" />
-    <Compile Include="CrewLog.cs" />
-    <Compile Include="WarpDrive.cs" />
-    <Compile Include="PersistantScrapManager.cs" />
-    <Compile Include="DistressSignal.cs" />
-    <Compile Include="Missions.cs" />
-    <Compile Include="Talent.cs" />
-    <Compile Include="Relic.cs" />
-    <Compile Include="Items.cs" />
-    <Compile Include="ConfigMenu.cs" />
-    <Compile Include="Jetpack.cs" />
-    <Compile Include="Cloak.cs" />
-    <Compile Include="Thrusters.cs" />
-    <Compile Include="Puppet.cs" />
-    <Compile Include="SyncCheck.cs" />
-    <Compile Include="SectorCommanders.cs" />
-    <Compile Include="Reactors.cs" />
-    <Compile Include="Shields.cs" />
-    <Compile Include="ManualPatches.cs" />
-    <Compile Include="SensorDish.cs" />
-    <Compile Include="StarterInfo.cs" />
-    <Compile Include="DataSaver.cs" />
-    <Compile Include="Programs.cs" />
-    <Compile Include="CPU.cs" />
-    <Compile Include="PTModules.cs" />
-    <Compile Include="Missiles.cs" />
-    <Compile Include="Turrets.cs" />
-    <Compile Include="PFSectorCommander.cs" />
-    <Compile Include="CyberAtk.cs" />
-    <Compile Include="Systems.cs" />
-    <Compile Include="HullPlating.cs" />
-    <Compile Include="Hull.cs" />
-    <Compile Include="Mod.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\OpenSesame.Net.Compilers.Toolset.4.0.1\build\OpenSesame.Net.Compilers.Toolset.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\OpenSesame.Net.Compilers.Toolset.4.0.1\build\OpenSesame.Net.Compilers.Toolset.props'))" />
+    <Error Condition="!Exists('..\packages\PulsarLostColony.GameLibs.1.2.7.2\build\PulsarLostColony.GameLibs.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\PulsarLostColony.GameLibs.1.2.7.2\build\PulsarLostColony.GameLibs.props'))" />
+  </Target>
 </Project>
