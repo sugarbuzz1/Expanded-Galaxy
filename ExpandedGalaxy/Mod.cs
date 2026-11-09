@@ -20,7 +20,7 @@ namespace ExpandedGalaxy
 
             Events.Instance.EnterNewGameEvent += CosmeticManager.Instance.OnEnterNewGame;
         }
-        public override string Version => "1.2.4";
+        public override string Version => "1.2.5";
 
         public override string Author => "sugarbuzz1";
 
