@@ -104,17 +104,25 @@ namespace ExpandedGalaxy
                         wareKeys.Remove(currentKey);
                     }
                 }
-                if (PLServer.DoesPEIOfTypeExist_AndBeenVisited(ESectorVisualIndication.ANCIENT_SENTRY) && RelicCaravan.CaravanSpecialsData % 10 != 1)
+                if (PLServer.DoesPEIOfTypeExist_AndBeenVisited(ESectorVisualIndication.ANCIENT_SENTRY) && (RelicCaravan.CaravanSpecialsData & 1) == 0)
                 {
                     PLPersistantShipInfo psiWithShipType1 = PLServer.GetPSIWithShipType(EShipType.E_CORRUPTED_DRONE);
-                    if (psiWithShipType1 == null || psiWithShipType1.IsShipDestroyed)
+                    if (psiWithShipType1.IsShipDestroyed)
                     {
                         persistantCaravanInfo.OptionalTPDE.ServerAddWare(new AncientAutoLaser());
                         persistantCaravanInfo.OptionalTPDE.ServerAddWare(new AncientAutoLaser());
-                        RelicCaravan.CaravanSpecialsData = (RelicCaravan.CaravanSpecialsData / 10) + 1;
+                        RelicCaravan.CaravanSpecialsData |= 1;
                     }
                 }
-
+                if (PLServer.DoesPEIOfTypeExist_AndBeenVisited(ESectorVisualIndication.ALCHEMIST) && (RelicCaravan.CaravanSpecialsData & 2) == 0)
+                {
+                    PLPersistantShipInfo psiWithShipType1 = PLServer.GetPSIWithShipType(EShipType.E_ALCHEMIST);
+                    if (psiWithShipType1.IsShipDestroyed)
+                    {
+                        persistantCaravanInfo.OptionalTPDE.ServerAddWare(new AcidTurret());
+                        RelicCaravan.CaravanSpecialsData |= 2;
+                    }
+                }
             }
         }
 

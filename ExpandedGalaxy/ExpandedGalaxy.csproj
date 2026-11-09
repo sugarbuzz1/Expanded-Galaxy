@@ -43,6 +43,8 @@
     <Compile Include="ModdedComponents\Shields\Components\MiningDroneShield\MiningDroneShield.cs" />
     <Compile Include="ModdedComponents\Shields\Components\MiningDroneShield\MiningDroneShieldDamage.cs" />
     <Compile Include="ModdedComponents\Turrets\AuxTurrets\Patches\BurstTurretFix.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\AcidTurret\AcidTurret.cs" />
+    <Compile Include="ModdedComponents\Turrets\MainTurrets\Components\AcidTurret\AcidTurretMod.cs" />
     <Compile Include="ModdedComponents\WarpDrive\Components\EscortDroneDrive.cs" />
     <Compile Include="ModdedComponents\WarpDrive\Components\MiningDroneDrive.cs" />
     <Compile Include="Relic\Interlude\BurrowArenaKillMusic.cs" />
