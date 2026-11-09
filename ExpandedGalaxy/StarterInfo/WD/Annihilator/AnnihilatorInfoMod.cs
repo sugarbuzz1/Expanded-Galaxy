@@ -15,6 +15,7 @@ namespace ExpandedGalaxy
             {
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
                     return;
+                __instance.MyStats.AddShipComponent(new AnnihilatorFlag(), visualSlot: ESlotType.E_COMP_REAC_COOLING);
                 if (startingPlayerShip || previewStats)
                 {
                     return;

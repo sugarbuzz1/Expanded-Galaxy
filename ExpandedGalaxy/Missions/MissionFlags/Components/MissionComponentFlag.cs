@@ -40,6 +40,8 @@ namespace ExpandedGalaxy
                     return new MiningDroneBossFlag();
                 case 9:
                     return new RolandSCFlag();
+                case 10:
+                    return new AnnihilatorFlag();
                 default:
                     return null;
             }

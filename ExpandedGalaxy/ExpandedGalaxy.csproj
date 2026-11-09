@@ -40,6 +40,7 @@
   <ItemGroup>
     <Compile Include="Achievements\Achievements.cs" />
     <Compile Include="Achievements\ClientUnlockAchievement.cs" />
+    <Compile Include="Missions\MissionFlags\Components\AnnihilatorFlag.cs" />
     <Compile Include="ModdedComponents\Shields\Components\MiningDroneShield\MiningDroneShield.cs" />
     <Compile Include="ModdedComponents\Shields\Components\MiningDroneShield\MiningDroneShieldDamage.cs" />
     <Compile Include="ModdedComponents\Turrets\AuxTurrets\Patches\BurstTurretFix.cs" />
@@ -53,6 +54,7 @@
     <Compile Include="Screens\ShipSystemUI\TurretSysConduitAssign.cs" />
     <Compile Include="Screens\ShipSystemUI\WeaponSysFix.cs" />
     <Compile Include="Screens\ShipSystemUI\WeaponSysText.cs" />
+    <Compile Include="StarterInfo\WD\Annihilator\AnnihilatorOnWarpPatch.cs" />
     <Compile Include="Systems\ModdedCountdown\TriggerModdedCountdownRPC.cs" />
     <Compile Include="PlanetObjectSetupManager\DestroyObjectWithViewID.cs" />
     <Compile Include="PlanetObjectSetupManager\DPODestroyPatch.cs" />
@@ -263,7 +265,7 @@
     <Compile Include="StarterInfo\Other\SC\IntrepidCommanderInfoMod.cs" />
     <Compile Include="StarterInfo\Other\NoBeaconScrap.cs" />
     <Compile Include="StarterInfo\Other\OldWarsShip_HumanMod.cs" />
-    <Compile Include="StarterInfo\WD\AnnihilatorInfoMod.cs" />
+    <Compile Include="StarterInfo\WD\Annihilator\AnnihilatorInfoMod.cs" />
     <Compile Include="StarterInfo\WD\CruiserInfoMod.cs" />
     <Compile Include="StarterInfo\WD\DestroyerInfoMod.cs" />
     <Compile Include="SyncCheck\RecieveSyncCheck.cs" />
