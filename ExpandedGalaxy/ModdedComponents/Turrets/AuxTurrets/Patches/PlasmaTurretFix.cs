@@ -6,9 +6,9 @@ namespace ExpandedGalaxy
     [HarmonyPatch(typeof(PLBasicTurret), MethodType.Constructor, new Type[2] { typeof(int), typeof(int) })]
     internal class PlasmaTurretFix
     {
-        private static void Postfix(PLRailgunTurret __instance, int inLevel, int inSubTypeData)
+        private static void Postfix(PLBasicTurret __instance, int inLevel, int inSubTypeData)
         {
-            __instance.m_Damage = 150f;
+            __instance.m_Damage = 175f;
             Traverse traverse = Traverse.Create(__instance);
             traverse.Field("FireDelay").SetValue(5f);
             traverse.Field("TurretRange").SetValue(4500f);

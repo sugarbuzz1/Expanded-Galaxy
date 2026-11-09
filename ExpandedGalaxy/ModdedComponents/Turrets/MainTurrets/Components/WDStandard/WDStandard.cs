@@ -18,7 +18,7 @@ namespace ExpandedGalaxy
             this.Desc = "A main turret equipped with a battery array allowing it to fire multiple times before needing to recharge. It has a max range of 7 km.";
             this.m_Damage = 250f;
             this.SubType = MegaTurretModManager.Instance.GetMegaTurretIDFromName("WDStandard");
-            this.m_MarketPrice = (ObscuredInt)20000;
+            this.m_MarketPrice = (ObscuredInt)8000;
             this.FireDelay = 20f;
             this.m_MaxPowerUsage_Watts = 14150f;
             this.CargoVisualPrefabID = 5;

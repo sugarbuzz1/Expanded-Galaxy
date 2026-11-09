@@ -1,5 +1,4 @@
 ﻿using PulsarModLoader.Content.Components.MegaTurret;
-using static ExpandedGalaxy.Turrets;
 
 namespace ExpandedGalaxy
 {

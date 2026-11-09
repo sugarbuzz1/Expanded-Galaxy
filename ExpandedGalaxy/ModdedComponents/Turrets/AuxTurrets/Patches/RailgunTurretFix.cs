@@ -9,7 +9,6 @@ namespace ExpandedGalaxy
         private static void Postfix(PLRailgunTurret __instance, int inLevel, int inSubTypeData)
         {
             __instance.ProjSpeed = 3600f;
-            __instance.m_Damage = 55f;
         }
     }
 }

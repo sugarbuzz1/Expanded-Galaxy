@@ -9,7 +9,7 @@ namespace ExpandedGalaxy
 
         public override string Description => "This reactor creates power at a scale unlike any other. Interestingly, it seems to have no reaction to ANY form of coolant.";
 
-        public override int MarketPrice => 50500;
+        public override int MarketPrice => 20500;
 
         public override float EnergyOutputMax => 46000f;
 

@@ -15,7 +15,7 @@ namespace ExpandedGalaxy
             this.Desc = "Turret with tremendous firepower that charges quicker when the hull takes damage. It was the foundational building block of a long-fallen empire.";
             this.m_Damage = 650f;
             this.SubType = MegaTurretModManager.Instance.GetMegaTurretIDFromName("Imperial Glaive");
-            this.m_MarketPrice = (ObscuredInt)40000;
+            this.m_MarketPrice = (ObscuredInt)20000;
             this.FireDelay = 32f;
             this.m_MaxPowerUsage_Watts = 10800f;
             this.TurretRange = 13000f;

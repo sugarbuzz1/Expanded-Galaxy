@@ -12,7 +12,6 @@ namespace ExpandedGalaxy
                 switch (turret.SubType)
                 {
                     case (int)ETurretType.PLASMA:
-                    case (int)ETurretType.BURST:
                         return 16;
                 }
             }

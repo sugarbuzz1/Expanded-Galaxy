@@ -8,7 +8,7 @@ namespace ExpandedGalaxy
 
         public override string Description => "This hull boasts formidable strength and boosted collision damage. However, it isn't compatible with shields.";
 
-        public override int MarketPrice => 38000;
+        public override int MarketPrice => 20000;
 
         public override float HullMax => 1500f;
 

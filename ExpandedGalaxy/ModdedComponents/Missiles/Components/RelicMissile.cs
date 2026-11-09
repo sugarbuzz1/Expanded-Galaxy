@@ -10,7 +10,7 @@ namespace ExpandedGalaxy
 
         public override int MarketPrice => 20000;
 
-        public override float Damage => 295f;
+        public override float Damage => 395f;
 
         public override float Speed => 8f;
 

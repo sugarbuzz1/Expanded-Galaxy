@@ -13,7 +13,7 @@ namespace ExpandedGalaxy
 
         public override string Description => "This chair was aboard the ship captained by Jana Cron - the first human vessel to enter this galaxy. It has its own integrated piloting system which can control a small drone. Drone is repaired automatically when visiting a repair depot.";
 
-        public override int MarketPrice => 30000;
+        public override int MarketPrice => 10000;
 
         public override string GetStatLineRight(PLShipComponent InComp)
         {
@@ -264,8 +264,9 @@ namespace ExpandedGalaxy
         {
             List<ComponentOverrideData> droneParts = new List<ComponentOverrideData>();
             int compLevel = 0;
-            if (ship.MyShieldGenerator != null)
-                compLevel = ship.MyShieldGenerator.Level / 2;
+            PLShipComponent comp = ship.MyStats.GetShipComponent<PLShipComponent>(ESlotType.E_COMP_CAPTAINS_CHAIR);
+            if (comp != null)
+                compLevel = comp.Level / 2;
             droneParts.Add
                     (
                         new ComponentOverrideData()
@@ -279,9 +280,6 @@ namespace ExpandedGalaxy
                             SlotNumberToReplace = 0
                         }
                     );
-            compLevel = 0;
-            if (ship.MyReactor != null)
-                compLevel = ship.MyReactor.Level / 2;
             droneParts.Add
                 (
                 new ComponentOverrideData()
@@ -295,9 +293,6 @@ namespace ExpandedGalaxy
                     SlotNumberToReplace = 0
                 }
                 );
-            compLevel = 0;
-            if (ship.MyHull != null)
-                compLevel = ship.MyHull.Level / 2;
             droneParts.Add
                 (
                 new ComponentOverrideData()
@@ -331,7 +326,7 @@ namespace ExpandedGalaxy
                     CompType = (int)ESlotType.E_COMP_CPU,
                     CompSubType = (int)ECPUClass.E_CPUTYPE_SHIELD_COPROCESSOR,
                     ReplaceExistingComp = true,
-                    CompLevel = 0,
+                    CompLevel = compLevel / 2,
                     IsCargo = false,
                     CompTypeToReplace = (int)ESlotType.E_COMP_CPU,
                     SlotNumberToReplace = 1
@@ -344,15 +339,12 @@ namespace ExpandedGalaxy
                     CompType = (int)ESlotType.E_COMP_CPU,
                     CompSubType = (int)ECPUClass.E_CPUTYPE_SHIELD_COPROCESSOR,
                     ReplaceExistingComp = true,
-                    CompLevel = 0,
+                    CompLevel = compLevel / 2,
                     IsCargo = false,
                     CompTypeToReplace = (int)ESlotType.E_COMP_CPU,
                     SlotNumberToReplace = 2
                 }
                 );
-            compLevel = 0;
-            if (ship.MyStats.GetShipComponent<PLTurret>(ESlotType.E_COMP_MAINTURRET) != null)
-                compLevel = ship.MyStats.GetShipComponent<PLTurret>(ESlotType.E_COMP_MAINTURRET).Level / 2;
             droneParts.Add
                 (
                 new ComponentOverrideData()
