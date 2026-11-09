@@ -12,6 +12,7 @@ namespace ExpandedGalaxy
         {
             if (__instance == null || __instance.MyStats == null)
                 return;
+            __instance.MyStats.SetSlotLimit(ESlotType.E_COMP_NUCLEARDEVICE, 3);
             try
             {
                 if (!__instance.ShouldCreateDefaultComponents || !(PhotonNetwork.isMasterClient | previewStats))
